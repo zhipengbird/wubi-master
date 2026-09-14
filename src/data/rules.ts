@@ -313,6 +313,256 @@ export const SPLIT_QUIZ_QUESTIONS: SplitQuizItem[] = [
   }
 ];
 
+// ================= 模块 2：字根五区趣味助记与闯关 =================
+export interface ZoneDetail {
+  zone: number;
+  name: string;
+  stroke: string;
+  keys: string;
+  color: string;
+  mnemonicHero: string; // 拟人化/顺口溜记忆法
+  description: string;
+  keysDetail: {
+    key: string;
+    code: string;
+    keyName: string;
+    mnemonic: string;
+    roots: string[];
+    tips: string;
+  }[];
+}
+
+export const ZONES_DETAILED: ZoneDetail[] = [
+  {
+    zone: 1,
+    name: '1区 · 横起区',
+    stroke: '一 (横/提)',
+    keys: 'G - F - D - S - A',
+    color: '#3b82f6',
+    mnemonicHero: '王者工匠团：以“王”为首，起笔皆为一横，指尖横扫天下！',
+    description: '1区包括 G(11)、F(12)、D(13)、S(14)、A(15)，从键盘中心 G 往左延伸至 A。字根起笔均为横（提笔归入横）。',
+    keysDetail: [
+      { key: 'G', code: '11', keyName: '王', mnemonic: '王旁青头戋五一', roots: ['王', '龶', '戋', '五', '一'], tips: '1区1位：单笔画“一”与王字旁，打四下 GGGG 出“王”' },
+      { key: 'F', code: '12', keyName: '土', mnemonic: '土士二干十寸雨', roots: ['土', '士', '二', '干', '十', '寸', '雨'], tips: '1区2位：涵盖二、十、土等，两横起笔' },
+      { key: 'D', code: '13', keyName: '大', mnemonic: '大犬三羊古石厂', roots: ['大', '犬', '三', '羊', '古', '石', '厂'], tips: '1区3位：三横、大、厂等经典大件' },
+      { key: 'S', code: '14', keyName: '木', mnemonic: '木丁西', roots: ['木', '丁', '西', '覀'], tips: '1区4位：树木家族，覀、西等' },
+      { key: 'A', code: '15', keyName: '工', mnemonic: '工戈草头右框七', roots: ['工', '戈', '艹', '匚', '七', '廿'], tips: '1区5位最左翼：极其常用的草字头艹与工戈' }
+    ]
+  },
+  {
+    zone: 2,
+    name: '2区 · 竖起区',
+    stroke: '丨 (竖/竖钩)',
+    keys: 'H - J - K - L - M',
+    color: '#10b981',
+    mnemonicHero: '顶天立地团：以“目”领衔，起笔皆为坚挺悬针竖！',
+    description: '2区包括 H(21)、J(22)、K(23)、L(24)、M(25)，从键盘中心 H 往右延伸至 M。字根起笔均为竖或竖钩。',
+    keysDetail: [
+      { key: 'H', code: '21', keyName: '目', mnemonic: '目具上止卜虎皮', roots: ['目', '止', '卜', '虎', '皮', '丨'], tips: '2区1位：单笔画“丨”与目、上、卜' },
+      { key: 'J', code: '22', keyName: '日', mnemonic: '日早两竖与虫依', roots: ['日', '早', '刂', '虫', '曰'], tips: '2区2位：日字、立刀旁刂、虫' },
+      { key: 'K', code: '23', keyName: '口', mnemonic: '口与川，字根稀', roots: ['口', '川'], tips: '2区3位：汉字最常见的口字旁，单打出口' },
+      { key: 'L', code: '24', keyName: '田', mnemonic: '田甲方框四车力', roots: ['田', '甲', '四', '车', '力', '皿'], tips: '2区4位：带田字框与力车部件' },
+      { key: 'M', code: '25', keyName: '山', mnemonic: '山由贝，下框几', roots: ['山', '由', '贝', '冂', '几'], tips: '2区5位最下端：群山立峰，由、贝、冂框' }
+    ]
+  },
+  {
+    zone: 3,
+    name: '3区 · 撇起区',
+    stroke: '丿 (撇)',
+    keys: 'T - R - E - W - Q',
+    color: '#f59e0b',
+    mnemonicHero: '飘逸剑客团：以“禾”为首，起笔如飞剑撇落，动作利落！',
+    description: '3区包括 T(31)、R(32)、E(33)、W(34)、Q(35)，位于 QWERTY 顶部自右向左。起笔均为撇。',
+    keysDetail: [
+      { key: 'T', code: '31', keyName: '禾', mnemonic: '禾竹一撇斤', roots: ['禾', '竹', '丿', '斤'], tips: '3区1位：单笔画“丿”及禾木旁、竹字头' },
+      { key: 'R', code: '32', keyName: '白', mnemonic: '白手看头三二斤', roots: ['白', '手', '扌', '斤'], tips: '3区2位：极其高频的提手旁扌与白' },
+      { key: 'E', code: '33', keyName: '月', mnemonic: '月衫乃用家衣底', roots: ['月', '彡', '乃', '用'], tips: '3区3位：月字旁、三撇彡' },
+      { key: 'W', code: '34', keyName: '人', mnemonic: '人和八，登祭头', roots: ['人', '亻', '八', '𠂉'], tips: '3区4位：单人旁亻与大人、八' },
+      { key: 'Q', code: '35', keyName: '金', mnemonic: '金勺缺点无尾鱼，犬旁留叉多点夕', roots: ['金', '钅', '勹', '儿', '夕', '犭'], tips: '3区5位：金字旁钅、反犬旁犭、夕' }
+    ]
+  },
+  {
+    zone: 4,
+    name: '4区 · 捺起区',
+    stroke: '丶 (捺/点)',
+    keys: 'Y - U - I - O - P',
+    color: '#ec4899',
+    mnemonicHero: '水墨飞花团：以“言”起首，凡是点捺皆在此，落笔生花！',
+    description: '4区包括 Y(41)、U(42)、I(43)、O(44)、P(45)，位于右上方。在五笔中，点（丶）一律归为捺笔。',
+    keysDetail: [
+      { key: 'Y', code: '41', keyName: '言', mnemonic: '言文方广在四一，高头一捺谁人识', roots: ['言', '讠', '文', '方', '广', '丶'], tips: '4区1位：单笔画“丶”及言字旁讠、文、方' },
+      { key: 'U', code: '42', keyName: '立', mnemonic: '立辛两点六门病', roots: ['立', '辛', '门', '疒', '丷'], tips: '4区2位：病字旁疒、立、门字框' },
+      { key: 'I', code: '43', keyName: '水', mnemonic: '水旁三点水，小雨倒水', roots: ['水', '氵', '小'], tips: '4区3位：极其常用的三点水氵和小' },
+      { key: 'O', code: '44', keyName: '火', mnemonic: '火业头，四点米', roots: ['火', '灬', '米'], tips: '4区4位：火字旁与四点底灬、米' },
+      { key: 'P', code: '45', keyName: '之', mnemonic: '之字军盖建道底，摘礻(示)衤(衣)', roots: ['辶', '廴', '冖', '宀', '礻', '衤'], tips: '4区5位最右：宝盖头宀、走之底辶、示补偏旁' }
+    ]
+  },
+  {
+    zone: 5,
+    name: '5区 · 折起区',
+    stroke: '𠃍 (各种转折)',
+    keys: 'N - B - V - C - X',
+    color: '#8b5cf6',
+    mnemonicHero: '百转千回团：以“已”带路，弯钩转折如山路十八弯！',
+    description: '5区包括 N(51)、B(52)、V(53)、C(54)、X(55)，位于底部键盘。凡带拐角转折笔画皆在此区。',
+    keysDetail: [
+      { key: 'N', code: '51', keyName: '已', mnemonic: '已半巳满不出己，羽房尸心乙', roots: ['已', '己', '巳', '羽', '尸', '心', '乙'], tips: '5区1位：心字底、尸字头、单折“乙”' },
+      { key: 'B', code: '52', keyName: '子', mnemonic: '子耳也，框向上', roots: ['子', '耳', '也', '阝', '卩'], tips: '5区2位：耳朵旁阝、子、也' },
+      { key: 'V', code: '53', keyName: '女', mnemonic: '女刀九臼山朝西', roots: ['女', '刀', '九', '彐'], tips: '5区3位：女字旁、刀字头' },
+      { key: 'C', code: '54', keyName: '又', mnemonic: '又巴马，丢矢矣', roots: ['又', '巴', '马'], tips: '5区4位：又字旁、巴、马' },
+      { key: 'X', code: '55', keyName: '纟', mnemonic: '慈母手中线，幺匕弓纟', roots: ['纟', '幺', '匕', '弓'], tips: '5区5位：绞丝旁纟、弓字旁' }
+    ]
+  }
+];
+
+// ================= 模块 3：末笔识别码 避坑进阶特例 =================
+export interface RecogPitfallItem {
+  char: string;
+  pinyin: string;
+  typeDesc: string;
+  lastStroke: string;
+  recogCode: string;
+  analysis: string;
+  formula: string;
+  alert: string;
+}
+
+export const RECOG_PITFALL_LIST: RecogPitfallItem[] = [
+  {
+    char: '连',
+    pinyin: 'lián',
+    typeDesc: '半包围(杂合型, 3位)',
+    lastStroke: '末笔取被包围部分“车”的悬针竖(2区)',
+    recogCode: 'K (23)',
+    analysis: '遇到走之底“辶”，末笔不是走之底的捺，而是内部“车”的最后一笔竖！竖(2区) + 杂合(3位) = 23 (K)。',
+    formula: '车(L) + 辶(P) + 末笔竖杂合(K) = LPK',
+    alert: '⚠️ 铁律：走之底、建字底汉字，末笔一律取“被包围核心部件”的最后一笔！'
+  },
+  {
+    char: '戈',
+    pinyin: 'gē',
+    typeDesc: '杂合型 (3位)',
+    lastStroke: '取主笔撇(3区)，忽略右上点',
+    recogCode: 'E (33)',
+    analysis: '右上有点的字（如“戈、戊、犬”），末笔不能取右上方的孤悬点，而要取主干结构的最后一撇。撇(3区) + 杂合(3位) = 33 (E)。',
+    formula: '戈是键名字，全码直接打 AAAA；而在成字部件中取撇。',
+    alert: '⚠️ 铁律：右上孤悬点不算末笔，以主干支撑笔画定末笔！'
+  },
+  {
+    char: '太',
+    pinyin: 'tài',
+    typeDesc: '杂合型 (3位)',
+    lastStroke: '最底部点捺(4区)',
+    recogCode: 'I (43)',
+    analysis: '大(D) + 丶(Y)。不足4码，底部点捺最后写，算作末笔捺(4区)。杂合结构(3位)，4区3位是 I。',
+    formula: '大(D) + 丶(Y) + 43(I) = DYI',
+    alert: '💡 提示：末笔在下方的点属于真正书写顺序的末笔。'
+  },
+  {
+    char: '汀',
+    pinyin: 'tīng',
+    typeDesc: '左右型 (1位)',
+    lastStroke: '丁的竖钩(2区)',
+    recogCode: 'H (21)',
+    analysis: '氵(I) + 丁(S)。不足4码，右侧丁的末笔是竖钩（归竖2区）。左右结构(1位)，2区1位是 H。',
+    formula: '氵(I) + 丁(S) + 21(H) = ISH',
+    alert: '💡 对比：如果是“沐”，右边是木，末笔是捺(4区)，左右型(1位)就是 41 (Y)！'
+  }
+];
+
+// ================= 模块 4：简码速查与打法图谱 =================
+export interface ShortCodeHero {
+  type: 'level-1' | 'level-2' | 'level-3';
+  title: string;
+  speedMultiplier: string;
+  rule: string;
+  trick: string;
+  examples: { word: string; code: string; strokeSaved: string }[];
+}
+
+export const SHORT_CODE_STRATEGIES: ShortCodeHero[] = [
+  {
+    type: 'level-1',
+    title: '一级简码 · 25金刚字（一键封神）',
+    speedMultiplier: '击键提速 75%',
+    rule: '键盘 25 键，每键对应一个极高频字。敲 1 个字母 + 空格立即出字！',
+    trick: '牢记 25 字顺口溜，打这些字若打全码就是犯罪！',
+    examples: [
+      { word: '一', code: 'G + 空格', strokeSaved: '省3键 (原本 GGGG)' },
+      { word: '是', code: 'J + 空格', strokeSaved: '省3键 (原本 JGHU)' },
+      { word: '中', code: 'K + 空格', strokeSaved: '省2键 (原本 KHK)' },
+      { word: '我', code: 'Q + 空格', strokeSaved: '省3键 (原本 TRNT)' },
+      { word: '的', code: 'R + 空格', strokeSaved: '省3键 (原本 RQYY)' }
+    ]
+  },
+  {
+    type: 'level-2',
+    title: '二级简码 · 速度核心主力军',
+    speedMultiplier: '击键提速 50%',
+    rule: '取汉字前 2 个字根的代码 + 空格出字（五笔中涵盖了数百个最常用汉字）',
+    trick: '打字节奏：“哒哒 + 空格”，指尖像弹钢琴般流畅跳跃！',
+    examples: [
+      { word: '帮', code: 'DT + 空格', strokeSaved: '省2键 (原本 DTBH)' },
+      { word: '理', code: 'GJ + 空格', strokeSaved: '省2键 (原本 GJF)' },
+      { word: '现', code: 'GQ + 空格', strokeSaved: '省2键 (原本 GQN)' },
+      { word: '明', code: 'JE + 空格', strokeSaved: '省1键 (原本 JEG)' }
+    ]
+  },
+  {
+    type: 'level-3',
+    title: '三级简码 · 杜绝多余识别码',
+    speedMultiplier: '击键提速 25%',
+    rule: '取汉字前 3 个字根的代码 + 空格出字。',
+    trick: '不需要去费脑子算末笔识别码！直接前三码按空格出字，省心又快速！',
+    examples: [
+      { word: '华', code: 'WXF + 空格', strokeSaved: '无需判断末笔识别码 J' },
+      { word: '想', code: 'SHN + 空格', strokeSaved: '前三字根敲完即上屏' },
+      { word: '新', code: 'USR + 空格', strokeSaved: '立木斤直接走起' }
+    ]
+  }
+];
+
+// ================= 模块 5：词组取码口诀与盲打模拟器预设 =================
+export interface PhraseFormula {
+  type: string;
+  formula: string;
+  name: string;
+  motto: string;
+  demo: { phrase: string; split: string; finalCode: string };
+}
+
+export const PHRASE_FORMULAS: PhraseFormula[] = [
+  {
+    type: '2字词',
+    formula: '2 + 2 = 4 码',
+    name: '双字词规则',
+    motto: '各取前二码，平分秋色！',
+    demo: { phrase: '中国', split: '中(KH) + 国(LG)', finalCode: 'KHLG' }
+  },
+  {
+    type: '3字词',
+    formula: '1 + 1 + 2 = 4 码',
+    name: '三字词规则',
+    motto: '前两字各抢头彩(1码)，末字压轴扛双码(2码)！',
+    demo: { phrase: '计算机', split: '计(Y) + 算(T) + 机(SM)', finalCode: 'YTSM' }
+  },
+  {
+    type: '4字词',
+    formula: '1 + 1 + 1 + 1 = 4 码',
+    name: '四字成语规则',
+    motto: '一人一码不偏不倚，排排坐吃果果！',
+    demo: { phrase: '一心一意', split: '一(G) + 心(N) + 一(G) + 意(U)', finalCode: 'GNGU' }
+  },
+  {
+    type: '多字词(5+)',
+    formula: '1 + 1 + 1 + 末1 = 4 码',
+    name: '长词巨无霸规则',
+    motto: '前三字打头阵，不管中间多长，只拉最后一位压阵！',
+    demo: { phrase: '中华人民共和国', split: '中(K) + 华(W) + 人(W) + ... + 国(L)', finalCode: 'KWWL' }
+  }
+];
+
+
 export const WUBI_RULES: RuleSection[] = [
   {
     id: 'split-principles',
