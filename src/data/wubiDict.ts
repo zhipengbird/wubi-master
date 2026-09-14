@@ -189,23 +189,68 @@ export interface CharBreakdownInfo {
   recognitionCode?: string; // 末笔字型交叉识别码，例如 'B'
 }
 
+// 部件文字描述标签到标准单一汉字字根字符的规范映射
+export const ROOT_GLYPH_NORMALIZE: Record<string, string> = {
+  '水侧': '氺',
+  '氺侧': '氺',
+  '牛前': '⺧',
+  '京头': '亠',
+  '尤前': '尢',
+  '艮下': '𧘇',
+  '艮底': '𧘇',
+  '羊后': '羊',
+  '乐头': '⺈',
+  '立头': '立',
+  '光头': '⺌',
+  '具头': '目',
+  '隹右': '主',
+  '兴头': '⺌',
+  '長头': '镸',
+  '四竖': '罒',
+  '鱼头': '⺈',
+  '衣示旁': '礻',
+  '马前': '马',
+  '乡前': '幺',
+  '舟底': '用',
+  '祭头': '癶',
+  '母框': '毋',
+  '皮前': '皮',
+  '虎头': '虍',
+  '互框': '互',
+  '咼头': '冂',
+  '骨头': '冂',
+  '革后': '十',
+  '凸头': '凸',
+  '県头': '目',
+  '豸头': '爫',
+  '豸底': '豕',
+  '犭前': '犭',
+  '𬼖框': '勹',
+  '婁头': '曲',
+  '虛底头': '业',
+  '蒐中': '甶'
+};
+
 /**
  * 深入解析单字的标准字根拆解与末笔识别码
  */
 export const getCharBreakdown = (charData: WubiCharData, version: WubiVersion): CharBreakdownInfo => {
-  let roots: string[] = [];
+  let rawRoots: string[] = [];
   switch (version) {
     case '98':
-      roots = charData.roots98 || [];
+      rawRoots = charData.roots98 || [];
       break;
     case 'newCentury':
-      roots = charData.rootsNew || [];
+      rawRoots = charData.rootsNew || [];
       break;
     case '86':
     default:
-      roots = charData.roots86 || [];
+      rawRoots = charData.roots86 || [];
       break;
   }
+
+  // 规范化字根标签，将“水侧”等描述性词语转换为对应标准字形“氺”
+  const roots = rawRoots.map(r => ROOT_GLYPH_NORMALIZE[r] || r);
 
   const fullCode = getFullCode(charData, version).toUpperCase();
 
