@@ -79,6 +79,11 @@
               <span class="lane-speed">{{ playerWpm }} WPM</span>
             </div>
             <div class="lane-track-strip">
+              <!-- 动态进度条填充层（全主题高对比度） -->
+              <div
+                class="lane-progress-fill player-fill"
+                :style="{ width: playerProgressPercent + '%' }"
+              ></div>
               <div
                 class="racer player-racer"
                 :style="{ left: playerProgressPercent + '%' }"
@@ -99,6 +104,11 @@
               <span class="lane-speed">{{ aiWpm }} WPM</span>
             </div>
             <div class="lane-track-strip">
+              <!-- 动态进度条填充层（对手危险红） -->
+              <div
+                class="lane-progress-fill ai-fill"
+                :style="{ width: aiProgressPercent + '%' }"
+              ></div>
               <div
                 class="racer ai-racer"
                 :style="{ left: aiProgressPercent + '%' }"
@@ -122,17 +132,20 @@
 
     <!-- 打字核心战场 (Typing Arena) -->
     <div class="typing-cockpit" @click="focusInput">
-      <!-- 隐藏原生输入框捕获物理按键 -->
+      <!-- 隐藏原生输入框捕获物理按键与输入法上屏 -->
       <input
         ref="hiddenInputRef"
         type="text"
-        v-model="inputBuffer"
+        :value="inputBuffer"
         class="hidden-native-input"
         @keydown="handleKeyDown"
+        @input="handleNativeInput"
         :disabled="gameState === 'finished' || gameState === 'failed'"
         autocomplete="off"
+        autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
+        inputmode="latin"
       />
 
       <!-- 战斗状态条 -->
@@ -199,7 +212,12 @@
 
       <!-- 玩家按键敲击实时展示 (Input Buffer Display) -->
       <div class="input-keystroke-row">
-        <div class="keystroke-label">已击键位：</div>
+        <div class="keystroke-label">
+          <span>击键编码：</span>
+          <span class="ime-mode-chip">
+            ⚡ 支持「直接敲字母查码」与「系统输入法打汉字」
+          </span>
+        </div>
         <div class="keystroke-slots">
           <div
             v-for="i in 4"
@@ -226,11 +244,47 @@
           <div class="modal-icon">🏁</div>
           <h3 class="modal-title">准备好开始追逐了吗？</h3>
           <p class="modal-desc">
-            对手暗影猎手将以 <strong>{{ aiWpm }} WPM</strong> 的恒定巡航速度向终点冲刺！<br />
-            你必须以更快的五笔手速完成 <strong>{{ TARGET_COUNT }} 个汉字</strong> 的敲击，在被超越前冲过终点线！
+            调整对手速度与题库难度，在被超越前冲过终点线！
           </p>
+
+          <!-- 弹窗内的直观配置区 -->
+          <div class="modal-config-zone">
+            <div class="modal-config-row">
+              <span class="m-config-label">对手航速 (AI WPM)：</span>
+              <div class="m-pill-group">
+                <button
+                  v-for="s in aiSpeedOptions"
+                  :key="s.wpm"
+                  type="button"
+                  class="m-pill-btn"
+                  :class="{ active: selectedAiWpm === s.wpm }"
+                  @click="setAiWpm(s.wpm)"
+                >
+                  <span class="pill-title">{{ s.name }}</span>
+                  <span class="pill-sub">{{ s.wpm }} WPM</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-config-row">
+              <span class="m-config-label">汉字难度：</span>
+              <div class="m-pill-group">
+                <button
+                  v-for="d in difficultyOptions"
+                  :key="d.id"
+                  type="button"
+                  class="m-pill-btn"
+                  :class="{ active: selectedDifficulty === d.id }"
+                  @click="setDifficulty(d.id)"
+                >
+                  <span class="pill-title">{{ d.name }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <button class="start-btn pulse" @click="startGame">
-            🚀 踩下油门！开始追逐
+            🚀 踩下油门！以 {{ aiWpm }} WPM 开战
           </button>
         </div>
 
@@ -549,6 +603,9 @@ const increaseAiDifficulty = () => {
 const handleKeyDown = (e: KeyboardEvent) => {
   if (gameState.value !== 'running') return;
 
+  // 忽略输入法组合输入中的按键（避免与原生拼音/五笔候选冲突）
+  if (e.isComposing) return;
+
   // 忽略控制键
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
@@ -556,11 +613,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
   // 退格删除
   if (key === 'Backspace') {
-    e.preventDefault();
     if (inputBuffer.value.length > 0) {
+      e.preventDefault();
       inputBuffer.value = inputBuffer.value.slice(0, -1);
       hasInputError.value = false;
       soundPlayer.playKey(store.audio.value, false, false);
+      if (hiddenInputRef.value) {
+        hiddenInputRef.value.value = inputBuffer.value;
+      }
     }
     return;
   }
@@ -572,7 +632,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
     return;
   }
 
-  // 普通字母键输入 A-Z
+  // 普通字母键输入 A-Z（网页内建五笔引擎模式）
   if (/^[a-zA-Z]$/.test(key)) {
     e.preventDefault();
     const upperKey = key.toUpperCase();
@@ -581,11 +641,52 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (inputBuffer.value.length < 4) {
       inputBuffer.value += upperKey;
       soundPlayer.playKey(store.audio.value, false, false);
-
+      if (hiddenInputRef.value) {
+        hiddenInputRef.value.value = inputBuffer.value;
+      }
       // 实时判断是否可立即匹配
       verifyCurrentInput(false);
     }
   }
+};
+
+// 处理输入框原生 input 事件（支持中文输入法直接打汉字上屏）
+const handleNativeInput = (e: Event) => {
+  if (gameState.value !== 'running') return;
+  const target = e.target as HTMLInputElement;
+  const raw = target.value.trim();
+
+  if (!raw) {
+    inputBuffer.value = '';
+    hasInputError.value = false;
+    return;
+  }
+
+  const currentItem = targetChars.value[playerIndex.value];
+  if (!currentItem) return;
+
+  // 1. 如果用户使用了系统输入法（五笔/拼音）打出汉字上屏
+  if (/[\u4e00-\u9fa5]/.test(raw)) {
+    // 遍历汉字是否匹配当前目标
+    for (const char of raw) {
+      const activeChar = targetChars.value[playerIndex.value];
+      if (activeChar && char === activeChar.char) {
+        onCharSuccess();
+      } else {
+        onCharError();
+      }
+    }
+    // 清理输入框，汉字不留在 4 键方格里
+    inputBuffer.value = '';
+    target.value = '';
+    return;
+  }
+
+  // 2. 字母编码输入（针对某些在 input 事件触发的英文输入）
+  const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+  inputBuffer.value = clean;
+  target.value = clean;
+  verifyCurrentInput(false);
 };
 
 // 验证输入是否与当前字匹配
@@ -597,7 +698,18 @@ const verifyCurrentInput = (forceSpace: boolean) => {
   const targetShort = (currentItem.short86 || '').toUpperCase();
   const currentBuf = inputBuffer.value.trim().toUpperCase();
 
-  // 1. 空格直接出字 (简码匹配 或 全码未满四位匹配)
+  if (!currentBuf) {
+    hasInputError.value = false;
+    return;
+  }
+
+  // 1. 汉字直接比对
+  if (currentBuf === currentItem.char) {
+    onCharSuccess();
+    return;
+  }
+
+  // 2. 空格直接出字 (简码匹配 或 全码未满四位匹配)
   if (forceSpace) {
     if (currentBuf === targetShort || currentBuf === targetFull) {
       onCharSuccess();
@@ -608,7 +720,12 @@ const verifyCurrentInput = (forceSpace: boolean) => {
     }
   }
 
-  // 2. 满四码自动校验提交
+  // 3. 满四码或简码自动出字
+  if (targetShort && currentBuf === targetShort && store.commitMode.value === 'auto') {
+    onCharSuccess();
+    return;
+  }
+
   if (currentBuf.length === 4) {
     if (currentBuf === targetFull) {
       onCharSuccess();
@@ -907,11 +1024,46 @@ onUnmounted(() => {
 .lane-track-strip {
   position: relative;
   height: 52px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-image: linear-gradient(90deg, transparent 50%, rgba(255, 255, 255, 0.03) 50%);
-  background-size: 40px 100%;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* 进度条能量填充槽（全主题高辨识度） */
+.lane-progress-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 8px 0 0 8px;
+  transition: width 0.15s linear;
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.lane-progress-fill.player-fill {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), var(--accent));
+  border-right: 2px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.lane-progress-fill.ai-fill {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), #ef4444);
+  border-right: 2px solid #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+}
+
+.start-line-marker {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 2px dashed var(--border-color);
+  padding: 0 4px;
+  z-index: 5;
 }
 
 .finish-line-marker {
@@ -920,12 +1072,12 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-left: 2px dashed rgba(255, 255, 255, 0.2);
+  border-left: 2px dashed var(--border-color);
   padding: 0 4px;
   background: repeating-linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.04),
-    rgba(255, 255, 255, 0.04) 6px,
+    var(--accent-subtle, rgba(56, 189, 248, 0.08)),
+    var(--accent-subtle, rgba(56, 189, 248, 0.08)) 6px,
     transparent 6px,
     transparent 12px
   );
@@ -1347,5 +1499,93 @@ onUnmounted(() => {
   font-weight: 800;
   color: var(--text-main);
   font-family: monospace;
+}
+
+/* 弹窗配置区与药丸按钮（多主题高对比度适配） */
+.modal-config-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-radius: 14px;
+}
+
+.modal-config-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.m-config-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.m-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.m-pill-btn {
+  flex: 1 1 auto;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.m-pill-btn .pill-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.m-pill-btn .pill-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.m-pill-btn:hover {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+}
+
+/* 选中的药丸按钮：高对比度、清晰的阴影和强调色 */
+.m-pill-btn.active {
+  background: var(--accent);
+  color: #ffffff !important;
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px var(--accent-subtle, rgba(56, 189, 248, 0.4));
+  transform: translateY(-1px);
+}
+
+.m-pill-btn.active .pill-sub {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 模式提示标签 */
+.ime-mode-chip {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--text-muted);
+  margin-left: 8px;
 }
 </style>
