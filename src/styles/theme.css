@@ -1,0 +1,241 @@
+/* 5套精心打磨的五笔主题配色系统 */
+
+:root,
+[data-theme='tokyo-night'] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --border-color: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --accent-subtle: rgba(56, 189, 248, 0.15);
+  --error: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  --key-bg: #1e293b;
+  --key-border: #334155;
+  --key-shadow: 0 4px 0 #090d16;
+  --key-text: #f1f5f9;
+  --key-active: #38bdf8;
+
+  --zone-1: #38bdf8; /* 横区 - 冰蓝 */
+  --zone-2: #34d399; /* 竖区 - 翠绿 */
+  --zone-3: #fbbf24; /* 撇区 - 琥珀黄 */
+  --zone-4: #f87171; /* 捺区 - 珊瑚红 */
+  --zone-5: #c084fc; /* 折区 - 紫罗兰 */
+
+  --mizige-border: rgba(56, 189, 248, 0.4);
+  --mizige-line: rgba(56, 189, 248, 0.2);
+  --mizige-bg: rgba(15, 23, 42, 0.65);
+}
+
+[data-theme='retro-beige'] {
+  --bg-primary: #f4eee1;
+  --bg-secondary: #e9e0cf;
+  --bg-tertiary: #d8cebb;
+  --card-bg: #f9f6ef;
+  --border-color: #d1c5ae;
+  --text-main: #2d2b28;
+  --text-muted: #736d63;
+  --accent: #d9480f;
+  --accent-hover: #bf3a07;
+  --accent-subtle: rgba(217, 72, 15, 0.12);
+  --error: #c92a2a;
+  --success: #2b8a3e;
+  --warning: #e67700;
+
+  --key-bg: #ffffff;
+  --key-border: #c4b9a1;
+  --key-shadow: 0 4px 0 #b3a78d;
+  --key-text: #2c2825;
+  --key-active: #d9480f;
+
+  --zone-1: #1971c2;
+  --zone-2: #2f9e44;
+  --zone-3: #e8590c;
+  --zone-4: #c92a2a;
+  --zone-5: #862e9c;
+
+  --mizige-border: rgba(217, 72, 15, 0.45);
+  --mizige-line: rgba(217, 72, 15, 0.22);
+  --mizige-bg: #fffbf5;
+}
+
+[data-theme='nord-frost'] {
+  --bg-primary: #242933;
+  --bg-secondary: #2e3440;
+  --bg-tertiary: #3b4252;
+  --card-bg: rgba(46, 52, 64, 0.8);
+  --border-color: #434c5e;
+  --text-main: #eceff4;
+  --text-muted: #d8dee9;
+  --accent: #88c0d0;
+  --accent-hover: #81a1c1;
+  --accent-subtle: rgba(136, 192, 208, 0.15);
+  --error: #bf616a;
+  --success: #a3be8c;
+  --warning: #ebcb8b;
+
+  --key-bg: #2e3440;
+  --key-border: #434c5e;
+  --key-shadow: 0 4px 0 #1b1f27;
+  --key-text: #eceff4;
+  --key-active: #88c0d0;
+
+  --zone-1: #81a1c1;
+  --zone-2: #a3be8c;
+  --zone-3: #ebcb8b;
+  --zone-4: #d08770;
+  --zone-5: #b48ead;
+
+  --mizige-border: rgba(136, 192, 208, 0.45);
+  --mizige-line: rgba(136, 192, 208, 0.2);
+  --mizige-bg: rgba(36, 41, 51, 0.75);
+}
+
+[data-theme='paper-ink'] {
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f0ede6;
+  --bg-tertiary: #e2ded4;
+  --card-bg: #ffffff;
+  --border-color: #ded9cd;
+  --text-main: #1f1f1f;
+  --text-muted: #666666;
+  --accent: #b91c1c; /* 丹红印泥色 */
+  --accent-hover: #991b1b;
+  --accent-subtle: rgba(185, 28, 28, 0.1);
+  --error: #b91c1c;
+  --success: #15803d;
+  --warning: #b45309;
+
+  --key-bg: #fdfdfc;
+  --key-border: #dcd6c8;
+  --key-shadow: 0 3px 0 #cbc3b1;
+  --key-text: #262626;
+  --key-active: #b91c1c;
+
+  --zone-1: #0369a1;
+  --zone-2: #15803d;
+  --zone-3: #b45309;
+  --zone-4: #b91c1c;
+  --zone-5: #6b21a8;
+
+  --mizige-border: rgba(185, 28, 28, 0.55);
+  --mizige-line: rgba(185, 28, 28, 0.25);
+  --mizige-bg: #fffdfa;
+}
+
+[data-theme='matrix-green'] {
+  --bg-primary: #050a06;
+  --bg-secondary: #0c180e;
+  --bg-tertiary: #132415;
+  --card-bg: rgba(12, 24, 14, 0.85);
+  --border-color: #1a381e;
+  --text-main: #22c55e;
+  --text-muted: #15803d;
+  --accent: #22c55e;
+  --accent-hover: #4ade80;
+  --accent-subtle: rgba(34, 197, 94, 0.15);
+  --error: #ef4444;
+  --success: #22c55e;
+  --warning: #eab308;
+
+  --key-bg: #0c180e;
+  --key-border: #1a381e;
+  --key-shadow: 0 4px 0 #030503;
+  --key-text: #22c55e;
+  --key-active: #4ade80;
+
+  --zone-1: #22c55e;
+  --zone-2: #4ade80;
+  --zone-3: #86efac;
+  --zone-4: #16a34a;
+  --zone-5: #15803d;
+
+  --mizige-border: rgba(34, 197, 94, 0.45);
+  --mizige-line: rgba(34, 197, 94, 0.2);
+  --mizige-bg: rgba(5, 10, 6, 0.85);
+}
+
+/* 全局布局重置与平滑过渡 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 键盘键帽微交互 */
+.wubi-key {
+  position: relative;
+  background: var(--key-bg);
+  border: 1px solid var(--key-border);
+  box-shadow: var(--key-shadow);
+  color: var(--key-text);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transform: translateY(0);
+  transition: all 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wubi-key:hover {
+  border-color: var(--accent);
+}
+
+.wubi-key:active,
+.wubi-key.pressed {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--border-color);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* 打字机光标动画 */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+/* 错误抖动动画 */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.shake-error {
+  animation: shake 0.3s ease;
+}
