@@ -125,8 +125,8 @@
               <span class="cursor cursor-blink"></span>
             </template>
             <template v-else>
-              <span class="placeholder-text">键入上方高亮汉字编码，按空格出字...</span>
               <span class="cursor cursor-blink" v-if="isFocused"></span>
+              <span class="placeholder-text">键入上方高亮汉字编码，按空格出字...</span>
             </template>
           </div>
 
@@ -1252,7 +1252,8 @@ watch(() => charIndex.value, () => {
   width: 3px;
   height: 26px;
   background: var(--accent);
-  margin-left: 4px;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .space-btn-pill {

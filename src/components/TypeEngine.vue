@@ -203,13 +203,13 @@
               <span class="cursor cursor-blink"></span>
             </template>
             <template v-else>
+              <span class="cursor cursor-blink" v-if="isFocused"></span>
               <span class="placeholder-text" v-if="store.commitMode.value === 'auto'">
                 ⚡ 键入编码，打对即自动出字 (无需空格)...
               </span>
               <span class="placeholder-text" v-else>
                 ⌨️ 键入编码，按空格出字...
               </span>
-              <span class="cursor cursor-blink" v-if="isFocused"></span>
             </template>
           </div>
 
@@ -1135,7 +1135,8 @@ watch(() => store.version.value, () => {
   width: 3px;
   height: 26px;
   background: var(--accent);
-  margin-left: 4px;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .space-btn-pill {
