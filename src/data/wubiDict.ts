@@ -4,13 +4,13 @@ import rawDictData from './wubiFullDict.json';
 
 // 一级简码 25 字标准定义
 export const LEVEL_1_CHARS: WubiCharData[] = [
-  { char: '一', pinyin: 'yī', code86: 'GGGG', code98: 'GGGG', codeNew: 'GGGG', short86: 'G', short98: 'G', shortNew: 'G', roots86: ['一'], roots98: ['一'], rootsNew: ['一'], type: 'keyname' },
+  { char: '一', pinyin: 'yī', code86: 'GGLL', code98: 'GGLL', codeNew: 'GGLL', short86: 'G', short98: 'G', shortNew: 'G', roots86: ['一'], roots98: ['一'], rootsNew: ['一'], type: 'keyname' },
   { char: '地', pinyin: 'dì', code86: 'FBN', code98: 'FBN', codeNew: 'FBN', short86: 'F', short98: 'F', shortNew: 'F', roots86: ['土', '也'], roots98: ['土', '也'], rootsNew: ['土', '也'] },
   { char: '在', pinyin: 'zài', code86: 'DHFD', code98: 'DHFD', codeNew: 'DHFD', short86: 'D', short98: 'D', shortNew: 'D', roots86: ['丆', '丨', '土'], roots98: ['丆', '丨', '土'], rootsNew: ['丆', '丨', '土'] },
   { char: '要', pinyin: 'yào', code86: 'SVF', code98: 'SVF', codeNew: 'SVF', short86: 'S', short98: 'S', shortNew: 'S', roots86: ['覀', '女'], roots98: ['覀', '女'], rootsNew: ['覀', '女'] },
   { char: '工', pinyin: 'gōng', code86: 'AAAA', code98: 'AAAA', codeNew: 'AAAA', short86: 'A', short98: 'A', shortNew: 'A', roots86: ['工'], roots98: ['工'], rootsNew: ['工'], type: 'keyname' },
 
-  { char: '上', pinyin: 'shàng', code86: 'HHGG', code98: 'HHGG', codeNew: 'HHGG', short86: 'H', short98: 'H', shortNew: 'H', roots86: ['卜', '一'], roots98: ['卜', '一'], rootsNew: ['卜', '一'] },
+  { char: '上', pinyin: 'shàng', code86: 'HHGG', code98: 'HHGG', codeNew: 'HHGG', short86: 'H', short98: 'H', shortNew: 'H', roots86: ['上'], roots98: ['上'], rootsNew: ['上'], type: 'keyname' },
   { char: '是', pinyin: 'shì', code86: 'JGHU', code98: 'JGHU', codeNew: 'JGHU', short86: 'J', short98: 'J', shortNew: 'J', roots86: ['日', '一', '龰'], roots98: ['日', '一', '龰'], rootsNew: ['日', '一', '龰'] },
   { char: '中', pinyin: 'zhōng', code86: 'KHK', code98: 'KHK', codeNew: 'KHK', short86: 'K', short98: 'K', shortNew: 'K', roots86: ['口', '丨'], roots98: ['口', '丨'], rootsNew: ['口', '丨'], recognitionCode: 'K' },
   { char: '国', pinyin: 'guó', code86: 'LGYI', code98: 'LGYI', codeNew: 'LGYI', short86: 'L', short98: 'L', shortNew: 'L', roots86: ['囗', '王', '丶'], roots98: ['囗', '王', '丶'], rootsNew: ['囗', '王', '丶'] },
@@ -18,17 +18,17 @@ export const LEVEL_1_CHARS: WubiCharData[] = [
 
   { char: '和', pinyin: 'hé', code86: 'TKG', code98: 'TKG', codeNew: 'TKG', short86: 'T', short98: 'T', shortNew: 'T', roots86: ['禾', '口'], roots98: ['禾', '口'], rootsNew: ['禾', '口'], recognitionCode: 'G' },
   { char: '的', pinyin: 'de', code86: 'RQYY', code98: 'RQYY', codeNew: 'RQYY', short86: 'R', short98: 'R', shortNew: 'R', roots86: ['白', '勹', '丶'], roots98: ['白', '勹', '丶'], rootsNew: ['白', '勹', '丶'] },
-  { char: '有', pinyin: 'yǒu', code86: 'ED', code98: 'ED', codeNew: 'ED', short86: 'E', short98: 'E', shortNew: 'E', roots86: ['𠂇', '月'], roots98: ['𠂇', '月'], rootsNew: ['𠂇', '月'] },
+  { char: '有', pinyin: 'yǒu', code86: 'DEF', code98: 'DEF', codeNew: 'DEF', short86: 'E', short98: 'E', shortNew: 'E', roots86: ['𠂇', '月'], roots98: ['𠂇', '月'], rootsNew: ['𠂇', '月'] },
   { char: '人', pinyin: 'rén', code86: 'WWWW', code98: 'WWWW', codeNew: 'WWWW', short86: 'W', short98: 'W', shortNew: 'W', roots86: ['人'], roots98: ['人'], rootsNew: ['人'], type: 'keyname' },
   { char: '我', pinyin: 'wǒ', code86: 'TRNT', code98: 'TRNT', codeNew: 'TRNT', short86: 'Q', short98: 'Q', shortNew: 'Q', roots86: ['丿', '扌', '戈'], roots98: ['丿', '扌', '戈'], rootsNew: ['丿', '扌', '戈'] },
 
   { char: '主', pinyin: 'zhǔ', code86: 'YGD', code98: 'YGD', codeNew: 'YGD', short86: 'Y', short98: 'Y', shortNew: 'Y', roots86: ['丶', '王'], roots98: ['丶', '王'], rootsNew: ['丶', '王'], recognitionCode: 'D' },
   { char: '产', pinyin: 'chǎn', code86: 'UTE', code98: 'UTE', codeNew: 'UTE', short86: 'U', short98: 'U', shortNew: 'U', roots86: ['立', '丿', '厂'], roots98: ['立', '丿', '厂'], rootsNew: ['立', '丿', '厂'], recognitionCode: 'E' },
-  { char: '不', pinyin: 'bù', code86: 'GHI', code98: 'GHI', codeNew: 'GHI', short86: 'I', short98: 'I', shortNew: 'I', roots86: ['一', '丿', '丨', '丶'], roots98: ['一', '丿', '丨', '丶'], rootsNew: ['一', '丿', '丨', '丶'] },
+  { char: '不', pinyin: 'bù', code86: 'GII', code98: 'DHI', codeNew: 'DHI', short86: 'I', short98: 'I', shortNew: 'I', roots86: ['一', '⺌'], roots98: ['丆', '丨'], rootsNew: ['丆', '丨'] },
   { char: '为', pinyin: 'wèi', code86: 'YLYI', code98: 'YLYI', codeNew: 'YLYI', short86: 'O', short98: 'O', shortNew: 'O', roots86: ['丶', '力', '丶'], roots98: ['丶', '力', '丶'], rootsNew: ['丶', '力', '丶'] },
   { char: '这', pinyin: 'zhè', code86: 'YPI', code98: 'YPI', codeNew: 'YPI', short86: 'P', short98: 'P', shortNew: 'P', roots86: ['文', '辶'], roots98: ['文', '辶'], rootsNew: ['文', '辶'], recognitionCode: 'I' },
 
-  { char: '民', pinyin: 'mín', code86: 'NANG', code98: 'NANG', codeNew: 'NANG', short86: 'N', short98: 'N', shortNew: 'N', roots86: ['尸', '𠄌', '一'], roots98: ['尸', '𠄌', '一'], rootsNew: ['尸', '𠄌', '一'] },
+  { char: '民', pinyin: 'mín', code86: 'NAV', code98: 'NAV', codeNew: 'NAV', short86: 'N', short98: 'N', shortNew: 'N', roots86: ['尸', '𠄌'], roots98: ['尸', '𠄌'], rootsNew: ['尸', '𠄌'] },
   { char: '了', pinyin: 'le', code86: 'BNH', code98: 'BNH', codeNew: 'BNH', short86: 'B', short98: 'B', shortNew: 'B', roots86: ['㇇', '亅'], roots98: ['㇇', '亅'], rootsNew: ['㇇', '亅'], recognitionCode: 'H' },
   { char: '大', pinyin: 'dà', code86: 'DDDD', code98: 'DDDD', codeNew: 'DDDD', short86: 'V', short98: 'V', shortNew: 'V', roots86: ['大'], roots98: ['大'], rootsNew: ['大'], type: 'keyname' },
   { char: '凡', pinyin: 'fán', code86: 'MYI', code98: 'MYI', codeNew: 'MYI', short86: 'C', short98: 'C', shortNew: 'C', roots86: ['几', '丶'], roots98: ['几', '丶'], rootsNew: ['几', '丶'], recognitionCode: 'I' },
@@ -68,38 +68,38 @@ export const KEY_NAME_CHARS: WubiCharData[] = [
   { char: '纟', pinyin: 'sī', code86: 'XXXX', code98: 'XXXX', codeNew: 'XXXX', roots86: ['纟'], roots98: ['纟'], rootsNew: ['纟'], type: 'keyname' }
 ];
 
-// 高频二级简码精选集
+// 高频二级简码精选集（采用标准拆解字根，精准对齐按键）
 export const LEVEL_2_CHARS: WubiCharData[] = [
   { char: '把', pinyin: 'bǎ', code86: 'RCN', code98: 'RCN', codeNew: 'RCN', short86: 'RC', short98: 'RC', shortNew: 'RC', roots86: ['扌', '巴'], roots98: ['扌', '巴'], rootsNew: ['扌', '巴'] },
   { char: '打', pinyin: 'dǎ', code86: 'RSH', code98: 'RSH', codeNew: 'RSH', short86: 'RS', short98: 'RS', shortNew: 'RS', roots86: ['扌', '丁'], roots98: ['扌', '丁'], rootsNew: ['扌', '丁'] },
   { char: '帮', pinyin: 'bāng', code86: 'DTBH', code98: 'DTBH', codeNew: 'DTBH', short86: 'DT', short98: 'DT', shortNew: 'DT', roots86: ['大', '丰', '阝', '巾'], roots98: ['大', '丰', '阝', '巾'], rootsNew: ['大', '丰', '阝', '巾'] },
-  { char: '进', pinyin: 'jìn', code86: 'FJPK', code98: 'FJPK', codeNew: 'FJPK', short86: 'FJ', short98: 'FJ', shortNew: 'FJ', roots86: ['二', '十', '辶'], roots98: ['二', '十', '辶'], rootsNew: ['二', '十', '辶'] },
+  { char: '进', pinyin: 'jìn', code86: 'FJPK', code98: 'FJPK', codeNew: 'FJPK', short86: 'FJ', short98: 'FJ', shortNew: 'FJ', roots86: ['二', '刂', '辶'], roots98: ['二', '刂', '辶'], rootsNew: ['二', '刂', '辶'] },
   { char: '理', pinyin: 'lǐ', code86: 'GJFG', code98: 'GJFG', codeNew: 'GJFG', short86: 'GJ', short98: 'GJ', shortNew: 'GJ', roots86: ['王', '日', '土'], roots98: ['王', '日', '土'], rootsNew: ['王', '日', '土'] },
-  { char: '现', pinyin: 'xiàn', code86: 'GMQN', code98: 'GMQN', codeNew: 'GMQN', short86: 'GM', short98: 'GM', shortNew: 'GM', roots86: ['王', '见'], roots98: ['王', '见'], rootsNew: ['王', '见'] },
+  { char: '现', pinyin: 'xiàn', code86: 'GMQN', code98: 'GMQN', codeNew: 'GMQN', short86: 'GM', short98: 'GM', shortNew: 'GM', roots86: ['王', '冂', '儿'], roots98: ['王', '冂', '儿'], rootsNew: ['王', '冂', '儿'] },
   { char: '要', pinyin: 'yào', code86: 'SVF', code98: 'SVF', codeNew: 'SVF', short86: 'SV', short98: 'SV', shortNew: 'SV', roots86: ['覀', '女'], roots98: ['覀', '女'], rootsNew: ['覀', '女'] },
-  { char: '样', pinyin: 'yàng', code86: 'SUHD', code98: 'SUHD', codeNew: 'SUHD', short86: 'SU', short98: 'SU', shortNew: 'SU', roots86: ['木', '羊'], roots98: ['木', '羊'], rootsNew: ['木', '羊'] },
-  { char: '条', pinyin: 'tiáo', code86: 'THTU', code98: 'THTU', codeNew: 'THTU', short86: 'TH', short98: 'TH', shortNew: 'TH', roots86: ['夂', '木'], roots98: ['夂', '木'], rootsNew: ['夂', '木'] },
-  { char: '料', pinyin: 'liào', code86: 'OYFH', code98: 'OYFH', codeNew: 'OYFH', short86: 'OY', short98: 'OY', shortNew: 'OY', roots86: ['米', '斗'], roots98: ['米', '斗'], rootsNew: ['米', '斗'] },
-  { char: '点', pinyin: 'diǎn', code86: 'HKOU', code98: 'HKOU', codeNew: 'HKOU', short86: 'HK', short98: 'HK', shortNew: 'HK', roots86: ['占', '灬'], roots98: ['占', '灬'], rootsNew: ['占', '灬'] },
+  { char: '样', pinyin: 'yàng', code86: 'SUDH', code98: 'SUH', codeNew: 'SUGH', short86: 'SU', short98: 'SU', shortNew: 'SU', roots86: ['木', '䒑', '羊底'], roots98: ['木', '羊'], rootsNew: ['木', '羊'] },
+  { char: '条', pinyin: 'tiáo', code86: 'TSU', code98: 'TSU', codeNew: 'TSU', short86: 'TS', short98: 'TH', shortNew: 'TH', roots86: ['夂', '木'], roots98: ['夂', '木'], rootsNew: ['夂', '木'] },
+  { char: '料', pinyin: 'liào', code86: 'OUFH', code98: 'OUFH', codeNew: 'OUFH', short86: 'OU', short98: 'OU', shortNew: 'OU', roots86: ['米', '斗'], roots98: ['米', '斗'], rootsNew: ['米', '斗'] },
+  { char: '点', pinyin: 'diǎn', code86: 'HKOU', code98: 'HKOU', codeNew: 'HKOU', short86: 'HK', short98: 'HK', shortNew: 'HK', roots86: ['卜', '口', '灬'], roots98: ['卜', '口', '灬'], rootsNew: ['卜', '口', '灬'] },
   { char: '明', pinyin: 'míng', code86: 'JEG', code98: 'JEG', codeNew: 'JEG', short86: 'JE', short98: 'JE', shortNew: 'JE', roots86: ['日', '月'], roots98: ['日', '月'], rootsNew: ['日', '月'] },
   { char: '时', pinyin: 'shí', code86: 'JFY', code98: 'JFY', codeNew: 'JFY', short86: 'JF', short98: 'JF', shortNew: 'JF', roots86: ['日', '寸'], roots98: ['日', '寸'], rootsNew: ['日', '寸'] },
-  { char: '唱', pinyin: 'chàng', code86: 'KJJG', code98: 'KJJG', codeNew: 'KJJG', short86: 'KJ', short98: 'KJ', shortNew: 'KJ', roots86: ['口', '昌'], roots98: ['口', '昌'], rootsNew: ['口', '昌'] },
-  { char: '叫', pinyin: 'jiào', code86: 'KNH', code98: 'KNH', codeNew: 'KNH', short86: 'KN', short98: 'KN', shortNew: 'KN', roots86: ['口', '丩'], roots98: ['口', '丩'], rootsNew: ['口', '丩'] },
-  { char: '动', pinyin: 'dòng', code86: 'FCLN', code98: 'FCLN', codeNew: 'FCLN', short86: 'FC', short98: 'FC', shortNew: 'FC', roots86: ['云', '力'], roots98: ['云', '力'], rootsNew: ['云', '力'] },
+  { char: '唱', pinyin: 'chàng', code86: 'KJJG', code98: 'KJJG', codeNew: 'KJJG', short86: 'KJ', short98: 'KJ', shortNew: 'KJ', roots86: ['口', '日', '日'], roots98: ['口', '日', '日'], rootsNew: ['口', '日', '日'] },
+  { char: '叫', pinyin: 'jiào', code86: 'KNHH', code98: 'KNHH', codeNew: 'KNHH', short86: 'KN', short98: 'KN', shortNew: 'KN', roots86: ['口', '丩'], roots98: ['口', '丩'], rootsNew: ['口', '丩'] },
+  { char: '动', pinyin: 'dòng', code86: 'FCLN', code98: 'FCLN', codeNew: 'FCLN', short86: 'FC', short98: 'FC', shortNew: 'FC', roots86: ['二', '厶', '力'], roots98: ['二', '厶', '力'], rootsNew: ['二', '厶', '力'] },
   { char: '西', pinyin: 'xī', code86: 'SGHG', code98: 'SGHG', codeNew: 'SGHG', short86: 'SG', short98: 'SG', shortNew: 'SG', roots86: ['覀'], roots98: ['覀'], rootsNew: ['覀'] },
   { char: '节', pinyin: 'jié', code86: 'ABJ', code98: 'ABJ', codeNew: 'ABJ', short86: 'AB', short98: 'AB', shortNew: 'AB', roots86: ['艹', '卩'], roots98: ['艹', '卩'], rootsNew: ['艹', '卩'] },
   { char: '花', pinyin: 'huā', code86: 'AWXB', code98: 'AWXB', codeNew: 'AWXB', short86: 'AW', short98: 'AW', shortNew: 'AW', roots86: ['艹', '亻', '匕'], roots98: ['艹', '亻', '匕'], rootsNew: ['艹', '亻', '匕'] },
-  { char: '草', pinyin: 'cǎo', code86: 'AJJ', code98: 'AJJ', codeNew: 'AJJ', short86: 'AJ', short98: 'AJ', shortNew: 'AJ', roots86: ['艹', '早'], roots98: ['艹', '早'], rootsNew: ['艹', '早'] },
+  { char: '草', pinyin: 'cǎo', code86: 'AJJ', code98: 'AJJ', codeNew: 'AJJ', short86: 'AJ', short98: 'AJ', shortNew: 'AJ', roots86: ['艹', '日', '十'], roots98: ['艹', '日', '十'], rootsNew: ['艹', '日', '十'] },
   { char: '间', pinyin: 'jiān', code86: 'UJD', code98: 'UJD', codeNew: 'UJD', short86: 'UJ', short98: 'UJ', shortNew: 'UJ', roots86: ['门', '日'], roots98: ['门', '日'], rootsNew: ['门', '日'] },
-  { char: '法', pinyin: 'fǎ', code86: 'IFCY', code98: 'IFCY', codeNew: 'IFCY', short86: 'IF', short98: 'IF', shortNew: 'IF', roots86: ['氵', '去'], roots98: ['氵', '去'], rootsNew: ['氵', '去'] },
-  { char: '清', pinyin: 'qīng', code86: 'IGE', code98: 'IGE', codeNew: 'IGE', short86: 'IG', short98: 'IG', shortNew: 'IG', roots86: ['氵', '青'], roots98: ['氵', '青'], rootsNew: ['氵', '青'] },
+  { char: '法', pinyin: 'fǎ', code86: 'IFCY', code98: 'IFCY', codeNew: 'IFCY', short86: 'IF', short98: 'IF', shortNew: 'IF', roots86: ['氵', '土', '厶'], roots98: ['氵', '土', '厶'], rootsNew: ['氵', '土', '厶'] },
+  { char: '清', pinyin: 'qīng', code86: 'IGEG', code98: 'IGEG', codeNew: 'IGEG', short86: 'IG', short98: 'IG', shortNew: 'IG', roots86: ['氵', '龶', '月'], roots98: ['氵', '龶', '月'], rootsNew: ['氵', '龶', '月'] },
   { char: '江', pinyin: 'jiāng', code86: 'IAG', code98: 'IAG', codeNew: 'IAG', short86: 'IA', short98: 'IA', shortNew: 'IA', roots86: ['氵', '工'], roots98: ['氵', '工'], rootsNew: ['氵', '工'] },
-  { char: '海', pinyin: 'hǎi', code86: 'ITXU', code98: 'ITXU', codeNew: 'ITXU', short86: 'IT', short98: 'IT', shortNew: 'IT', roots86: ['氵', '每'], roots98: ['氵', '每'], rootsNew: ['氵', '每'] },
-  { char: '情', pinyin: 'qíng', code86: 'NGEG', code98: 'NGEG', codeNew: 'NGEG', short86: 'NG', short98: 'NG', shortNew: 'NG', roots86: ['忄', '青'], roots98: ['忄', '青'], rootsNew: ['忄', '青'] },
-  { char: '快', pinyin: 'kuài', code86: 'NNWY', code98: 'NNWY', codeNew: 'NNWY', short86: 'NN', short98: 'NN', shortNew: 'NN', roots86: ['忄', '夬'], roots98: ['忄', '夬'], rootsNew: ['忄', '夬'] },
+  { char: '海', pinyin: 'hǎi', code86: 'ITXU', code98: 'ITXU', codeNew: 'ITXU', short86: 'IT', short98: 'IT', shortNew: 'IT', roots86: ['氵', '𠂉', '母'], roots98: ['氵', '𠂉', '母'], rootsNew: ['氵', '𠂉', '母'] },
+  { char: '情', pinyin: 'qíng', code86: 'NGEG', code98: 'NGEG', codeNew: 'NGEG', short86: 'NG', short98: 'NG', shortNew: 'NG', roots86: ['忄', '龶', '月'], roots98: ['忄', '龶', '月'], rootsNew: ['忄', '龶', '月'] },
+  { char: '快', pinyin: 'kuài', code86: 'NNWY', code98: 'NNWY', codeNew: 'NNWY', short86: 'NN', short98: 'NN', shortNew: 'NN', roots86: ['忄', '𠃍', '人'], roots98: ['忄', '𠃍', '人'], rootsNew: ['忄', '𠃍', '人'] },
   { char: '建', pinyin: 'jiàn', code86: 'VFHP', code98: 'VGPK', codeNew: 'VGPK', short86: 'VF', short98: 'VG', shortNew: 'VG', roots86: ['彐', '二', '丨', '廴'], roots98: ['聿', '一', '廴'], rootsNew: ['聿', '一', '廴'] },
   { char: '红', pinyin: 'hóng', code86: 'XAG', code98: 'XAG', codeNew: 'XAG', short86: 'XA', short98: 'XA', shortNew: 'XA', roots86: ['纟', '工'], roots98: ['纟', '工'], rootsNew: ['纟', '工'] },
-  { char: '线', pinyin: 'xiàn', code86: 'XGAY', code98: 'XGAY', codeNew: 'XGAY', short86: 'XG', short98: 'XG', shortNew: 'XG', roots86: ['纟', '戋'], roots98: ['纟', '戋'], rootsNew: ['纟', '戋'] }
+  { char: '线', pinyin: 'xiàn', code86: 'XGT', code98: 'XGAY', codeNew: 'XFXY', short86: 'XG', short98: 'XG', shortNew: 'XF', roots86: ['纟', '戋'], roots98: ['纟', '戋'], rootsNew: ['纟', '戋'] }
 ];
 
 // 全局五笔大字典 Map（涵盖 28,058 汉字）
@@ -178,8 +178,14 @@ export const getShortCode = (charData: WubiCharData, version: WubiVersion): stri
   }
 };
 
+export interface RootStep {
+  root: string; // 拆解字根，例如 '⺌'
+  key: string;  // 对应按键，例如 'I'
+}
+
 export interface CharBreakdownInfo {
-  roots: string[];          // 真实拆字字根，例如 ['田', '力']
+  roots: string[];          // 真实拆字字根，例如 ['⺌', '冖', '口', '土']
+  rootSteps: RootStep[];    // 精确对应的字根与按键列表 [{ root: '⺌', key: 'I' }, ...]
   recognitionCode?: string; // 末笔字型交叉识别码，例如 'B'
 }
 
@@ -203,35 +209,56 @@ export const getCharBreakdown = (charData: WubiCharData, version: WubiVersion): 
 
   const fullCode = getFullCode(charData, version).toUpperCase();
 
+  // 是否属于键名字 (如 工 AAAA, 王 GGGG) 或 单笔画 (如 一 GGLL, 乙 NNLL)
+  const isKeyName = charData.type === 'keyname' || 
+    (roots.length === 1 && fullCode.length === 4 && fullCode[0] === fullCode[1] && fullCode[1] === fullCode[2] && fullCode[2] === fullCode[3]) ||
+    ['GGLL', 'HHLL', 'TTLL', 'YYLL', 'NNLL'].includes(fullCode);
+
   if (roots && roots.length > 0) {
-    // 识别码判定：
-    // 当拆出字根少于 4 个且全码长度大于字根数时，末位为交叉识别码
     let recognitionCode: string | undefined = undefined;
-    if (roots.length < 4 && fullCode.length > roots.length) {
+    // 识别码判定：
+    // 只有当拆出字根少于 4 个、非键名/单笔画、且全码长度大于字根数时，全码末位才为交叉识别码
+    if (!isKeyName && roots.length < 4 && fullCode.length > roots.length) {
       recognitionCode = fullCode[fullCode.length - 1];
     }
+
+    const rootSteps: RootStep[] = roots.map((r, i) => ({
+      root: r,
+      key: fullCode[i] || ''
+    }));
+
     return {
       roots,
+      rootSteps,
       recognitionCode
     };
   }
 
-  // 兜底回退：若该字非常生僻无人工精修字根，按字母对应键位提示
+  // 兜底回退：若该字非常生僻无字根数据，按字母对应键位提示
   const kb = version === '98' ? KEYBOARD_98 : (version === 'newCentury' ? KEYBOARD_NEW : KEYBOARD_86);
   const derived: string[] = [];
+  const rootSteps: RootStep[] = [];
   for (let i = 0; i < fullCode.length; i++) {
     const key = fullCode[i];
     const info = kb[key];
-    derived.push(info?.keyName || key);
+    const name = info?.keyName || key;
+    derived.push(name);
+    rootSteps.push({ root: name, key });
   }
   return {
-    roots: derived
+    roots: derived,
+    rootSteps
   };
 };
 
 // 获取某版本下的拆字字根
 export const getRoots = (charData: WubiCharData, version: WubiVersion): string[] => {
   return getCharBreakdown(charData, version).roots;
+};
+
+// 获取某版本下的字根与按键步骤对
+export const getRootSteps = (charData: WubiCharData, version: WubiVersion): RootStep[] => {
+  return getCharBreakdown(charData, version).rootSteps;
 };
 
 // 获取某版本下的末笔识别码

@@ -125,13 +125,13 @@
             <span class="roots-lbl">拆字字根：</span>
             <div class="roots-mizige-cells">
               <div 
-                v-for="(r, i) in getRoots(item, store.version.value)" 
+                v-for="(step, i) in getRootSteps(item, store.version.value)" 
                 :key="i" 
                 class="root-lookup-cell"
               >
-                <MiZiGe :text="r" size="mini" />
-                <span class="root-code-chip" v-if="getFullCode(item, store.version.value)[i]">
-                  {{ getFullCode(item, store.version.value)[i] }}键
+                <MiZiGe :text="step.root" size="mini" />
+                <span class="root-code-chip" v-if="step.key">
+                  {{ step.key }}键
                 </span>
               </div>
             </div>
@@ -159,6 +159,7 @@ import { useWubiStore } from '../stores/useWubiStore';
 import { 
   WUBI_CHAR_MAP, 
   getRoots, 
+  getRootSteps,
   getFullCode, 
   getRecognitionCode,
   getPhraseBreakdown,

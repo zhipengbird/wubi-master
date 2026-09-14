@@ -148,11 +148,11 @@
           <div class="roots-chain" v-else>
             <span class="chain-label">拆字字根：</span>
             <div class="roots-mizige-row" v-if="useMiZiGe">
-              <div v-for="(r, i) in currentRoots" :key="i" class="root-mizige-item">
+              <div v-for="(step, i) in currentRootSteps" :key="i" class="root-mizige-item">
                 <MiZiGe 
-                  :text="r" 
+                  :text="step.root" 
                   size="small" 
-                  :sub="targetFullCode[i] ? `${targetFullCode[i]}键` : ''" 
+                  :sub="step.key ? `${step.key}键` : ''" 
                 />
                 <span class="root-step-num">第{{ i + 1 }}码</span>
               </div>
@@ -300,6 +300,8 @@ import {
   getFullCode, 
   getShortCode, 
   getRoots,
+  getRootSteps,
+  getCharBreakdown,
   getRecognitionCode,
   getPhraseBreakdown
 } from '../data/wubiDict';
@@ -421,14 +423,22 @@ const targetShortCode = computed(() => {
   return getShortCode(currentChar.value, store.version.value)?.toUpperCase();
 });
 
+const currentBreakdown = computed(() => {
+  if (!currentChar.value) return null;
+  return getCharBreakdown(currentChar.value, store.version.value);
+});
+
 const currentRoots = computed(() => {
-  if (!currentChar.value) return [];
-  return getRoots(currentChar.value, store.version.value);
+  return currentBreakdown.value?.roots || [];
+});
+
+const currentRootSteps = computed(() => {
+  return currentBreakdown.value?.rootSteps || [];
 });
 
 const currentRecogCode = computed(() => {
   if (!currentChar.value || currentChar.value.char.length > 1) return null;
-  return getRecognitionCode(currentChar.value, store.version.value);
+  return currentBreakdown.value?.recognitionCode || null;
 });
 
 // 下一个预期按下的按键
