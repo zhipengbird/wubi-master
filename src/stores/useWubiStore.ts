@@ -8,7 +8,7 @@ import {
   getMistakes, saveMistake as persistMistake, removeMistake as removePersistedMistake, clearMistakes as clearAllMistakes
 } from '../utils/storage';
 
-export type MainTab = 'practice' | 'article' | 'keyboard' | 'rules' | 'lookup' | 'mistakes';
+export type MainTab = 'practice' | 'article' | 'game' | 'keyboard' | 'rules' | 'lookup' | 'mistakes';
 
 // 全局响应式状态
 const version = ref<WubiVersion>(getSavedVersion());

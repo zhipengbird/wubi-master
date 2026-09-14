@@ -87,7 +87,8 @@ import {
   FileText,
   Volume2,
   VolumeX,
-  Sparkles
+  Sparkles,
+  Gamepad2
 } from 'lucide-vue-next';
 
 const store = useWubiStore();
@@ -97,6 +98,7 @@ const mistakeCount = computed(() => store.mistakeList.value.length);
 const tabOptions = [
   { id: 'practice' as MainTab, name: '打字特训', icon: Keyboard },
   { id: 'article' as MainTab, name: '长文实战', icon: FileText },
+  { id: 'game' as MainTab, name: '极速追逐赛', icon: Gamepad2 },
   { id: 'keyboard' as MainTab, name: '字根大键盘', icon: Sparkles },
   { id: 'rules' as MainTab, name: '拆字法则', icon: BookOpen },
   { id: 'lookup' as MainTab, name: '五笔字典', icon: Search },

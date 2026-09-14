@@ -16,7 +16,12 @@
           <ArticlePractice />
         </section>
 
-        <!-- 3. 五笔字根大键盘全景 -->
+        <!-- 3. 极速打字追逐赛 -->
+        <section v-else-if="store.activeTab.value === 'game'" key="game">
+          <TypingChaseGame />
+        </section>
+
+        <!-- 4. 五笔字根大键盘全景 -->
         <section v-else-if="store.activeTab.value === 'keyboard'" key="keyboard" class="keyboard-view">
           <div class="view-intro">
             <h2 class="view-title">交互式五笔字根大键盘</h2>
@@ -63,6 +68,7 @@ import { useWubiStore } from './stores/useWubiStore';
 import Navbar from './components/Navbar.vue';
 import TypeEngine from './components/TypeEngine.vue';
 import ArticlePractice from './components/ArticlePractice.vue';
+import TypingChaseGame from './components/TypingChaseGame.vue';
 import VirtualKeyboard from './components/VirtualKeyboard.vue';
 import RuleTutorial from './components/RuleTutorial.vue';
 import WubiLookup from './components/WubiLookup.vue';
