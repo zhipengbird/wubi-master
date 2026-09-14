@@ -22,11 +22,319 @@ export const RECOGNITION_MATRIX = [
   { strokeIndex: 5, strokeName: '折 (𠃍)', types: [{ type: 1, typeName: '左右型', key: 'N', code: '51' }, { type: 2, typeName: '上下型', key: 'B', code: '52' }, { type: 3, typeName: '杂合型', key: 'V', code: '53' }] },
 ];
 
+// 拆字原则详细口诀与拟人化说明
+export interface SplitPrincipleDetail {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  formula: string; // 朗朗上口的口诀
+  analogy: string; // 趣味比喻
+  explanation: string;
+  priority: string; // 优先级地位
+  examples: {
+    char: string;
+    roots: string[];
+    code: string;
+    reason: string;
+    breakdownNote: string;
+  }[];
+}
+
+// 正误拆法大PK（避坑实战）
+export interface SplitPKItem {
+  char: string;
+  pinyin: string;
+  title: string;
+  correctRoots: string[];
+  correctCode: string;
+  wrongRoots: string[];
+  wrongCode: string;
+  principleApplied: string;
+  whyWrong: string;
+  tip: string;
+  difficulty: '★☆☆' | '★★☆' | '★★★' | '★★★★' | '★★★★★';
+}
+
+// 互动拆字闯关题目
+export interface SplitQuizItem {
+  id: number;
+  char: string;
+  pinyin: string;
+  question: string;
+  options: {
+    label: string;
+    roots: string[];
+    code: string;
+    isCorrect: boolean;
+    feedback: string;
+  }[];
+  explanation: string;
+  principleTag: string;
+}
+
+// 拆字四大原则趣味全景
+export const SPLIT_PRINCIPLES_DETAILED: SplitPrincipleDetail[] = [
+  {
+    id: 'order',
+    title: '书写顺序',
+    subtitle: '天然直觉：写字从哪先下笔，字根就先取谁',
+    icon: '✍️',
+    formula: '从左到右、由上而下、先外后内、先进后关',
+    analogy: '如同排队过安检，笔顺就像时间轴，先写出来的部件先进站，谁也不能插队！',
+    explanation: '拆字必须严格遵循汉字传统的标准笔顺次序，不可跳跃跨越取字根。',
+    priority: '最高铁律：任何拆分都不可颠倒先写与后写的笔顺关系。',
+    examples: [
+      { char: '新', roots: ['立', '木', '斤'], code: 'USRH', reason: '先左后右：先写亲字左边“立木”，再写右侧“斤”', breakdownNote: 'U (立) + S (木) + R (斤) + H (末笔竖左右识别)' },
+      { char: '同', roots: ['冂', '一', '口'], code: 'MGKD', reason: '先外后内：先写外部边框“冂”，再写内部“一”与“口”', breakdownNote: 'M (冂) + G (一) + K (口) + D (识别码)' },
+      { char: '国', roots: ['囗', '王', '丶'], code: 'LGYI', reason: '先进后关：先写外框“囗”，再放入内容“玉”，封口最后算全字完成', breakdownNote: 'L (囗) + G (王) + Y (丶) + I (识别码)' }
+    ]
+  },
+  {
+    id: 'size',
+    title: '取大优先',
+    subtitle: '贪吃蛇原则：每次尽量吃进笔画最多的大字根',
+    icon: '🦁',
+    formula: '步步取大块，杜绝零碎画；能组大字根，不拆小零星',
+    analogy: '好比搭积木时优先挑选最大的现成模块，不仅省力速度快，拼出的结构也最稳固！',
+    explanation: '在符合书写顺序的前提下，按从大到小的原则拆分，使得拆出的字根总数最少、各字根涵盖笔画最多。',
+    priority: '核心基石：解决多义拆解的第一判据，消除模棱两可。',
+    examples: [
+      { char: '果', roots: ['曰', '木'], code: 'JSI', reason: '优先取大字根“曰”(J)，而不是碎拆成“日+一+木”或“田”', breakdownNote: 'J (曰) + S (木) + I (杂合识别码)' },
+      { char: '主', roots: ['丶', '王'], code: 'YGD', reason: '先取顶上的点“丶”(Y)，下面整体取大字根“王”(G)，而不是拆“三+丨”', breakdownNote: 'Y (丶) + G (王) + D (杂合识别码)' },
+      { char: '甚', roots: ['甘', '匹', '十'], code: 'ADWN', reason: '顶部先取最大完整的“甘”(A)，接下来是横折包围“匹框”，再取“十”', breakdownNote: 'A (甘) + D (匹底) + W (八) + N (折)' }
+    ]
+  },
+  {
+    id: 'visual',
+    title: '兼顾直观',
+    subtitle: '视觉完整：形体自然清晰，一眼就能看出原貌',
+    icon: '👁️',
+    formula: '保留整体感，符合骨架相；视觉不割裂，一目了然强',
+    analogy: '给汉字拍照，切块时尽量顺应自然的器官和轮廓，别把完整的人脸切成两截！',
+    explanation: '字根拆分应当符合常人对汉字骨架结构的视觉心理，保持字根的原有形态，不人为打碎易识别的自然块。',
+    priority: '视觉平衡：当取大与习惯视觉产生极微冲突时，以直观自然为重。',
+    examples: [
+      { char: '自', roots: ['丿', '目'], code: 'THD', reason: '虽然“白”是个字根，但根据骨架视觉，自然看作一撇+目，结构清爽直观', breakdownNote: 'T (丿) + H (目) + D (杂合识别码)' },
+      { char: '生', roots: ['𠂉', '土'], code: 'TGD', reason: '直观分为“牛头/𠂉”与下方底座“土”，符合汉字整体重心视觉', breakdownNote: 'T (𠂉) + G (土) + D (杂合识别码)' }
+    ]
+  },
+  {
+    id: 'connect',
+    title: '能连不交',
+    subtitle: '和谐共处：能相依相连的，绝不狠心相交穿越',
+    icon: '🤝',
+    formula: '能连绝不交，相接胜相穿；笔画有粘连，互不腰斩过',
+    analogy: '两人手拉手（相连）是和谐好朋友，如果拿宝剑横穿对方身体（相交）那就是事故现场！',
+    explanation: '一个字如果既可以拆成几个相互连接的字根，也可以拆成相交穿越的字根，必须取相连而绝不取相交。',
+    priority: '判错王牌：五笔最常见的“易错坑”90% 都是违反了此项原则！',
+    examples: [
+      { char: '天', roots: ['一', '大'], code: 'GDI', reason: '“一”与“大”是相连相依；若拆成“二”与“人”，则“人”被横线腰斩穿越变成相交大忌！', breakdownNote: 'G (一) + D (大) + I (杂合识别码)' },
+      { char: '于', roots: ['一', '十'], code: 'GFK', reason: '先写横“一”，连着写“十/干底”；绝不拆成相交的“二”与竖钩', breakdownNote: 'G (一) + F (十) + K (杂合识别码)' },
+      { char: '未', roots: ['二', '𡭔'], code: 'FII', reason: '“二”与“木底”相连相接，不把中间的长竖和横相交割裂', breakdownNote: 'F (二) + I (小木底) + I (识别码)' }
+    ]
+  }
+];
+
+// 正误拆法大PK精选避坑宝典
+export const TRICKY_SPLIT_PK_LIST: SplitPKItem[] = [
+  {
+    char: '天',
+    pinyin: 'tiān',
+    title: '能连不交的典型标杆',
+    correctRoots: ['一 (G)', '大 (D)'],
+    correctCode: 'GD + I (识别码) = GDI',
+    wrongRoots: ['二 (F)', '人 (W)'],
+    wrongCode: 'FWI (错！)',
+    principleApplied: '能连不交',
+    whyWrong: '拆成“二 + 人”，人的撇捺与横线形成交叉相穿；拆成“一 + 大”，一与大只在顶端相接，属于相连关系。能连绝不交！',
+    tip: '看到天字，脑海中浮现“头顶一条线(一)，脚踩大英雄(大)”。',
+    difficulty: '★★☆'
+  },
+  {
+    char: '申',
+    pinyin: 'shēn',
+    title: '贯穿相交 vs 取大优先',
+    correctRoots: ['曰 (J)', '丨 (H)'],
+    correctCode: 'JH + K (识别码) = JHK',
+    wrongRoots: ['口 (K)', '十 (F)'],
+    wrongCode: 'KFD (错！)',
+    principleApplied: '取大优先 + 书写顺序',
+    whyWrong: '许多人以为是口字加个十字，但写申字是先写日(曰)字框，最后中间贯穿一竖！曰是更大的字根，且符合真实笔顺。',
+    tip: '“申”是日中贯一竖，先打日(J)再打竖(H)。',
+    difficulty: '★★★'
+  },
+  {
+    char: '果',
+    pinyin: 'guǒ',
+    title: '贪吃大字根还是拆成小碎块？',
+    correctRoots: ['曰 (J)', '木 (S)'],
+    correctCode: 'JS + I (识别码) = JSI',
+    wrongRoots: ['田 (L)', '木 (S)'],
+    wrongCode: 'LSI (错！)',
+    principleApplied: '取大优先 + 书写顺序',
+    whyWrong: '不少初学者直觉看到上面像个“田”，但实际上果字的竖是和下方的木相通相连的，字根库中上方取大为“曰(J)”，下部为完整的“木(S)”。',
+    tip: '树上结了日头果：日(J) + 木(S)。',
+    difficulty: '★★★'
+  },
+  {
+    char: '末',
+    pinyin: 'mò',
+    title: '“末”与“未”的双子星陷阱',
+    correctRoots: ['一 (G)', '木 (S)'],
+    correctCode: 'GS + I (识别码) = GSI',
+    wrongRoots: ['二 (F)', '小 (I)'],
+    wrongCode: 'FII (这是“未”！)',
+    principleApplied: '取大优先 + 直观',
+    whyWrong: '“末”上面一横长，下面是一个完整的“木”，取大直接为“一”+“木”；而“未”上面一横短，必须拆成“二”+“小木底”！两者天壤之别！',
+    tip: '上长下短是“末”，取一木(GS)；上短下长是“未”，取二木(FI)。',
+    difficulty: '★★★★'
+  },
+  {
+    char: '卡',
+    pinyin: 'kǎ',
+    title: '上下各半还是取大优先？',
+    correctRoots: ['上 (H)', '卜 (H)'],
+    correctCode: 'HH + U (识别码) = HHU',
+    wrongRoots: ['| (H)', '一 (G)', '卜 (H)'],
+    wrongCode: 'HGH (错！)',
+    principleApplied: '取大优先',
+    whyWrong: '卡字上半截本身就是一个完整的字根“上(H)”，下半截是“卜(H)”，两次取大即可完美搞定，绝不需要碎拆成单笔画。',
+    tip: '上面是“上”，下面是“卜”，上卜成卡(HHU)。',
+    difficulty: '★★☆'
+  },
+  {
+    char: '我',
+    pinyin: 'wǒ',
+    title: '天天打却拆不对的全码盲区',
+    correctRoots: ['丿 (T)', '扌 (R)', '戈 (N)'],
+    correctCode: '全码 TRNT (一简只需打 Q)',
+    wrongRoots: ['丿 (T)', '手 (R)', '弋 (A)'],
+    wrongCode: 'TRA (错！)',
+    principleApplied: '书写顺序与复合字根',
+    whyWrong: '平时都用 Q 键打我，但全码拆解非常考验功力：先写一撇(T)，再写提手偏旁(R)，右边是带横的“戈(N)”并在最后补末笔撇(T)。',
+    tip: '一简为 Q，全码为“撇提手戈撇”(TRNT)。',
+    difficulty: '★★★★'
+  },
+  {
+    char: '甚',
+    pinyin: 'shèn',
+    title: '经典骨灰级高难拆字',
+    correctRoots: ['甘 (A)', '匹框 (D)', '八 (W)', '𠃊 (N)'],
+    correctCode: 'ADWN (全码直出)',
+    wrongRoots: ['十 (F)', '十 (F)', '八 (W)'],
+    wrongCode: 'FFW (错！)',
+    principleApplied: '取大优先',
+    whyWrong: '甚字上方虽然看起来像两个十，但实际上可以取最大的完整预设字根“甘(A)”！下部由底框与八组合，构成 ADWN。',
+    tip: '甚字头顶是甘蔗：甘(A)打头，瞬间破局！',
+    difficulty: '★★★★★'
+  },
+  {
+    char: '肆',
+    pinyin: 'sì',
+    title: '复杂左右结构的取大拆分',
+    correctRoots: ['镸 (D)', '聿 (V)', '十 (F)', '一 (G)'],
+    correctCode: 'DVFH',
+    wrongRoots: ['长 (T)', '聿 (V)'],
+    wrongCode: 'TV (错！)',
+    principleApplied: '取大优先 + 规范字根',
+    whyWrong: '肆左边是古代繁体长“镸”，字根码为 D；右侧是聿字(V)，按序取大，编码极为严谨精巧。',
+    tip: '肆意挥洒：左镸(D)右聿(V)，大写数字四的排面。',
+    difficulty: '★★★★★'
+  }
+];
+
+// 拆字大考验互动题库
+export const SPLIT_QUIZ_QUESTIONS: SplitQuizItem[] = [
+  {
+    id: 1,
+    char: '天',
+    pinyin: 'tiān',
+    question: '“天”字在五笔中应该如何正确拆分？遵循哪项核心法则？',
+    options: [
+      { label: '一 (G) + 大 (D)', roots: ['一', '大'], code: 'GDI', isCorrect: true, feedback: '太棒了！遵循【能连不交】，一与大首尾相连，避免相交割裂！' },
+      { label: '二 (F) + 人 (W)', roots: ['二', '人'], code: 'FWI', isCorrect: false, feedback: '错误！拆成二和人会使人的撇捺与横线交叉穿透，违反【能连不交】大忌！' },
+      { label: '一 (G) + 一 (G) + 人 (W)', roots: ['一', '一', '人'], code: 'GGWI', isCorrect: false, feedback: '错误！碎拆成零散小笔画，违反了【取大优先】原则！' }
+    ],
+    explanation: '“能连不交”是五笔精髓：字根之间相连相接优于相互交叉，因此拆为“一”+“大”。',
+    principleTag: '能连不交'
+  },
+  {
+    id: 2,
+    char: '申',
+    pinyin: 'shēn',
+    question: '“申”字经常被误拆为口与十，它的标准拆法是？',
+    options: [
+      { label: '曰 (J) + 丨 (H)', roots: ['曰', '丨'], code: 'JHK', isCorrect: true, feedback: '完全正确！申字书写为先写外框曰(J)，最后一竖贯通(H)，取大优先！' },
+      { label: '口 (K) + 十 (F)', roots: ['口', '十'], code: 'KFD', isCorrect: false, feedback: '错误！违反书写笔顺，且曰比口涵盖笔画更大更精准！' },
+      { label: '日 (J) + 十 (F)', roots: ['日', '十'], code: 'JFD', isCorrect: false, feedback: '错误！十字横画并不存在，只有中间那一竖！' }
+    ],
+    explanation: '申字的书写顺序是先写“曰”，最后中间悬针竖贯穿，取码为 JHK。',
+    principleTag: '书写顺序 & 取大优先'
+  },
+  {
+    id: 3,
+    char: '果',
+    pinyin: 'guǒ',
+    question: '拆分“果”字时，上半部分的合理字根是哪个？',
+    options: [
+      { label: '田 (L) —— 直观看起来四四方方', roots: ['田', '木'], code: 'LSI', isCorrect: false, feedback: '错啦！果字的中间一竖是通到下面木字里的，上面不是封闭独立的田！' },
+      { label: '曰 (J) —— 包含上面扁日框', roots: ['曰', '木'], code: 'JSI', isCorrect: true, feedback: '答对了！上部取大字根为曰(J)，下部整块为木(S)，合为 JSI！' },
+      { label: '日 (J) + 一 (G) —— 分层拆解', roots: ['日', '一', '木'], code: 'JGSI', isCorrect: false, feedback: '错误！太碎了，违背了【取大优先】能一块绝不两块的原则！' }
+    ],
+    explanation: '“果”字上部为“曰(J)”，下部为“木(S)”，末笔为木的捺点，杂合型识别码为 I。',
+    principleTag: '取大优先'
+  },
+  {
+    id: 4,
+    char: '末',
+    pinyin: 'mò',
+    question: '如何一眼区分“末”和“未”在五笔中的取码拆解？',
+    options: [
+      { label: '末是上长下短，取大为“一 + 木”(GS)；未是上短下长，拆为“二 + 𡭔”(FI)', roots: ['一', '木'], code: 'GSI', isCorrect: true, feedback: '高分洞察！末字底下一个完整木，因此直观取“一+木”；未字上短下长只能取“二”！' },
+      { label: '两者都是一横加木，完全一样编码', roots: ['一', '木'], code: 'GSI', isCorrect: false, feedback: '大错特错！五笔对未和末有严格区分，未是 FII，末是 GSI！' },
+      { label: '末拆为“二 + 小木底”', roots: ['二', '小木底'], code: 'FII', isCorrect: false, feedback: '记反了！FII 是“未”的拆法！' }
+    ],
+    explanation: '末字上方横长，下方是一个天然纯粹的“木(S)”，取码 GSI；未字上方横短，拆为二与小木底，取码 FII。',
+    principleTag: '兼顾直观 & 取大优先'
+  },
+  {
+    id: 5,
+    char: '卡',
+    pinyin: 'kǎ',
+    question: '“卡”字既有竖又有一横，最快最准的拆法是？',
+    options: [
+      { label: '上 (H) + 卜 (H)', roots: ['上', '卜'], code: 'HHU', isCorrect: true, feedback: '火眼金睛！直接拆成两个现成的大字根“上”和“卜”，击键极其轻快流畅！' },
+      { label: '丨 (H) + 一 (G) + 卜 (H)', roots: ['丨', '一', '卜'], code: 'HGHU', isCorrect: false, feedback: '过于零碎！字根库里有完整的“上”，不应拆解单笔画！' },
+      { label: '止 (H) + 丶 (Y)', roots: ['止', '丶'], code: 'HYI', isCorrect: false, feedback: '不符合汉字结构，卡字没有止字偏旁！' }
+    ],
+    explanation: '遵循取大优先，卡字由“上(H)”和“卜(H)”组合而成，末笔点，杂合型识别码为 U。',
+    principleTag: '取大优先'
+  }
+];
+
 export const WUBI_RULES: RuleSection[] = [
+  {
+    id: 'split-principles',
+    title: '汉字拆分四项基本原则',
+    badge: '趣味核心 01',
+    summary: '汉字拆成字根遵循四大准则：书写顺序、取大优先、兼顾直观、能连不交。',
+    content: [
+      '① 书写顺序：先左后右、先上后下、先外后内、先进后关。像排队过安检，不可跨越笔顺！',
+      '② 取大优先：贪吃蛇策略！每次尽量吞下笔画最多、最大的现成字根，使得总字根数最少。',
+      '③ 兼顾直观：保留原字骨架视觉美感，避免把自然整体割裂得支离破碎。',
+      '④ 能连不交：相连相依是好友，穿身腰斩是大忌！能拆成相接关系的，绝不拆成相交穿透关系。'
+    ],
+    examples: [
+      { word: '天', code: 'GDI', analysis: '【能连不交】一(G) + 大(D)，相接相依；不拆二(F)+人(W)交叉割裂' },
+      { word: '果', code: 'JSI', analysis: '【取大优先】曰(J) + 木(S)，整块大字根优先；不拆田+木' },
+      { word: '申', code: 'JHK', analysis: '【书写顺序】先写曰(J)，最后一竖悬针贯通(H)，取码 JHK' }
+    ]
+  },
   {
     id: 'roots-zone',
     title: '字根五区与键位规律',
-    badge: '基础篇 01',
+    badge: '基础规律 02',
     summary: '五笔将除 Z 键外的 25 个英文字母划分为 5 个区，每个区 5 个位，按起笔笔画归类。',
     content: [
       '第 1 区（横起区 G-F-D-S-A）：G=11, F=12, D=13, S=14, A=15。起笔为横（含提）。',
@@ -40,23 +348,6 @@ export const WUBI_RULES: RuleSection[] = [
       { word: '王', code: 'GGGG', analysis: '1区1位键名字（G），打四下出字' },
       { word: '土', code: 'FFFF', analysis: '1区2位键名字（F），打四下出字' },
       { word: '木', code: 'SSSS', analysis: '1区4位键名字（S），打四下出字' }
-    ]
-  },
-  {
-    id: 'split-principles',
-    title: '汉字拆分四项基本原则',
-    badge: '拆字篇 02',
-    summary: '汉字拆成字根遵循四大准则：书写顺序、取大优先、兼顾直观、能连不交。',
-    content: [
-      '① 书写顺序：先左后右、先上后下、先外后内、先横后竖、先进后关。',
-      '② 取大优先：在保证笔画正确的原则下，每次尽量拆出包含笔画最多、最大的已知字根。',
-      '③ 兼顾直观：字根之间要相对完整自然，避免硬性割裂容易辨识的结构。',
-      '④ 能连不交：能拆成相连关系的字根，绝不拆成相交关系的字根。相连如“天”=一+大，相交如交叉穿越。'
-    ],
-    examples: [
-      { word: '明', code: 'JEG', analysis: '左右结构：日(J) + 月(E) + 识别码(G)' },
-      { word: '春', code: 'DWJ', analysis: '上下结构：三(D) + 人(W) + 日(J)' },
-      { word: '华', code: 'WXFJ', analysis: '上下结构：亻(W) + 匕(X) + 十(F) + 识别码(J)' }
     ]
   },
   {
