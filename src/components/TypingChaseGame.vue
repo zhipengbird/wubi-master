@@ -64,40 +64,49 @@
 
       <!-- 实时 2.5D 双跑道视图 -->
       <div class="lanes-container">
-        <!-- 玩家赛道 (Player Lane) -->
-        <div class="lane player-lane">
-          <div class="lane-label">
-            <span class="lane-tag tag-player">YOU 玩家</span>
-            <span class="lane-speed">{{ playerWpm }} WPM</span>
-          </div>
-          <div class="lane-track-strip">
-            <div
-              class="racer player-racer"
-              :style="{ left: playerProgressPercent + '%' }"
-            >
-              <div class="racer-avatar">🚀</div>
-              <div class="racer-name-bubble">
-                你 ({{ playerIndex }}/{{ TARGET_COUNT }})
-                <div class="exhaust-flame" v-if="gameState === 'running'"></div>
+        <!-- 起点线标记 -->
+        <div class="start-line-marker">
+          <span class="marker-flag">🚦</span>
+          <span class="marker-text">START</span>
+        </div>
+
+        <!-- 跑道主体区 -->
+        <div class="lanes-main-body">
+          <!-- 玩家赛道 (Player Lane) -->
+          <div class="lane player-lane">
+            <div class="lane-label">
+              <span class="lane-tag tag-player">YOU 玩家</span>
+              <span class="lane-speed">{{ playerWpm }} WPM</span>
+            </div>
+            <div class="lane-track-strip">
+              <div
+                class="racer player-racer"
+                :style="{ left: playerProgressPercent + '%' }"
+              >
+                <div class="racer-avatar">🚀</div>
+                <div class="racer-name-bubble">
+                  你 ({{ playerIndex }}/{{ TARGET_COUNT }})
+                  <div class="exhaust-flame" v-if="gameState === 'running'"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 对手追逐者赛道 (Rival / AI Lane) -->
-        <div class="lane ai-lane">
-          <div class="lane-label">
-            <span class="lane-tag tag-ai">RIVAL 对手 ({{ aiWpm }} WPM)</span>
-            <span class="lane-speed">{{ aiWpm }} WPM</span>
-          </div>
-          <div class="lane-track-strip">
-            <div
-              class="racer ai-racer"
-              :style="{ left: aiProgressPercent + '%' }"
-            >
-              <div class="racer-avatar">🛸</div>
-              <div class="racer-name-bubble ai-bubble">
-                暗影猎手 ({{ Math.floor(aiCharProgress) }}/{{ TARGET_COUNT }})
+          <!-- 对手追逐者赛道 (Rival / AI Lane) -->
+          <div class="lane ai-lane">
+            <div class="lane-label">
+              <span class="lane-tag tag-ai">RIVAL 对手 ({{ aiWpm }} WPM)</span>
+              <span class="lane-speed">{{ aiWpm }} WPM</span>
+            </div>
+            <div class="lane-track-strip">
+              <div
+                class="racer ai-racer"
+                :style="{ left: aiProgressPercent + '%' }"
+              >
+                <div class="racer-avatar">🛸</div>
+                <div class="racer-name-bubble ai-bubble">
+                  暗影猎手 ({{ Math.floor(aiCharProgress) }}/{{ TARGET_COUNT }})
+                </div>
               </div>
             </div>
           </div>
@@ -371,11 +380,14 @@ const remainingChars = computed(() => {
 });
 
 const playerProgressPercent = computed(() => {
-  return Math.min(100, (playerIndex.value / TARGET_COUNT) * 100);
+  // 映射到 2% 到 94% 之间，确保起点时不被左侧截断，终点时贴合 FINISH 线
+  const ratio = Math.min(1, Math.max(0, playerIndex.value / TARGET_COUNT));
+  return 2 + ratio * 92;
 });
 
 const aiProgressPercent = computed(() => {
-  return Math.min(100, (aiCharProgress.value / TARGET_COUNT) * 100);
+  const ratio = Math.min(1, Math.max(0, aiCharProgress.value / TARGET_COUNT));
+  return 2 + ratio * 92;
 });
 
 const chaseGap = computed(() => {
@@ -816,13 +828,45 @@ onUnmounted(() => {
 .lanes-container {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: stretch;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  padding: 1rem 1.5rem 1rem 1rem;
-  overflow: hidden;
+  padding: 1.25rem 0.5rem;
+  overflow: visible;
+  gap: 0.5rem;
+}
+
+.start-line-marker {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 2px dashed rgba(255, 255, 255, 0.2);
+  padding: 0 4px;
+  z-index: 5;
+}
+
+.marker-flag {
+  font-size: 1.2rem;
+}
+
+.marker-text {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  writing-mode: vertical-rl;
+  color: var(--text-muted);
+}
+
+.lanes-main-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  padding-right: 36px; /* 为右侧 FINISH 线预留安全区 */
 }
 
 .lane {
@@ -837,6 +881,7 @@ onUnmounted(() => {
   justify-content: space-between;
   font-size: 0.75rem;
   font-weight: 700;
+  padding: 0 4px;
 }
 
 .lane-tag {
@@ -861,7 +906,7 @@ onUnmounted(() => {
 
 .lane-track-strip {
   position: relative;
-  height: 48px;
+  height: 52px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -870,20 +915,17 @@ onUnmounted(() => {
 }
 
 .finish-line-marker {
-  position: absolute;
-  right: 12px;
-  top: 0;
-  bottom: 0;
-  width: 24px;
+  width: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-left: 2px dashed rgba(255, 255, 255, 0.3);
+  border-left: 2px dashed rgba(255, 255, 255, 0.2);
+  padding: 0 4px;
   background: repeating-linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(255, 255, 255, 0.05) 6px,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.04) 6px,
     transparent 6px,
     transparent 12px
   );
@@ -895,7 +937,7 @@ onUnmounted(() => {
 }
 
 .finish-text {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 900;
   letter-spacing: 1px;
   writing-mode: vertical-rl;
