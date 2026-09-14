@@ -140,12 +140,13 @@
         class="hidden-native-input"
         @keydown="handleKeyDown"
         @input="handleNativeInput"
+        @compositionstart="handleCompositionStart"
+        @compositionend="handleCompositionEnd"
         :disabled="gameState === 'finished' || gameState === 'failed'"
         autocomplete="off"
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
-        inputmode="latin"
       />
 
       <!-- 战斗状态条 -->
@@ -359,6 +360,7 @@ import {
   LEVEL_1_CHARS,
   KEY_NAME_CHARS,
   getFullCode,
+  getShortCode,
   getRoots,
   type WubiCharData
 } from '../data/wubiDict';
@@ -599,12 +601,18 @@ const increaseAiDifficulty = () => {
   startGame();
 };
 
-// 键盘事件处理
+// 跟踪输入法组合状态与最近提交时间戳
+const isComposingRef = ref(false);
+let lastImeCommitTime = 0;
+
+// 键盘特殊功能键处理 (退格、回车、空格)
 const handleKeyDown = (e: KeyboardEvent) => {
   if (gameState.value !== 'running') return;
 
-  // 忽略输入法组合输入中的按键（避免与原生拼音/五笔候选冲突）
-  if (e.isComposing) return;
+  // 1. 如果输入法正在组合组字（例如五笔/拼音候选窗打开），绝对不拦截任何按键，放行给输入法
+  if (e.isComposing || isComposingRef.value || e.keyCode === 229) {
+    return;
+  }
 
   // 忽略控制键
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -616,43 +624,95 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (inputBuffer.value.length > 0) {
       e.preventDefault();
       inputBuffer.value = inputBuffer.value.slice(0, -1);
-      hasInputError.value = false;
-      soundPlayer.playKey(store.audio.value, false, false);
       if (hiddenInputRef.value) {
         hiddenInputRef.value.value = inputBuffer.value;
       }
+      hasInputError.value = false;
+      soundPlayer.playKey(store.audio.value, false, false);
     }
     return;
   }
 
-  // 空格键提交
+  // 空格键提交出字
   if (key === ' ' || key === 'Spacebar') {
     e.preventDefault();
+    // 关键防抖：如果刚在 250ms 内完成输入法选词汉字上屏，该空格属于输入法确认键，忽略之，杜绝误跳下一个字
+    if (Date.now() - lastImeCommitTime < 250) {
+      return;
+    }
     verifyCurrentInput(true);
     return;
   }
 
-  // 普通字母键输入 A-Z（网页内建五笔引擎模式）
-  if (/^[a-zA-Z]$/.test(key)) {
+  // 回车清空
+  if (key === 'Enter') {
     e.preventDefault();
-    const upperKey = key.toUpperCase();
-    totalKeystrokes.value++;
-
-    if (inputBuffer.value.length < 4) {
-      inputBuffer.value += upperKey;
-      soundPlayer.playKey(store.audio.value, false, false);
-      if (hiddenInputRef.value) {
-        hiddenInputRef.value.value = inputBuffer.value;
-      }
-      // 实时判断是否可立即匹配
-      verifyCurrentInput(false);
+    inputBuffer.value = '';
+    if (hiddenInputRef.value) {
+      hiddenInputRef.value.value = '';
     }
+    hasInputError.value = false;
+    return;
   }
 };
 
-// 处理输入框原生 input 事件（支持中文输入法直接打汉字上屏）
+// 输入法组合开始 (例如敲下五笔/拼音候选字母)
+const handleCompositionStart = () => {
+  isComposingRef.value = true;
+};
+
+// 输入法组合结束 (用户在输入法候选框中敲击空格或数字完成选字上屏)
+const handleCompositionEnd = (e: CompositionEvent) => {
+  isComposingRef.value = false;
+  const committedData = e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '');
+  if (committedData && /[\u4e00-\u9fa5]/.test(committedData)) {
+    processChineseCommit(committedData);
+  }
+};
+
+// 统一汉字上屏提交处理逻辑（完美支持单个汉字及连续汉字上屏）
+const processChineseCommit = (text: string) => {
+  lastImeCommitTime = Date.now();
+
+  // 提取所有汉字字符
+  const chineseChars = Array.from(text).filter(c => /[\u4e00-\u9fa5]/.test(c));
+
+  // 核心清理：立即重置原生 input 与 inputBuffer，彻底杜绝输入残留带入下一个字！
+  inputBuffer.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
+
+  if (chineseChars.length === 0) return;
+
+  for (const char of chineseChars) {
+    const currentItem = targetChars.value[playerIndex.value];
+    if (!currentItem) break;
+
+    if (char === currentItem.char) {
+      onCharSuccess();
+    } else {
+      onCharError();
+      break;
+    }
+  }
+
+  // 再次确保清理干净
+  inputBuffer.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
+};
+
+// 统一原生输入处理：完美兼顾「五笔输入法打汉字上屏」与「纯英文键盘敲五笔编码」
 const handleNativeInput = (e: Event) => {
   if (gameState.value !== 'running') return;
+
+  // 1. 如果正在输入法候选组字中，严禁干预原生输入法，不执行任何比对与消耗
+  if (isComposingRef.value || (e as InputEvent).isComposing) {
+    return;
+  }
+
   const target = e.target as HTMLInputElement;
   const raw = target.value.trim();
 
@@ -662,31 +722,25 @@ const handleNativeInput = (e: Event) => {
     return;
   }
 
-  const currentItem = targetChars.value[playerIndex.value];
-  if (!currentItem) return;
-
-  // 1. 如果用户使用了系统输入法（五笔/拼音）打出汉字上屏
+  // 2. 情况 A：输入框中出现了汉字（某些浏览器在 compositionend 后或非标准输入法直接通过 input 注入汉字）
   if (/[\u4e00-\u9fa5]/.test(raw)) {
-    // 遍历汉字是否匹配当前目标
-    for (const char of raw) {
-      const activeChar = targetChars.value[playerIndex.value];
-      if (activeChar && char === activeChar.char) {
-        onCharSuccess();
-      } else {
-        onCharError();
-      }
-    }
-    // 清理输入框，汉字不留在 4 键方格里
-    inputBuffer.value = '';
-    target.value = '';
+    processChineseCommit(raw);
     return;
   }
 
-  // 2. 字母编码输入（针对某些在 input 事件触发的英文输入）
+  // 3. 情况 B：用户使用纯英文键盘敲击五笔字母编码 (A-Z)
   const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
+  totalKeystrokes.value++;
+  soundPlayer.playKey(store.audio.value, false, false);
   verifyCurrentInput(false);
+
+  // 核心关键点：如果本次击键触发了出字（即 playerIndex 前进，onCharSuccess 已将 inputBuffer 置空），
+  // 必须把当前原生 input 元素的 value 也同步置空！绝不能把当前字的编码带入下一个字！
+  if (inputBuffer.value === '') {
+    target.value = '';
+  }
 };
 
 // 验证输入是否与当前字匹配
@@ -695,7 +749,7 @@ const verifyCurrentInput = (forceSpace: boolean) => {
   if (!currentItem) return;
 
   const targetFull = getCharTargetCode(currentItem);
-  const targetShort = (currentItem.short86 || '').toUpperCase();
+  const targetShort = (getShortCode(currentItem, store.version.value) || currentItem.short86 || '').toUpperCase();
   const currentBuf = inputBuffer.value.trim().toUpperCase();
 
   if (!currentBuf) {
@@ -720,12 +774,13 @@ const verifyCurrentInput = (forceSpace: boolean) => {
     }
   }
 
-  // 3. 满四码或简码自动出字
+  // 3. 自动出字：简码命中且当前配置为自动出字
   if (targetShort && currentBuf === targetShort && store.commitMode.value === 'auto') {
     onCharSuccess();
     return;
   }
 
+  // 4. 满四码自动核验
   if (currentBuf.length === 4) {
     if (currentBuf === targetFull) {
       onCharSuccess();
@@ -743,7 +798,7 @@ const verifyCurrentInput = (forceSpace: boolean) => {
 };
 
 const onCharSuccess = () => {
-  correctKeystrokes.value += inputBuffer.value.length;
+  correctKeystrokes.value += Math.max(1, inputBuffer.value.length);
   comboCount.value++;
   if (comboCount.value > maxCombo.value) {
     maxCombo.value = comboCount.value;
@@ -751,6 +806,9 @@ const onCharSuccess = () => {
 
   playerIndex.value++;
   inputBuffer.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
   hasInputError.value = false;
   soundPlayer.playKey(store.audio.value, true, false);
 
@@ -763,6 +821,11 @@ const onCharError = () => {
   comboCount.value = 0;
   hasInputError.value = true;
   soundPlayer.playKey(store.audio.value, false, true);
+
+  inputBuffer.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
 
   setTimeout(() => {
     hasInputError.value = false;
@@ -1007,7 +1070,7 @@ onUnmounted(() => {
 }
 
 .tag-player {
-  background: rgba(99, 102, 241, 0.2);
+  background: var(--accent-subtle);
   color: var(--accent);
 }
 
@@ -1039,20 +1102,20 @@ onUnmounted(() => {
   left: 0;
   border-radius: 8px 0 0 8px;
   transition: width 0.15s linear;
-  opacity: 0.28;
+  opacity: 0.55;
   pointer-events: none;
 }
 
 .lane-progress-fill.player-fill {
-  background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), var(--accent));
+  background: linear-gradient(90deg, var(--accent-subtle), var(--accent));
   border-right: 2px solid var(--accent);
-  box-shadow: 0 0 12px var(--accent);
+  box-shadow: 0 0 14px var(--accent-subtle);
 }
 
 .lane-progress-fill.ai-fill {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), #ef4444);
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.18), #ef4444);
   border-right: 2px solid #ef4444;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
 }
 
 .start-line-marker {
@@ -1162,10 +1225,13 @@ onUnmounted(() => {
 
 .hidden-native-input {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
+  cursor: text;
+  z-index: 1;
 }
 
 .cockpit-stats-bar {
@@ -1432,7 +1498,7 @@ onUnmounted(() => {
 
 .start-btn {
   background: var(--accent);
-  color: #fff;
+  color: var(--bg-primary);
   border: none;
   padding: 0.85rem 2.2rem;
   border-radius: 12px;
@@ -1440,12 +1506,17 @@ onUnmounted(() => {
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 16px var(--accent-subtle);
 }
 
 .start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 20px var(--accent-subtle);
+}
+
+[data-theme='retro-beige'] .start-btn,
+[data-theme='paper-ink'] .start-btn {
+  color: #ffffff;
 }
 
 .start-btn.pulse {
@@ -1571,14 +1642,52 @@ onUnmounted(() => {
 /* 选中的药丸按钮：高对比度、清晰的阴影和强调色 */
 .m-pill-btn.active {
   background: var(--accent);
-  color: #ffffff !important;
+  color: var(--bg-primary) !important;
   border-color: var(--accent);
-  box-shadow: 0 4px 14px var(--accent-subtle, rgba(56, 189, 248, 0.4));
+  font-weight: 800;
+  box-shadow: 0 4px 14px var(--accent-subtle);
   transform: translateY(-1px);
 }
 
+.m-pill-btn.active .pill-title {
+  color: var(--bg-primary) !important;
+}
+
 .m-pill-btn.active .pill-sub {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--bg-primary) !important;
+  opacity: 0.85;
+}
+
+[data-theme='retro-beige'] .m-pill-btn.active,
+[data-theme='retro-beige'] .m-pill-btn.active .pill-title,
+[data-theme='retro-beige'] .m-pill-btn.active .pill-sub,
+[data-theme='paper-ink'] .m-pill-btn.active,
+[data-theme='paper-ink'] .m-pill-btn.active .pill-title,
+[data-theme='paper-ink'] .m-pill-btn.active .pill-sub {
+  color: #ffffff !important;
+}
+
+/* paper-ink (浅色丹红印泥主题) 专属适配：
+   在该主题下玩家主色为朱红(--accent: #b91c1c)，为避免对手AI也是红色无法分辨，
+   将对手AI定制为对比强烈的深靛青/紫罗兰色(#4f46e5)，进度条填充透明度提升 */
+[data-theme='paper-ink'] .ai-fill {
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.15), #4f46e5);
+  border-right: 2px solid #4f46e5;
+  box-shadow: 0 0 14px rgba(79, 70, 229, 0.4);
+}
+
+[data-theme='paper-ink'] .ai-bubble {
+  background: #4f46e5;
+}
+
+[data-theme='paper-ink'] .tag-ai {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+}
+
+[data-theme='paper-ink'] .lane-progress-fill,
+[data-theme='retro-beige'] .lane-progress-fill {
+  opacity: 0.72;
 }
 
 /* 模式提示标签 */
