@@ -73,8 +73,8 @@ export const LEVEL_2_CHARS: WubiCharData[] = [
   { char: '把', pinyin: 'bǎ', code86: 'RCN', code98: 'RCN', codeNew: 'RCN', short86: 'RC', short98: 'RC', shortNew: 'RC', roots86: ['扌', '巴'], roots98: ['扌', '巴'], rootsNew: ['扌', '巴'] },
   { char: '打', pinyin: 'dǎ', code86: 'RSH', code98: 'RSH', codeNew: 'RSH', short86: 'RS', short98: 'RS', shortNew: 'RS', roots86: ['扌', '丁'], roots98: ['扌', '丁'], rootsNew: ['扌', '丁'] },
   { char: '帮', pinyin: 'bāng', code86: 'DTBH', code98: 'DTBH', codeNew: 'DTBH', short86: 'DT', short98: 'DT', shortNew: 'DT', roots86: ['大', '丰', '阝', '巾'], roots98: ['大', '丰', '阝', '巾'], rootsNew: ['大', '丰', '阝', '巾'] },
-  { char: '进', pinyin: 'jìn', code86: 'FJPK', code98: 'FJPK', codeNew: 'FJPK', short86: 'FJ', short98: 'FJ', shortNew: 'FJ', roots86: ['井', '辶'], roots98: ['井', '辶'], rootsNew: ['井', '辶'] },
-  { char: '理', pinyin: 'lǐ', code86: 'GJFG', code98: 'GJFG', codeNew: 'GJFG', short86: 'GJ', short98: 'GJ', shortNew: 'GJ', roots86: ['王', '里'], roots98: ['王', '里'], rootsNew: ['王', '里'] },
+  { char: '进', pinyin: 'jìn', code86: 'FJPK', code98: 'FJPK', codeNew: 'FJPK', short86: 'FJ', short98: 'FJ', shortNew: 'FJ', roots86: ['二', '十', '辶'], roots98: ['二', '十', '辶'], rootsNew: ['二', '十', '辶'] },
+  { char: '理', pinyin: 'lǐ', code86: 'GJFG', code98: 'GJFG', codeNew: 'GJFG', short86: 'GJ', short98: 'GJ', shortNew: 'GJ', roots86: ['王', '日', '土'], roots98: ['王', '日', '土'], rootsNew: ['王', '日', '土'] },
   { char: '现', pinyin: 'xiàn', code86: 'GMQN', code98: 'GMQN', codeNew: 'GMQN', short86: 'GM', short98: 'GM', shortNew: 'GM', roots86: ['王', '见'], roots98: ['王', '见'], rootsNew: ['王', '见'] },
   { char: '要', pinyin: 'yào', code86: 'SVF', code98: 'SVF', codeNew: 'SVF', short86: 'SV', short98: 'SV', shortNew: 'SV', roots86: ['覀', '女'], roots98: ['覀', '女'], rootsNew: ['覀', '女'] },
   { char: '样', pinyin: 'yàng', code86: 'SUHD', code98: 'SUHD', codeNew: 'SUHD', short86: 'SU', short98: 'SU', shortNew: 'SU', roots86: ['木', '羊'], roots98: ['木', '羊'], rootsNew: ['木', '羊'] },
@@ -97,7 +97,7 @@ export const LEVEL_2_CHARS: WubiCharData[] = [
   { char: '海', pinyin: 'hǎi', code86: 'ITXU', code98: 'ITXU', codeNew: 'ITXU', short86: 'IT', short98: 'IT', shortNew: 'IT', roots86: ['氵', '每'], roots98: ['氵', '每'], rootsNew: ['氵', '每'] },
   { char: '情', pinyin: 'qíng', code86: 'NGEG', code98: 'NGEG', codeNew: 'NGEG', short86: 'NG', short98: 'NG', shortNew: 'NG', roots86: ['忄', '青'], roots98: ['忄', '青'], rootsNew: ['忄', '青'] },
   { char: '快', pinyin: 'kuài', code86: 'NNWY', code98: 'NNWY', codeNew: 'NNWY', short86: 'NN', short98: 'NN', shortNew: 'NN', roots86: ['忄', '夬'], roots98: ['忄', '夬'], rootsNew: ['忄', '夬'] },
-  { char: '建', pinyin: 'jiàn', code86: 'VFPK', code98: 'VFPK', codeNew: 'VFPK', short86: 'VF', short98: 'VF', shortNew: 'VF', roots86: ['聿', '廴'], roots98: ['聿', '廴'], rootsNew: ['聿', '廴'] },
+  { char: '建', pinyin: 'jiàn', code86: 'VFHP', code98: 'VGPK', codeNew: 'VGPK', short86: 'VF', short98: 'VG', shortNew: 'VG', roots86: ['彐', '二', '丨', '廴'], roots98: ['聿', '一', '廴'], rootsNew: ['聿', '一', '廴'] },
   { char: '红', pinyin: 'hóng', code86: 'XAG', code98: 'XAG', codeNew: 'XAG', short86: 'XA', short98: 'XA', shortNew: 'XA', roots86: ['纟', '工'], roots98: ['纟', '工'], rootsNew: ['纟', '工'] },
   { char: '线', pinyin: 'xiàn', code86: 'XGAY', code98: 'XGAY', codeNew: 'XGAY', short86: 'XG', short98: 'XG', shortNew: 'XG', roots86: ['纟', '戋'], roots98: ['纟', '戋'], rootsNew: ['纟', '戋'] }
 ];
