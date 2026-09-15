@@ -4,6 +4,37 @@
 
 ---
 
+## [1.4.0] - 2026-09-15
+
+### 🌟 核心亮点
+- **业/亚部汉字字根全面纠正**：消除 14 个汉字（晋、亚、业、恶、严、哑、娅、垩、垭、戬、桠、痖、鄑、挜）中原始字典将 O 键字根错标为 `灬`（四点底）的学术顽疾，正确还原为 `业`（业字头/亚字头上部）。
+- **IndexedDB 双保险同步机制**：`queryByChar` 改为内存精修优先，新增 `applyDbCorrections` 启动补丁，彻底解决旧 IndexedDB 缓存覆盖字根纠正的问题。
+
+### 🐛 重点修复与学术排雷 (Fixed)
+
+- **业/亚部汉字字根纠正 (`wubiDict.ts`)**：
+  - 五笔口诀"火业头，四点米"中 O 键含 `业头`（业字头），而非 `灬`（四点底）；
+  - `EXPERT_CORRECTED_CHARS` 新增 `晋`、`亚`、`业` 三字精准字根数据；
+  - `normalizeRoots` 新增第 7 条规则：编码含 `OG` 或 `GO` 且字根含 `灬` → 统一纠正为 `业头`；
+  - 覆盖 14 个亚/业部汉字，全部验证通过。
+
+- **字根格子显示规范 (`wubiDict.ts`)**：
+  - `ROOT_GLYPH_NORMALIZE` 新增 `'业头' → '业'`，MiZiGe 格子显示字形 `业` 而非两字描述 `业头`；
+  - `ROOT_NAME_MAP` 新增 `'业': '业字头'`，格子底部标签正确显示"业字头"。
+
+- **IndexedDB 缓存覆盖问题根治 (`wubiDb.ts`)**：
+  - `queryByChar` 改为**内存 WUBI_CHAR_MAP 优先**，IndexedDB 缓存仅作生僻字兜底；
+  - 新增 `applyDbCorrections()`：以 `corrections_v1` 版本标记在启动时一次性将精修字根写回 IndexedDB，旧用户无需清缓存即可获得修正数据；
+  - `App.vue` 在 `requestIdleCallback` 闲时自动触发补丁。
+
+### 🛠️ 架构说明
+
+数据优先级：`EXPERT_CORRECTED_CHARS (精修)` > `normalizeRoots (规范化)` > `IndexedDB 缓存` > `rawDictData 原始数据`
+
+所有 wubiDict.ts 精修数据（110字）全部包含在 rawDictData（28,058字）范围内，建库时通过 `parseRawEntry` 的优先逻辑自动使用精修版本写入 IndexedDB，数据完整同步，无遗漏。
+
+---
+
 ## [1.3.0] - 2026-09-15
 
 ### 🌟 核心亮点
