@@ -54,8 +54,10 @@
           </div>
         </div>
 
-        <button class="del-btn" @click="deleteItem(item.char)" title="从错题本移出">
-          <Check :size="18" />
+        <!-- 右上角已掌握快捷胶囊按钮 -->
+        <button class="del-btn" @click="deleteItem(item.char)" title="标记为已掌握，从错题本移出">
+          <Check :size="13" />
+          <span class="del-text">已掌握</span>
         </button>
       </div>
     </div>
@@ -163,12 +165,18 @@ const drillMistakes = () => {
 .mistake-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.15rem;
   position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.mistake-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px var(--accent-subtle);
 }
 
 .card-left {
@@ -176,6 +184,7 @@ const drillMistakes = () => {
   flex-direction: column;
   align-items: center;
   min-width: 60px;
+  flex-shrink: 0;
 }
 
 .char {
@@ -200,6 +209,7 @@ const drillMistakes = () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .code-line {
@@ -241,12 +251,14 @@ const drillMistakes = () => {
   gap: 8px;
   font-size: 0.8rem;
   margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .roots-mizige-strip {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .roots-text {
@@ -255,23 +267,38 @@ const drillMistakes = () => {
 }
 
 .del-btn {
-  background: transparent;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  user-select: none;
 }
 
 .del-btn:hover {
-  background: var(--success);
-  color: #fff;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
   border-color: var(--success);
+  transform: translateY(-1px);
+}
+
+.del-btn:active {
+  transform: scale(0.96);
+}
+
+.del-text {
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .empty-box {
