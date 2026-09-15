@@ -32,8 +32,7 @@
       <!-- 右侧控制区：版本切换、打字模式、主题选择与音效 -->
       <div class="actions-area">
         <!-- 五笔版本切换 -->
-        <div class="ctrl-group">
-          <label class="ctrl-label">词库版本</label>
+        <div class="ctrl-group" title="切换五笔编码版本">
           <div class="pill-group">
             <button
               v-for="ver in versionOptions"
@@ -143,80 +142,90 @@ const handleThemeChange = (e: Event) => {
 }
 
 .navbar-container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.55rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .brand-area {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   background: linear-gradient(135deg, var(--accent), var(--zone-5));
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   box-shadow: 0 4px 10px var(--accent-subtle);
 }
 
 .brand-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-main);
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brand-subtitle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--accent);
   margin-left: 4px;
 }
 
 .brand-desc {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .brand-desc {
+    display: none;
+  }
 }
 
 .nav-tabs {
   display: flex;
   align-items: center;
   background: var(--bg-primary);
-  padding: 4px;
-  border-radius: 10px;
+  padding: 3px;
+  border-radius: 9px;
   border: 1px solid var(--border-color);
   gap: 2px;
+  overflow-x: auto;
 }
 
 .tab-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 7px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   position: relative;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -242,18 +251,14 @@ const handleThemeChange = (e: Event) => {
 .actions-area {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .ctrl-group {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.ctrl-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
 }
 
 .pill-group {
@@ -265,14 +270,15 @@ const handleThemeChange = (e: Event) => {
 }
 
 .pill-btn {
-  padding: 4px 10px;
+  padding: 3px 8px;
   font-size: 0.75rem;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .pill-btn.active {
@@ -284,14 +290,15 @@ const handleThemeChange = (e: Event) => {
 .icon-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 8px;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 7px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-main);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .icon-btn:hover {
@@ -299,14 +306,15 @@ const handleThemeChange = (e: Event) => {
 }
 
 .theme-select {
-  padding: 5px 10px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  border-radius: 7px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-main);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
   outline: none;
+  white-space: nowrap;
 }
 
 .theme-select:focus {
