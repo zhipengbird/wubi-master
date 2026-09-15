@@ -12,62 +12,66 @@
         </div>
       </div>
 
-      <!-- 中间核心模块切换 Tab -->
-      <nav class="nav-tabs">
-        <button
-          v-for="tab in tabOptions"
-          :key="tab.id"
-          class="tab-btn"
-          :class="{ active: store.activeTab.value === tab.id }"
-          @click="store.setActiveTab(tab.id)"
-        >
-          <component :is="tab.icon" class="tab-icon" :size="16" />
-          <span>{{ tab.name }}</span>
-          <span v-if="tab.id === 'mistakes' && mistakeCount > 0" class="badge-count">
-            {{ mistakeCount }}
-          </span>
-        </button>
-      </nav>
+      <!-- 右侧组合区：上排核心功能 Tab，下排右对齐偏好设置（版本、音效、主题） -->
+      <div class="nav-right-cluster">
+        <!-- 上排核心模块切换 Tab -->
+        <nav class="nav-tabs">
+          <button
+            v-for="tab in tabOptions"
+            :key="tab.id"
+            class="tab-btn"
+            :class="{ active: store.activeTab.value === tab.id }"
+            @click="store.setActiveTab(tab.id)"
+          >
+            <component :is="tab.icon" class="tab-icon" :size="16" />
+            <span>{{ tab.name }}</span>
+            <span v-if="tab.id === 'mistakes' && mistakeCount > 0" class="badge-count">
+              {{ mistakeCount }}
+            </span>
+          </button>
+        </nav>
 
-      <!-- 右侧控制区：版本切换、打字模式、主题选择与音效 -->
-      <div class="actions-area">
-        <!-- 五笔版本切换 -->
-        <div class="ctrl-group" title="切换五笔编码版本">
-          <div class="pill-group">
-            <button
-              v-for="ver in versionOptions"
-              :key="ver.id"
-              class="pill-btn"
-              :class="{ active: store.version.value === ver.id }"
-              @click="store.setVersion(ver.id)"
-            >
-              {{ ver.label }}
+        <!-- 下排控制区：靠右对齐展示五笔版本、打字音效与主题 -->
+        <div class="actions-area">
+          <!-- 五笔版本切换 -->
+          <div class="ctrl-group">
+            <span class="ctrl-label">词库版本:</span>
+            <div class="pill-group">
+              <button
+                v-for="ver in versionOptions"
+                :key="ver.id"
+                class="pill-btn"
+                :class="{ active: store.version.value === ver.id }"
+                @click="store.setVersion(ver.id)"
+              >
+                {{ ver.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- 音效选择 -->
+          <div class="ctrl-group">
+            <button class="icon-btn" :title="'按键音效: ' + currentAudioLabel" @click="cycleAudio">
+              <Volume2 v-if="store.audio.value !== 'none'" :size="17" />
+              <VolumeX v-else :size="17" />
+              <span class="btn-text">{{ currentAudioLabel }}</span>
             </button>
           </div>
-        </div>
 
-        <!-- 音效选择 -->
-        <div class="ctrl-group">
-          <button class="icon-btn" :title="'按键音效: ' + currentAudioLabel" @click="cycleAudio">
-            <Volume2 v-if="store.audio.value !== 'none'" :size="18" />
-            <VolumeX v-else :size="18" />
-            <span class="btn-text">{{ currentAudioLabel }}</span>
-          </button>
-        </div>
-
-        <!-- 主题切换 -->
-        <div class="ctrl-group">
-          <select
-            :value="store.theme.value"
-            @change="handleThemeChange"
-            class="theme-select"
-          >
-            <option value="tokyo-night">🌙 暗夜赛博</option>
-            <option value="retro-beige">⌨️ 复古机械</option>
-            <option value="nord-frost">❄️ 北欧极光</option>
-            <option value="paper-ink">📜 纸墨素雅</option>
-            <option value="matrix-green">💻 黑客终端</option>
-          </select>
+          <!-- 主题切换 -->
+          <div class="ctrl-group">
+            <select
+              :value="store.theme.value"
+              @change="handleThemeChange"
+              class="theme-select"
+            >
+              <option value="tokyo-night">🌙 暗夜赛博</option>
+              <option value="retro-beige">⌨️ 复古机械</option>
+              <option value="nord-frost">❄️ 北欧极光</option>
+              <option value="paper-ink">📜 纸墨素雅</option>
+              <option value="matrix-green">💻 黑客终端</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -144,37 +148,45 @@ const handleThemeChange = (e: Event) => {
 .navbar-container {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0.55rem 1.25rem;
+  padding: 0.65rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1.5rem;
 }
 
 .brand-area {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
   cursor: pointer;
   flex-shrink: 0;
 }
 
+.nav-right-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
 .brand-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), var(--zone-5));
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   color: #fff;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   box-shadow: 0 4px 10px var(--accent-subtle);
 }
 
 .brand-title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-main);
   line-height: 1.2;
@@ -182,19 +194,19 @@ const handleThemeChange = (e: Event) => {
 }
 
 .brand-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--accent);
   margin-left: 4px;
 }
 
 .brand-desc {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1200px) {
   .brand-desc {
     display: none;
   }
@@ -208,19 +220,18 @@ const handleThemeChange = (e: Event) => {
   border-radius: 9px;
   border: 1px solid var(--border-color);
   gap: 2px;
-  overflow-x: auto;
 }
 
 .tab-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
+  gap: 6px;
+  padding: 5px 11px;
   border-radius: 7px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 500;
   cursor: pointer;
   position: relative;
@@ -251,14 +262,20 @@ const handleThemeChange = (e: Event) => {
 .actions-area {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 .ctrl-group {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.ctrl-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  user-select: none;
 }
 
 .pill-group {
@@ -319,5 +336,26 @@ const handleThemeChange = (e: Event) => {
 
 .theme-select:focus {
   border-color: var(--accent);
+}
+
+@media (max-width: 992px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .nav-right-cluster {
+    align-items: stretch;
+  }
+
+  .nav-tabs {
+    overflow-x: auto;
+  }
+
+  .actions-area {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
 }
 </style>
