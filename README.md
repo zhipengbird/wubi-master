@@ -92,6 +92,7 @@ wubi-master/
 
 - 📘 [产品设计与功能规范 (docs/PRODUCT.md)](docs/PRODUCT.md)：了解各个功能模块的交互理念、五笔词组编码法则、字根/识别码设计规范。
 - 🛠️ [技术架构与算法设计 (docs/ARCHITECTURE.md)](docs/ARCHITECTURE.md)：了解数据结构 11 元组格式、词组自动推导算法、响应式状态与打字判卷引擎实现。
+- 📝 [版本变更记录 (CHANGELOG.md)](CHANGELOG.md)：查阅各版本演进历程、重大功能发布、学术级错拆修复与排雷记录。
 
 ---
 
