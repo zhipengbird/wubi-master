@@ -92,18 +92,28 @@ export const ensureDictPopulated = async (
 };
 
 /**
- * 按单个汉字查询（优先查本地 IndexedDB，若无查内存）
+ * 按单个汉字查询。
+ * 优先级：内存 WUBI_CHAR_MAP（含 EXPERT_CORRECTED_CHARS 精修）> IndexedDB 缓存 > 兜底
+ * 这样可保证字根纠正等精修数据永远生效，不被旧 DB 缓存覆盖。
  */
 export const queryByChar = async (char: string): Promise<WubiCharData | undefined> => {
+  // 1. 优先查内存精修字典（EXPERT_CORRECTED_CHARS 已在模块初始化时写入 WUBI_CHAR_MAP）
+  const { WUBI_CHAR_MAP, lookupWubiChar } = await import('./wubiDict');
+  const inMemory = WUBI_CHAR_MAP.get(char);
+  if (inMemory) return inMemory;
+
+  // 2. 内存不存在（生僻字），再查 IndexedDB
   try {
     const item = await db.chars.get(char);
     if (item) return item;
   } catch (e) {
     console.warn(`[WubiDb] queryByChar error for ${char}:`, e);
   }
-  const { lookupWubiChar } = await import('./wubiDict');
+
+  // 3. 兜底：从全量内存字典查
   return lookupWubiChar(char);
 };
+
 
 /**
  * 按完整五笔编码反查汉字（支持 86 / 98 / 新世纪）
