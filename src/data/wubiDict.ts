@@ -1,6 +1,6 @@
 import type { WubiCharData, WubiVersion } from '../types/wubi';
 import { KEYBOARD_86, KEYBOARD_98, KEYBOARD_NEW } from './keyboards';
-import { rawDictData } from './wubiFullDictData';
+import { rawCommonDictData } from './wubiCommonDictData';
 import { charMetaData } from './charMetaData';
 
 // 一级简码 25 字标准定义
@@ -560,6 +560,18 @@ export const EXPERT_CORRECTED_CHARS: WubiCharData[] = [
 // 汉字元数据字典映射 [ids, strokes, radical, flag]
 const charMetaMap = charMetaData as unknown as Record<string, [string, number, string, string]>;
 
+/**
+ * 拼音去调与特殊字符规范化（如 shàng -> shang, nǚ -> nv）
+ */
+export const stripTones = (str: string): string => {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ü/g, 'v')
+    .toLowerCase();
+};
+
 // 规范化部首显示，去除生僻扩展区不可渲染字符，确保所有主流字体无豆腐块
 const cleanRadical = (rad: string): string => {
   if (!rad) return rad;
@@ -571,6 +583,9 @@ const cleanRadical = (rad: string): string => {
 };
 
 const attachMeta = (item: WubiCharData) => {
+  if (!item.pinyinPlain && item.pinyin) {
+    item.pinyinPlain = stripTones(item.pinyin);
+  }
   if (item.radical) item.radical = cleanRadical(item.radical);
   const meta = charMetaMap[item.char];
   if (meta) {
@@ -702,10 +717,11 @@ EXPERT_CORRECTED_CHARS.forEach(item => {
   WUBI_CHAR_MAP.set(item.char, item);
 });
 
-// 加载全量词典数据 [char, pinyin, c86, c98, cNew, s86, s98, sNew, r86, r98, r06]
-const parsedFullChars: WubiCharData[] = (rawDictData as unknown as Array<[
+export type RawDictTuple = [
   string, string, string, string, string, string, string, string, string[], string[], string[]
-]>).map(r => {
+];
+
+export const parseRawEntry = (r: RawDictTuple): WubiCharData => {
   const char = r[0];
   const existing = WUBI_CHAR_MAP.get(char);
   if (existing) {
@@ -718,6 +734,7 @@ const parsedFullChars: WubiCharData[] = (rawDictData as unknown as Array<[
   const item: WubiCharData = {
     char,
     pinyin: r[1],
+    pinyinPlain: stripTones(r[1]),
     code86: c86,
     code98: c98,
     codeNew: cNew,
@@ -731,18 +748,53 @@ const parsedFullChars: WubiCharData[] = (rawDictData as unknown as Array<[
   attachMeta(item);
   WUBI_CHAR_MAP.set(char, item);
   return item;
-});
+};
+
+// 预加载并解析首屏 3,500 常用核心字库（极速启动，零延迟输入）
+const parsedCommonChars: WubiCharData[] = (rawCommonDictData as unknown as RawDictTuple[]).map(parseRawEntry);
 
 // 常用字级分类导出
-export const COMMON_500_CHARS: WubiCharData[] = parsedFullChars.slice(0, 500);
-export const COMMON_1500_CHARS: WubiCharData[] = parsedFullChars.slice(0, 1500);
-export const COMMON_2500_CHARS: WubiCharData[] = parsedFullChars.slice(0, 2500);
-export const COMMON_3500_CHARS: WubiCharData[] = parsedFullChars.slice(0, 3500);
+export const COMMON_500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 500);
+export const COMMON_1500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 1500);
+export const COMMON_2500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 2500);
+export const COMMON_3500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 3500);
 export const COMMON_CHARS: WubiCharData[] = COMMON_3500_CHARS;
 
-// 根据汉字反查五笔数据
+let fullParsedCharsCache: WubiCharData[] | null = null;
+
+/**
+ * 异步动态加载并解析全量 28,058 汉字字典（用于写入本地 IndexedDB 及后台字库补齐）
+ */
+export const loadFullParsedChars = async (): Promise<WubiCharData[]> => {
+  if (fullParsedCharsCache) return fullParsedCharsCache;
+  const { rawDictData } = await import('./wubiFullDictData');
+  const allChars = (rawDictData as unknown as RawDictTuple[]).map(parseRawEntry);
+  fullParsedCharsCache = allChars;
+  return allChars;
+};
+
+// 根据汉字同步反查五笔数据（优先内存常用字库）
 export const lookupWubiChar = (char: string): WubiCharData | undefined => {
   return WUBI_CHAR_MAP.get(char);
+};
+
+/**
+ * 异步全量反查五笔数据（内存若无，则自动向本地 IndexedDB 检索并实时回填内存）
+ */
+export const lookupWubiCharAsync = async (char: string): Promise<WubiCharData | undefined> => {
+  const syncFound = WUBI_CHAR_MAP.get(char);
+  if (syncFound) return syncFound;
+  try {
+    const { queryByChar } = await import('./wubiDb');
+    const dbFound = await queryByChar(char);
+    if (dbFound) {
+      WUBI_CHAR_MAP.set(char, dbFound);
+      return dbFound;
+    }
+  } catch (e) {
+    console.warn('[wubiDict] lookupWubiCharAsync failed for', char, e);
+  }
+  return undefined;
 };
 
 // 获取某版本下的全码

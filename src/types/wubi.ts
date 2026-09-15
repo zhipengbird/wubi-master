@@ -43,7 +43,8 @@ export interface KeyRootInfo {
 
 export interface WubiCharData {
   char: string;             // 汉字
-  pinyin: string;           // 拼音
+  pinyin: string;           // 拼音（带声调）
+  pinyinPlain?: string;     // 纯字母拼音（无声调，方便快速拼音检索）
   code86: string;           // 86版全码
   code98: string;           // 98版全码
   codeNew: string;          // 新世纪全码
