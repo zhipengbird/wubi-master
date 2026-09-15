@@ -24,7 +24,7 @@
           @click="store.setCommitMode('auto')"
           title="无需按空格，编码打对即自动进入下一个字"
         >
-          <span>⚡ 自动出字 (无需空格)</span>
+          <span>⚡ 自动出字</span>
         </button>
         <button
           class="mode-btn"
@@ -33,6 +33,20 @@
           title="敲空格键出字"
         >
           <span>␣ 空格出字</span>
+        </button>
+      </div>
+
+      <!-- 每组字数选择：防疲劳分批练习 -->
+      <div class="batch-selector" title="设置每组练习字数，分批冲关更轻松">
+        <span class="batch-lbl">组量:</span>
+        <button
+          v-for="b in batchSizeOptions"
+          :key="b.value"
+          class="batch-btn"
+          :class="{ active: currentBatchSize === b.value }"
+          @click="setBatchSize(b.value)"
+        >
+          {{ b.label }}
         </button>
       </div>
 
@@ -46,6 +60,19 @@
           @click="selectCategory(cat.id)"
         >
           {{ cat.name }}
+        </button>
+      </div>
+
+      <!-- 词组特训子分类筛选 (仅在 phrase 分类下展示) -->
+      <div class="category-selector phrase-sub-selector" v-if="currentCategory === 'phrase'">
+        <button
+          v-for="sub in phraseSubOptions"
+          :key="sub.id"
+          class="cat-btn"
+          :class="{ active: phraseFilter === sub.id }"
+          @click="setPhraseFilter(sub.id)"
+        >
+          {{ sub.name }}
         </button>
       </div>
 
@@ -78,7 +105,7 @@
       </div>
       <div class="stat-card">
         <span class="stat-num">{{ currentIndex }} / {{ practiceList.length }}</span>
-        <span class="stat-lbl">进度</span>
+        <span class="stat-lbl">{{ currentBatchLabel || '进度' }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-num">{{ formattedTime }}</span>
@@ -257,7 +284,7 @@
     <!-- 结算模态框 -->
     <div class="modal-backdrop" v-if="isFinished">
       <div class="modal-card">
-        <h2 class="modal-title">🎉 本轮练习完成！</h2>
+        <h2 class="modal-title">🎉 {{ currentBatchLabel ? `${currentBatchLabel} 完成！` : '本轮练习完成！' }}</h2>
         <div class="modal-stats-grid">
           <div class="m-stat">
             <div class="val">{{ stats.wpm }}</div>
@@ -277,7 +304,10 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button class="primary-btn" @click="resetSession">再练一轮</button>
+          <button class="primary-btn" @click="nextBatch">
+            {{ (currentBatchSize && currentBatchIndex + 1 < totalBatches) ? `下一组 (${currentBatchSize}字)` : '再练一轮' }}
+          </button>
+          <button class="secondary-btn" @click="retryCurrentBatch" v-if="currentBatchSize && totalBatches > 1">重练本组</button>
           <button class="secondary-btn" @click="nextCategory">下一关卡</button>
         </div>
       </div>
@@ -348,10 +378,78 @@ const categoryList = [
   { id: 'phrase' as PracticeCategory, name: '高频词组特训 (3000词)' },
 ];
 
+const batchSizeOptions = [
+  { value: 20, label: '20字' },
+  { value: 30, label: '30字' },
+  { value: 50, label: '50字' },
+  { value: 0, label: '全部' }
+];
+
+const currentBatchSize = ref<number>(
+  parseInt(localStorage.getItem('wubi_type_batch_size') || '30', 10)
+);
+
+const setBatchSize = (size: number) => {
+  currentBatchSize.value = size;
+  localStorage.setItem('wubi_type_batch_size', String(size));
+  currentBatchIndex.value = 0;
+  sliceBatch();
+};
+
+const phraseSubOptions = [
+  { id: 'all' as const, name: '全部词组' },
+  { id: '2' as const, name: '双字高频' },
+  { id: '3' as const, name: '三字常用' },
+  { id: '4' as const, name: '四字成语' }
+];
+const phraseFilter = ref<'all' | '2' | '3' | '4'>('all');
+
+const setPhraseFilter = (f: 'all' | '2' | '3' | '4') => {
+  phraseFilter.value = f;
+  loadPracticeData();
+};
+
 const currentCategory = ref<PracticeCategory>('level1');
 
-// 生成练习队列
+// 全量练习池与分批练习队列
+const fullPool = ref<WubiCharData[]>([]);
+const currentBatchIndex = ref(0);
 const practiceList = ref<WubiCharData[]>([]);
+
+const totalBatches = computed(() => {
+  if (!currentBatchSize.value || currentBatchSize.value <= 0) return 1;
+  return Math.max(1, Math.ceil(fullPool.value.length / currentBatchSize.value));
+});
+
+const currentBatchLabel = computed(() => {
+  if (!currentBatchSize.value || currentBatchSize.value <= 0 || totalBatches.value <= 1) return '';
+  return `第 ${currentBatchIndex.value + 1} / ${totalBatches.value} 组`;
+});
+
+const sliceBatch = () => {
+  if (!currentBatchSize.value || currentBatchSize.value <= 0) {
+    practiceList.value = [...fullPool.value];
+  } else {
+    const start = currentBatchIndex.value * currentBatchSize.value;
+    practiceList.value = fullPool.value.slice(start, start + currentBatchSize.value);
+  }
+  resetSession();
+};
+
+const nextBatch = () => {
+  if (currentBatchIndex.value + 1 < totalBatches.value) {
+    currentBatchIndex.value += 1;
+  } else {
+    // 重新随机洗牌一轮并回到第 1 组
+    fullPool.value.sort(() => Math.random() - 0.5);
+    currentBatchIndex.value = 0;
+  }
+  sliceBatch();
+};
+
+const retryCurrentBatch = () => {
+  sliceBatch();
+};
 
 const loadPracticeData = () => {
   let list: WubiCharData[] = [];
@@ -374,8 +472,16 @@ const loadPracticeData = () => {
     case 'top3500':
       list = [...COMMON_3500_CHARS];
       break;
-    case 'phrase':
-      list = COMMON_PHRASES.map(p => ({
+    case 'phrase': {
+      let phrases = COMMON_PHRASES;
+      if (phraseFilter.value === '2') {
+        phrases = COMMON_PHRASES.filter(p => p.word.length === 2);
+      } else if (phraseFilter.value === '3') {
+        phrases = COMMON_PHRASES.filter(p => p.word.length === 3);
+      } else if (phraseFilter.value === '4') {
+        phrases = COMMON_PHRASES.filter(p => p.word.length === 4);
+      }
+      list = phrases.map(p => ({
         char: p.word,
         pinyin: p.pinyin,
         code86: p.code86,
@@ -386,14 +492,16 @@ const loadPracticeData = () => {
         rootsNew: []
       }));
       break;
+    }
     case 'single':
     default:
       list = [...COMMON_CHARS];
       break;
   }
   // 洗牌随机化练习顺序
-  practiceList.value = list.sort(() => Math.random() - 0.5);
-  resetSession();
+  fullPool.value = list.sort(() => Math.random() - 0.5);
+  currentBatchIndex.value = 0;
+  sliceBatch();
 };
 
 const currentChar = computed(() => {
@@ -722,8 +830,9 @@ watch(() => store.version.value, () => {
   border: 1px solid var(--border-color);
 }
 
-.mode-selector, .category-selector {
+.mode-selector, .category-selector, .batch-selector {
   display: flex;
+  align-items: center;
   gap: 4px;
   background: var(--bg-primary);
   padding: 3px;
@@ -731,7 +840,15 @@ watch(() => store.version.value, () => {
   border: 1px solid var(--border-color);
 }
 
-.mode-btn, .cat-btn {
+.batch-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 0 4px;
+  user-select: none;
+}
+
+.mode-btn, .cat-btn, .batch-btn {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -746,10 +863,20 @@ watch(() => store.version.value, () => {
   transition: all 0.15s;
 }
 
-.mode-btn.active, .cat-btn.active {
+.batch-btn {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.mode-btn.active, .cat-btn.active, .batch-btn.active {
   background: var(--accent);
   color: #fff;
   font-weight: 600;
+}
+
+.phrase-sub-selector {
+  border-left: 2px solid var(--accent);
+  margin-left: 2px;
 }
 
 .toggle-label {
