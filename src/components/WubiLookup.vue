@@ -98,6 +98,12 @@
         <div class="char-left">
           <MiZiGe :text="item.char" size="medium" />
           <div class="pinyin">{{ item.pinyin }}</div>
+          <!-- 汉字结构、部首、笔画等基本信息徽标 -->
+          <div class="char-meta-info" v-if="item.ids || item.radical || item.strokes">
+            <span class="meta-pill struct-pill" v-if="getStructureName(item.ids)" title="汉字结构">{{ getStructureName(item.ids) }}</span>
+            <span class="meta-pill" v-if="item.radical" title="部首">部首: {{ item.radical }}</span>
+            <span class="meta-pill" v-if="item.strokes" title="总笔画数">{{ item.strokes }}画</span>
+          </div>
         </div>
 
         <div class="char-right">
@@ -105,7 +111,14 @@
           <div class="versions-comparison">
             <div class="version-row" :class="{ active: store.version.value === '86' }">
               <span class="ver-name">86 版</span>
-              <span class="ver-code">{{ item.code86 }}</span>
+              <span class="ver-code">
+                <template v-if="getRecognitionCode(item, '86') && item.code86.endsWith(getRecognitionCode(item, '86')!) && item.code86.length > (getRoots(item, '86')?.length || 0)">
+                  {{ item.code86.slice(0, -1) }}<span class="ver-code-recog" title="末笔字型交叉识别码">{{ getRecognitionCode(item, '86') }}</span>
+                </template>
+                <template v-else>
+                  {{ item.code86 }}
+                </template>
+              </span>
               <span class="ver-short" v-if="item.short86">简码: {{ item.short86 }}</span>
             </div>
             <div class="version-row" :class="{ active: store.version.value === '98' }">
@@ -123,7 +136,7 @@
           <!-- 字根拆分流程气泡 (米字格印章风) -->
           <div class="roots-breakdown">
             <span class="roots-lbl">拆字字根：</span>
-            <div class="roots-mizige-cells">
+            <div class="roots-mizige-cells" v-if="getRootSteps(item, store.version.value).length">
               <div 
                 v-for="(step, i) in getRootSteps(item, store.version.value)" 
                 :key="i" 
@@ -131,14 +144,22 @@
               >
                 <MiZiGe :text="step.root" size="mini" />
                 <span class="root-code-chip" v-if="step.key">
-                  {{ step.key }}键
+                  {{ step.key }}键<span v-if="getRootName(step.root)" class="root-sub-title"> ({{ getRootName(step.root) }})</span>
                 </span>
               </div>
             </div>
+            <div class="empty-roots-tip" v-else>
+              <span class="tip-code-chip">全码击键：{{ getFullCode(item, store.version.value) }}</span>
+              <span class="tip-sub">（暂无单一字根拆解图谱）</span>
+            </div>
+
             <!-- 末笔识别码（当字根数少于4且有末笔识别码时清晰区分） -->
             <div class="recog-chip-badge" v-if="getRecognitionCode(item, store.version.value)">
               <span class="recog-chip-lbl">末笔识别码:</span>
               <span class="recog-chip-key">{{ getRecognitionCode(item, store.version.value) }}键</span>
+              <span class="recog-chip-explain" v-if="getRecognitionCodeExplain(getRecognitionCode(item, store.version.value), item.recognitionFlag)">
+                （{{ getRecognitionCodeExplain(getRecognitionCode(item, store.version.value), item.recognitionFlag) }}）
+              </span>
             </div>
           </div>
         </div>
@@ -160,8 +181,10 @@ import {
   WUBI_CHAR_MAP, 
   getRoots, 
   getRootSteps,
+  getRootName,
   getFullCode, 
   getRecognitionCode,
+  getRecognitionCodeExplain,
   getPhraseBreakdown,
   calculatePhraseCode 
 } from '../data/wubiDict';
@@ -171,9 +194,40 @@ import MiZiGe from './MiZiGe.vue';
 
 const store = useWubiStore();
 
-const searchKeyword = ref('五笔学堂');
+const IDS_NAME_MAP: Record<string, string> = {
+  '⿰': '左右结构',
+  '⿱': '上下结构',
+  '⿲': '左中右结构',
+  '⿳': '上中下结构',
+  '⿴': '全包围结构',
+  '⿵': '上三包围',
+  '⿶': '下三包围',
+  '⿷': '左三包围',
+  '⿸': '左上包围',
+  '⿹': '右上包围',
+  '⿺': '左下包围',
+  '⿻': '镶嵌杂合'
+};
 
-const hotWords = ['学', '五笔', '中国', '春', '明', '和', '建', '爱', '人工智能', '计算机', '荷塘月色', '实事求是'];
+const getStructureName = (ids?: string): string => {
+  if (!ids) return '';
+  for (const ch of ids) {
+    if (IDS_NAME_MAP[ch]) return IDS_NAME_MAP[ch];
+  }
+  return '';
+};
+
+const getInitialQuery = () => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('char') || params.get('q') || '五笔学堂';
+  }
+  return '五笔学堂';
+};
+
+const searchKeyword = ref(getInitialQuery());
+
+const hotWords = ['匜', '鱼', '学', '五笔', '中国', '春', '明', '和', '建', '爱', '人工智能', '计算机'];
 
 // 词组计算
 const phraseInfo = computed(() => {
@@ -488,6 +542,29 @@ const matchedChars = computed<WubiCharData[]>(() => {
   margin-top: 0.25rem;
 }
 
+.char-meta-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.meta-pill {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-align: center;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .char-right {
   flex: 1;
   display: flex;
@@ -531,6 +608,11 @@ const matchedChars = computed<WubiCharData[]>(() => {
   letter-spacing: 1px;
 }
 
+.ver-code-recog {
+  color: #f59e0b;
+  font-weight: 800;
+}
+
 .ver-short {
   font-size: 0.8rem;
   color: #10b981;
@@ -561,6 +643,28 @@ const matchedChars = computed<WubiCharData[]>(() => {
   flex-wrap: wrap;
 }
 
+.empty-roots-tip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.tip-code-chip {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.tip-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .root-lookup-cell {
   display: flex;
   flex-direction: column;
@@ -585,7 +689,7 @@ const matchedChars = computed<WubiCharData[]>(() => {
   gap: 0.4rem;
   background: rgba(99, 102, 241, 0.08);
   border: 1px dashed var(--primary-color);
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 6px;
 }
 
@@ -599,6 +703,12 @@ const matchedChars = computed<WubiCharData[]>(() => {
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--primary-color);
+}
+
+.recog-chip-explain {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 /* 词组拆码流程 */

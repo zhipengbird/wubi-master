@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'WubiUnits';
+  src: url('/fonts/wubi86_units.ttf') format('truetype');
+  font-display: swap;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;

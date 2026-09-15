@@ -1,6 +1,7 @@
 import type { WubiCharData, WubiVersion } from '../types/wubi';
 import { KEYBOARD_86, KEYBOARD_98, KEYBOARD_NEW } from './keyboards';
-import rawDictData from './wubiFullDict.json';
+import { rawDictData } from './wubiFullDictData';
+import { charMetaData } from './charMetaData';
 
 // 一级简码 25 字标准定义
 export const LEVEL_1_CHARS: WubiCharData[] = [
@@ -30,16 +31,16 @@ export const LEVEL_1_CHARS: WubiCharData[] = [
 
   { char: '民', pinyin: 'mín', code86: 'NAV', code98: 'NAV', codeNew: 'NAV', short86: 'N', short98: 'N', shortNew: 'N', roots86: ['尸', '𠄌'], roots98: ['尸', '𠄌'], rootsNew: ['尸', '𠄌'] },
   { char: '了', pinyin: 'le', code86: 'BNH', code98: 'BNH', codeNew: 'BNH', short86: 'B', short98: 'B', shortNew: 'B', roots86: ['㇇', '亅'], roots98: ['㇇', '亅'], rootsNew: ['㇇', '亅'], recognitionCode: 'H' },
-  { char: '大', pinyin: 'dà', code86: 'DDDD', code98: 'DDDD', codeNew: 'DDDD', short86: 'V', short98: 'V', shortNew: 'V', roots86: ['大'], roots98: ['大'], rootsNew: ['大'], type: 'keyname' },
-  { char: '凡', pinyin: 'fán', code86: 'MYI', code98: 'MYI', codeNew: 'MYI', short86: 'C', short98: 'C', shortNew: 'C', roots86: ['几', '丶'], roots98: ['几', '丶'], rootsNew: ['几', '丶'], recognitionCode: 'I' },
-  { char: '以', pinyin: 'yǐ', code86: 'NYWY', code98: 'NYWY', codeNew: 'NYWY', short86: 'X', short98: 'X', shortNew: 'X', roots86: ['𠄌', '丶', '人'], roots98: ['𠄌', '丶', '人'], rootsNew: ['𠄌', '丶', '人'] },
+  { char: '发', pinyin: 'fā', code86: 'NTCY', code98: 'NTCY', codeNew: 'NTCY', short86: 'V', short98: 'V', shortNew: 'V', roots86: ['𠃌', '丿', '㇇', '丶'], roots98: ['𠃌', '丿', '㇇', '丶'], rootsNew: ['𠃌', '丿', '㇇', '丶'] },
+  { char: '以', pinyin: 'yǐ', code86: 'NYWY', code98: 'NYWY', codeNew: 'NYWY', short86: 'C', short98: 'C', shortNew: 'C', roots86: ['𠄌', '丶', '人'], roots98: ['𠄌', '丶', '人'], rootsNew: ['𠄌', '丶', '人'] },
+  { char: '经', pinyin: 'jīng', code86: 'XCAG', code98: 'XCAG', codeNew: 'XCAG', short86: 'X', short98: 'X', shortNew: 'X', roots86: ['纟', '㇇', '工', '一'], roots98: ['纟', '㇇', '工', '一'], rootsNew: ['纟', '㇇', '工', '一'] },
 ];
 
 // 经典键名字库
 export const KEY_NAME_CHARS: WubiCharData[] = [
   { char: '王', pinyin: 'wáng', code86: 'GGGG', code98: 'GGGG', codeNew: 'GGGG', roots86: ['王'], roots98: ['王'], rootsNew: ['王'], type: 'keyname' },
   { char: '土', pinyin: 'tǔ', code86: 'FFFF', code98: 'FFFF', codeNew: 'FFFF', roots86: ['土'], roots98: ['土'], rootsNew: ['土'], type: 'keyname' },
-  { char: '大', pinyin: 'dà', code86: 'DDDD', code98: 'DDDD', codeNew: 'DDDD', short86: 'V', short98: 'V', shortNew: 'V', roots86: ['大'], roots98: ['大'], rootsNew: ['大'], type: 'keyname' },
+  { char: '大', pinyin: 'dà', code86: 'DDDD', code98: 'DDDD', codeNew: 'DDDD', short86: 'DD', short98: 'DD', shortNew: 'DD', roots86: ['大'], roots98: ['大'], rootsNew: ['大'], type: 'keyname' },
   { char: '木', pinyin: 'mù', code86: 'SSSS', code98: 'SSSS', codeNew: 'SSSS', roots86: ['木'], roots98: ['木'], rootsNew: ['木'], type: 'keyname' },
   { char: '工', pinyin: 'gōng', code86: 'AAAA', code98: 'AAAA', codeNew: 'AAAA', short86: 'A', short98: 'A', shortNew: 'A', roots86: ['工'], roots98: ['工'], rootsNew: ['工'], type: 'keyname' },
 
@@ -105,37 +106,629 @@ export const LEVEL_2_CHARS: WubiCharData[] = [
 // 全局五笔大字典 Map（涵盖 28,058 汉字）
 export const WUBI_CHAR_MAP = new Map<string, WubiCharData>();
 
-// 先注册手工精修字根的简码字与键名字
-LEVEL_1_CHARS.forEach(item => WUBI_CHAR_MAP.set(item.char, item));
+// 核心高频疑难字专家校准库（修正原拆分库历史缺陷与笔画混淆）
+export const EXPERT_CORRECTED_CHARS: WubiCharData[] = [
+  // 匜：A 键字根“匚” + B 键字根“也” + 末笔识别码 V (末笔折+杂合型 53=V)
+  {
+    char: '匜',
+    pinyin: 'yí',
+    code86: 'ABV',
+    code98: 'ABV',
+    codeNew: 'ABV',
+    short86: 'AB',
+    short98: 'AB',
+    shortNew: 'AB',
+    roots86: ['匚', '也'],
+    roots98: ['匚', '也'],
+    rootsNew: ['匚', '也'],
+    recognitionCode: 'V',
+    recognitionFlag: '折·杂合〔乛 ⿻〕',
+    ids: '⿷匚也',
+    strokes: 5,
+    radical: '匚'
+  },
+  // 鱼：Q 键字根“无尾鱼”(\ue131，即⺈+田连体字根) + G 键字根“一”(底横) + 末笔识别码 F (末笔横+上下型 12=F)
+  {
+    char: '鱼',
+    pinyin: 'yú',
+    code86: 'QGF',
+    code98: 'QGF',
+    codeNew: 'QGF',
+    short86: 'Q',
+    short98: 'Q',
+    shortNew: 'Q',
+    roots86: ['⺈田', '一'],
+    roots98: ['⺈田', '一'],
+    rootsNew: ['⺈田', '一'],
+    recognitionCode: 'F',
+    recognitionFlag: '横·上下〔一 ⿱〕',
+    ids: '⿳⺈田一',
+    strokes: 8,
+    radical: '鱼（魚）'
+  },
+  // 鲜：Q 键字根“无尾鱼” + G 键字根“一” + U 键字根“䒑” + D 键字根“羊底”
+  {
+    char: '鲜',
+    pinyin: 'xiān',
+    code86: 'QGUD',
+    code98: 'QGUD',
+    codeNew: 'QGUD',
+    short86: 'QG',
+    short98: 'QG',
+    shortNew: 'QG',
+    roots86: ['⺈田', '一', '䒑', '羊底'],
+    roots98: ['⺈田', '一', '䒑', '羊底'],
+    rootsNew: ['⺈田', '一', '䒑', '羊底'],
+    ids: '⿰鱼羊',
+    strokes: 14,
+    radical: '鱼（魚）'
+  },
+  // 骨：M 键字根“骨字头”(冎) + E 键字根“月” + 末笔识别码 F (末笔横+上下型 12=F)
+  {
+    char: '骨',
+    pinyin: 'gǔ',
+    code86: 'MEF',
+    code98: 'MEF',
+    codeNew: 'MEF',
+    short86: 'ME',
+    short98: 'ME',
+    shortNew: 'ME',
+    roots86: ['冎', '月'],
+    roots98: ['冎', '月'],
+    rootsNew: ['冎', '月'],
+    recognitionCode: 'F',
+    recognitionFlag: '横·上下〔一 ⿱〕',
+    ids: '⿱冎月',
+    strokes: 9,
+    radical: '骨'
+  },
+  // 物：T 键字根“丿” + R 键字根“扌” + Q 键字根“勹” + R 键字根“彡”
+  {
+    char: '物',
+    pinyin: 'wù',
+    code86: 'TRQR',
+    code98: 'TRQR',
+    codeNew: 'TRQR',
+    short86: 'TRQ',
+    short98: 'TRQ',
+    shortNew: 'TRQ',
+    roots86: ['丿', '扌', '勹', '彡'],
+    roots98: ['丿', '扌', '勹', '彡'],
+    rootsNew: ['丿', '扌', '勹', '彡'],
+    ids: '⿰牜勿',
+    strokes: 8,
+    radical: '牛'
+  },
+  // 然：Q 键字根“⺼”(肉月旁) + D 键字根“犬” + O 键字根“灬” + 末笔识别码 U (末笔点+上下型 42=U)
+  {
+    char: '然',
+    pinyin: 'rán',
+    code86: 'QDOU',
+    code98: 'QDOU',
+    codeNew: 'QDYO',
+    short86: 'QD',
+    short98: 'QD',
+    shortNew: 'QD',
+    roots86: ['⺼', '犬', '灬'],
+    roots98: ['⺼', '犬', '灬'],
+    rootsNew: ['⺼', '犬', '灬'],
+    recognitionCode: 'U',
+    recognitionFlag: '捺·上下〔丶 ⿱〕',
+    ids: '⿱⿰⺼犬灬',
+    strokes: 12,
+    radical: '火（灬）'
+  },
+  // 觉：I 键字根“⺌”(学字头) + P 键字根“冖” + M 键字根“冂” + Q 键字根“儿”
+  {
+    char: '觉',
+    pinyin: 'jué',
+    code86: 'IPMQ',
+    code98: 'IPMQ',
+    codeNew: 'IPMQ',
+    short86: 'IPM',
+    short98: 'IPM',
+    shortNew: 'IPM',
+    roots86: ['⺌', '冖', '冂', '儿'],
+    roots98: ['⺌', '冖', '冂', '儿'],
+    rootsNew: ['⺌', '冖', '冂', '儿'],
+    ids: '⿱⺌冖见',
+    strokes: 9,
+    radical: '见'
+  },
+  // 击：F 键字根“二”(击字头) + M 键字根“凵” + 末笔识别码 K (末笔竖+杂合型 23=K)
+  {
+    char: '击',
+    pinyin: 'jī',
+    code86: 'FMK',
+    code98: 'FMK',
+    codeNew: 'FMK',
+    short86: 'FM',
+    short98: 'FM',
+    shortNew: 'FM',
+    roots86: ['二', '凵'],
+    roots98: ['二', '凵'],
+    rootsNew: ['二', '凵'],
+    recognitionCode: 'K',
+    recognitionFlag: '竖·杂合〔丨 ⿻〕',
+    strokes: 5,
+    radical: '凵'
+  },
+  // 象：Q 键字根“⺈” + J 键字根“日” + E 键字根“豕” + 末笔识别码 U (末笔捺+杂合型 43=U)
+  {
+    char: '象',
+    pinyin: 'xiàng',
+    code86: 'QJEU',
+    code98: 'QJEU',
+    codeNew: 'QJEU',
+    short86: 'QJE',
+    short98: 'QJE',
+    shortNew: 'QJE',
+    roots86: ['⺈', '日', '豕'],
+    roots98: ['⺈', '日', '豕'],
+    rootsNew: ['⺈', '日', '豕'],
+    recognitionCode: 'U',
+    recognitionFlag: '捺·杂合〔丶 ⿻〕',
+    strokes: 11,
+    radical: '豕'
+  },
+  // 求：86版 十(F) + 氺(I) + 丶(Y) + 识别码 I
+  {
+    char: '求',
+    pinyin: 'qiú',
+    code86: 'FIYI',
+    code98: 'GIYI',
+    codeNew: 'GIYI',
+    short86: 'FIY',
+    short98: 'GI',
+    shortNew: 'GI',
+    roots86: ['十', '氺', '丶'],
+    roots98: ['一', '氺', '丶'],
+    rootsNew: ['一', '氺', '丶'],
+    recognitionCode: 'I'
+  },
+  // 牛：撇两横(R) + 丨(H) + 识别码 K (杂合竖 23)
+  {
+    char: '牛',
+    pinyin: 'niú',
+    code86: 'RHK',
+    code98: 'RHK',
+    codeNew: 'RHK',
+    short86: 'RH',
+    short98: 'RH',
+    shortNew: 'RH',
+    roots86: ['𠂉', '丨'],
+    roots98: ['𠂉', '丨'],
+    rootsNew: ['𠂉', '丨'],
+    recognitionCode: 'K'
+  },
+  // 年：撇两横(R) + 丨(H) + 十(F) + 识别码 K
+  {
+    char: '年',
+    pinyin: 'nián',
+    code86: 'RHFK',
+    code98: 'TGJ',
+    codeNew: 'RHFK',
+    short86: 'RH',
+    short98: 'TG',
+    shortNew: 'RH',
+    roots86: ['𠂉', '丨', '十'],
+    roots98: ['⺧', '丨', '十'],
+    rootsNew: ['𠂉', '丨', '十'],
+    recognitionCode: 'K'
+  },
+  // 失：撇两横(R) + 人(W) + 识别码 I
+  {
+    char: '失',
+    pinyin: 'shī',
+    code86: 'RWI',
+    code98: 'RWI',
+    codeNew: 'RWI',
+    short86: 'RW',
+    short98: 'RW',
+    shortNew: 'RW',
+    roots86: ['𠂉', '人'],
+    roots98: ['𠂉', '人'],
+    rootsNew: ['𠂉', '人'],
+    recognitionCode: 'I'
+  },
+  // 气：撇两横(R) + 乙(N) + 识别码 B
+  {
+    char: '气',
+    pinyin: 'qì',
+    code86: 'RNB',
+    code98: 'RNB',
+    codeNew: 'RNB',
+    short86: 'RN',
+    short98: 'RN',
+    shortNew: 'RN',
+    roots86: ['𠂉', '乙'],
+    roots98: ['𠂉', '乙'],
+    rootsNew: ['𠂉', '乙'],
+    recognitionCode: 'B'
+  },
+  // 尤：𠂇(D) + ㇟(N) + 识别码 V (杂合撇捺 13)
+  {
+    char: '尤',
+    pinyin: 'yóu',
+    code86: 'DNV',
+    code98: 'DNV',
+    codeNew: 'DNV',
+    short86: 'DN',
+    short98: 'DN',
+    shortNew: 'DN',
+    roots86: ['𠂇', '㇟'],
+    roots98: ['𠂇', '㇟'],
+    rootsNew: ['𠂇', '㇟'],
+    recognitionCode: 'V'
+  },
+  // 母：母字框⺟(X) + 一(G) + ⺀(U) + 识别码 I
+  {
+    char: '母',
+    pinyin: 'mǔ',
+    code86: 'XGUI',
+    code98: 'XGUI',
+    codeNew: 'XGUI',
+    short86: 'XG',
+    short98: 'XG',
+    shortNew: 'XG',
+    roots86: ['⺟', '一', '⺀'],
+    roots98: ['⺟', '一', '⺀'],
+    rootsNew: ['⺟', '一', '⺀'],
+    recognitionCode: 'I'
+  },
+  // 具：具字头(H) + 八(W) + 识别码 U
+  {
+    char: '具',
+    pinyin: 'jù',
+    code86: 'HWU',
+    code98: 'HWU',
+    codeNew: 'HWU',
+    short86: 'HW',
+    short98: 'HW',
+    shortNew: 'HW',
+    roots86: ['目', '八'],
+    roots98: ['目', '八'],
+    rootsNew: ['目', '八'],
+    recognitionCode: 'U'
+  },
+  // 直：十(F) + 具字头(H) + 识别码 F
+  {
+    char: '直',
+    pinyin: 'zhí',
+    code86: 'FHF',
+    code98: 'FHF',
+    codeNew: 'FHF',
+    short86: 'FH',
+    short98: 'FH',
+    shortNew: 'FH',
+    roots86: ['十', '目'],
+    roots98: ['十', '目'],
+    rootsNew: ['十', '目'],
+    recognitionCode: 'F'
+  },
+  // 祭：W 键字根“祭字头” + F 键字根“二” + I 键字根“小” + 末笔识别码 U (末笔点+上下型 42=U)
+  {
+    char: '祭',
+    pinyin: 'jì',
+    code86: 'WFIU',
+    code98: 'WFIU',
+    codeNew: 'WFIU',
+    short86: 'WF',
+    short98: 'WF',
+    shortNew: 'WF',
+    roots86: ['祭头', '二', '小'],
+    roots98: ['祭头', '二', '小'],
+    rootsNew: ['祭头', '二', '小'],
+    recognitionCode: 'U',
+    recognitionFlag: '捺·上下〔丶 ⿱〕',
+    ids: '⿱祭头示',
+    strokes: 11,
+    radical: '示（礻⺬）'
+  },
+  // 蔡：A 键字根“艹” + W 键字根“祭字头” + F 键字根“二” + I 键字根“小”
+  {
+    char: '蔡',
+    pinyin: 'cài',
+    code86: 'AWFI',
+    code98: 'AWFI',
+    codeNew: 'AWFI',
+    short86: 'AWF',
+    short98: 'AWF',
+    shortNew: 'AWF',
+    roots86: ['艹', '祭头', '二', '小'],
+    roots98: ['艹', '祭头', '二', '小'],
+    rootsNew: ['艹', '祭头', '二', '小'],
+    ids: '⿱艹祭',
+    strokes: 14,
+    radical: '艸（艹）'
+  },
+  // 察：P 键字根“宀” + W 键字根“祭字头” + F 键字根“二” + I 键字根“小”
+  {
+    char: '察',
+    pinyin: 'chá',
+    code86: 'PWFI',
+    code98: 'PWFI',
+    codeNew: 'PWFI',
+    short86: 'PWF',
+    short98: 'PWF',
+    shortNew: 'PWF',
+    roots86: ['宀', '祭头', '二', '小'],
+    roots98: ['宀', '祭头', '二', '小'],
+    rootsNew: ['宀', '祭头', '二', '小'],
+    ids: '⿱宀祭',
+    strokes: 14,
+    radical: '宀'
+  },
+  // 擦：R 键字根“扌” + P 键字根“宀” + W 键字根“祭字头” + I 键字根“小”
+  {
+    char: '擦',
+    pinyin: 'cā',
+    code86: 'RPWI',
+    code98: 'RPWI',
+    codeNew: 'RPWI',
+    short86: 'RPW',
+    short98: 'RPW',
+    shortNew: 'RPW',
+    roots86: ['扌', '宀', '祭头', '小'],
+    roots98: ['扌', '宀', '祭头', '小'],
+    rootsNew: ['扌', '宀', '祭头', '小'],
+    ids: '⿰扌察',
+    strokes: 17,
+    radical: '手（扌龵）'
+  },
+  // 跑：口(K) + 止(H) + 勹(Q) + 巳(N)，全码 KHQN，四码全满无末笔识别码
+  {
+    char: '跑',
+    pinyin: 'pǎo',
+    code86: 'KHQN',
+    code98: 'KHQN',
+    codeNew: 'KHQN',
+    short86: 'KHQ',
+    short98: 'KHQ',
+    shortNew: 'KHQ',
+    roots86: ['口', '止', '勹', '巳'],
+    roots98: ['口', '止', '勹', '巳'],
+    rootsNew: ['口', '止', '勹', '巳'],
+    ids: '⿰足包',
+    strokes: 12,
+    radical: '足（⻊）'
+  },
+  // 刺：86版 一(G) + 冂(M) + 小(I) + 刂(J) 全码 GMIJ；98版 木(S) + 冂(M) + 刂(J) + 识别码H 全码 SMJH
+  {
+    char: '刺',
+    pinyin: 'cì',
+    code86: 'GMIJ',
+    code98: 'SMJH',
+    codeNew: 'GMIJ',
+    short86: 'GMI',
+    short98: 'SMJ',
+    shortNew: 'GMI',
+    roots86: ['一', '冂', '小', '刂'],
+    roots98: ['木', '冂', '刂'],
+    rootsNew: ['一', '冂', '小', '刂'],
+    ids: '⿰朿刂',
+    strokes: 8,
+    radical: '刀（刂）'
+  },
+  // 卌：一(G) + 四竖(L) + 识别码 K
+  {
+    char: '卌',
+    pinyin: 'xì',
+    code86: 'GLK',
+    code98: 'GLK',
+    codeNew: 'GLK',
+    short86: 'GL',
+    short98: 'GL',
+    shortNew: 'GL',
+    roots86: ['一', '丨'],
+    roots98: ['一', '丨'],
+    rootsNew: ['一', '丨'],
+    recognitionCode: 'K'
+  },
+  // 示字旁 礻 (P)
+  {
+    char: '礻',
+    pinyin: 'shì',
+    code86: 'PYI',
+    code98: 'PYI',
+    codeNew: 'PYI',
+    short86: 'PY',
+    short98: 'PY',
+    shortNew: 'PY',
+    roots86: ['礻'],
+    roots98: ['礻'],
+    rootsNew: ['礻'],
+    recognitionCode: 'I'
+  },
+  // 衣字旁 衤 (P)
+  {
+    char: '衤',
+    pinyin: 'yī',
+    code86: 'PUI',
+    code98: 'PUI',
+    codeNew: 'PUI',
+    short86: 'PU',
+    short98: 'PU',
+    shortNew: 'PU',
+    roots86: ['衤'],
+    roots98: ['衤'],
+    rootsNew: ['衤'],
+    recognitionCode: 'I'
+  }
+];
+
+// 汉字元数据字典映射 [ids, strokes, radical, flag]
+const charMetaMap = charMetaData as unknown as Record<string, [string, number, string, string]>;
+
+// 规范化部首显示，去除生僻扩展区不可渲染字符，确保所有主流字体无豆腐块
+const cleanRadical = (rad: string): string => {
+  if (!rad) return rad;
+  return rad
+    .replace('玉（𤣩王）', '玉（王）')
+    .replace('足（𧾷）', '足（⻊）')
+    .replace('疋（𤴔）', '疋')
+    .replace('臼（𦥑）', '臼');
+};
+
+const attachMeta = (item: WubiCharData) => {
+  if (item.radical) item.radical = cleanRadical(item.radical);
+  const meta = charMetaMap[item.char];
+  if (meta) {
+    if (!item.ids && meta[0]) item.ids = meta[0];
+    if (!item.strokes && meta[1]) item.strokes = meta[1];
+    if (!item.radical && meta[2]) item.radical = cleanRadical(meta[2]);
+    if (!item.recognitionFlag && meta[3]) item.recognitionFlag = meta[3];
+  }
+};
+
+// 鱼部及含鱼汉字特征集（统一升级为 Q 键一体化字根 [⺈田]）
+const FISH_CHARS = new Set([
+  '鱼', '鲁', '鲜', '鲍', '渔', '癣', '鳞', '鲤', '鲸', '鲫', '鳗', '鳄', '蓟', '鱿', '鳕', '噜',
+  '橹', '鲈', '鲛', '鳍', '鳝', '撸', '鲢', '鳃', '鲳', '鲶', '鲑', '鲟', '鲲', '鳎', '鳟', '鲇',
+  '鲷', '鲎', '鳊', '鳅', '鳜', '鲆', '鲅', '鲔', '藓', '鳙', '鲽', '稣', '鲥', '鲠', '鲵', '鲭',
+  '鲋', '鲮', '鲱', '鲩', '鲣', '鳐', '鳏', '鲐', '鲂', '鲞', '鲧', '鳡', '鳓', '鲃', '鲻', '镥',
+  '鳔', '鲀', '鳢', '鳇', '鲦', '鲡', '鲕', '鲚', '鲴', '鲰', '鲒', '鲺', '鲙', '鲼', '鳉', '鳆',
+  '澛', '鲉', '鲊', '鱾', '鳋', '鲌', '鳚', '鲪', '鲯', '鲘', '鲿', '鲹', '鳀', '鳠', '鳣', '鲗',
+  '鱽', '鲏', '鲖', '鳤', '鳒', '鳁', '鳑', '鲝', '鳂', '鳛', '䲠', '鲬', '鳈', '鲾', '䲡', '䲟'
+]);
+
+// 祭字头特征字集（W键，祭、蔡、察、擦等字上部部件，严格区别于登字头 癶）
+const JI_HEAD_CHARS = new Set([
+  '蔡', '祭', '察', '擦', '嚓', '際', '檫', '镲', '漈', '礤', '瘵', '縩', '傺', '穄', '鰶', '鑔', '磜'
+]);
+
+/**
+ * 全局字根规范化过滤器：
+ * 1. 鱼部字自动合成为标准 Q 键一体化字根 [⺈田]（上下叠合，对应无尾鱼）；
+ * 2. 骨部字规范为 M 键 冎 (骨字头) + E 键 月；
+ * 3. 区分登字头(癶)与祭字头(祭头)：蔡、祭、察、擦等字 W 键字根修正为祭字头；
+ * 4. 展开轻/径(LCAG/TCAG)被吞并的工/一等字根；
+ * 5. 展开泽/译(ICFH/YCFH)生僻字根为标准 又+十；
+ * 6. 将 Ext-G/F/C 和 PUA 乱码生僻字替换为全平台兼容的纯正五笔字根。
+ */
+export const normalizeRoots = (char: string, code: string, roots: string[]): string[] => {
+  if (!roots || !roots.length) return [];
+  let res = [...roots];
+
+  // 1. 鱼部及含鱼汉字：Q 键对应统一升级为一体化字根 [⺈田]
+  if (code && code.includes('QG') && (FISH_CHARS.has(char) || char.includes('鱼') || char.includes('魚'))) {
+    for (let i = 0; i < res.length - 1; i++) {
+      if (res[i] === '⺈' && res[i + 1] === '一') {
+        res[i] = '⺈田';
+        break;
+      }
+    }
+  }
+
+  // 2. 骨部字规范为 M 键 冎 (骨字头) + E 键 月
+  if (res.length >= 2 && res[0] === '冂' && res[1] === '冃' && (char === '骨' || char.includes('骨') || (code && code.startsWith('ME')))) {
+    res[0] = '冎';
+    res[1] = '月';
+  }
+
+  // 3. 区分登字头(癶)与祭字头(祭头)：蔡、祭、察、擦等字 W 键字根为祭字头
+  if (code && code.includes('W') && (JI_HEAD_CHARS.has(char) || char.includes('祭'))) {
+    for (let i = 0; i < res.length; i++) {
+      if (res[i] === '癶' || res[i] === '𠂊') {
+        res[i] = '祭头';
+      }
+    }
+  }
+
+  // 4. 足字旁(𧾷/⻊)：在 86 版五笔中由 口(K) + 止(H) 构成，展开修复 111 个足部字的字根错位
+  if (code && code.startsWith('KH') && res.length > 0 && (res[0] === '𧾷' || res[0] === '⻊')) {
+    res.splice(0, 1, '口', '止');
+  }
+
+  // 5. 革字旁(革)：在 86 版五笔中由 廿(A) + 十(F) 构成，展开修复 24 个革部字的字根错位
+  if (code && code.startsWith('AF') && res.length > 0 && res[0] === '革') {
+    res.splice(0, 1, '廿', '十');
+  }
+
+  // 6. 展开/规范复合扩展字与冷门乱码字形
+  const newRes: string[] = [];
+  for (const r of res) {
+    if (r === '𢀖') {
+      newRes.push('㇇', '工', '一');
+    } else if (r === '𠬤') {
+      newRes.push('又', '十');
+    } else if (r === '𡭔') {
+      newRes.push('小');
+    } else if (r === '𱼀') {
+      newRes.push('⺼');
+    } else if (r === '𭕄') {
+      newRes.push('⺌');
+    } else if (r === '𰀁') {
+      newRes.push('二');
+    } else if (r === '𰀪') {
+      newRes.push('彡');
+    } else if (r === '\uE816') {
+      newRes.push('𠂇');
+    } else if (r === '\uE818') {
+      newRes.push('𠃌');
+    } else if (r === '\uE848') {
+      newRes.push('⻊');
+    } else if (r === '\uE81C') {
+      newRes.push('⺈');
+    } else if (r === '𫩏') {
+      newRes.push('日');
+    } else if (r === '𧰨') {
+      newRes.push('豕');
+    } else if (r === '𧾷') {
+      newRes.push('⻊');
+    } else if (r === '𫶧') {
+      newRes.push('川');
+    } else if (r === '𤣩') {
+      newRes.push('王');
+    } else if (r === '𦥑') {
+      newRes.push('臼');
+    } else {
+      newRes.push(r);
+    }
+  }
+  return newRes;
+};
+
+// 先注册手工精修字根的简码字、键名字与专家校准字
+LEVEL_1_CHARS.forEach(item => { attachMeta(item); WUBI_CHAR_MAP.set(item.char, item); });
 KEY_NAME_CHARS.forEach(item => {
-  if (!WUBI_CHAR_MAP.has(item.char)) WUBI_CHAR_MAP.set(item.char, item);
+  if (!WUBI_CHAR_MAP.has(item.char)) { attachMeta(item); WUBI_CHAR_MAP.set(item.char, item); }
 });
 LEVEL_2_CHARS.forEach(item => {
-  if (!WUBI_CHAR_MAP.has(item.char)) WUBI_CHAR_MAP.set(item.char, item);
+  if (!WUBI_CHAR_MAP.has(item.char)) { attachMeta(item); WUBI_CHAR_MAP.set(item.char, item); }
+});
+EXPERT_CORRECTED_CHARS.forEach(item => {
+  attachMeta(item);
+  WUBI_CHAR_MAP.set(item.char, item);
 });
 
 // 加载全量词典数据 [char, pinyin, c86, c98, cNew, s86, s98, sNew, r86, r98, r06]
-const parsedFullChars: WubiCharData[] = (rawDictData as Array<[
+const parsedFullChars: WubiCharData[] = (rawDictData as unknown as Array<[
   string, string, string, string, string, string, string, string, string[], string[], string[]
 ]>).map(r => {
   const char = r[0];
   const existing = WUBI_CHAR_MAP.get(char);
   if (existing) {
+    attachMeta(existing);
     return existing;
   }
+  const c86 = r[2];
+  const c98 = r[3] || r[2];
+  const cNew = r[4] || r[2];
   const item: WubiCharData = {
     char,
     pinyin: r[1],
-    code86: r[2],
-    code98: r[3] || r[2],
-    codeNew: r[4] || r[2],
+    code86: c86,
+    code98: c98,
+    codeNew: cNew,
     short86: r[5] || undefined,
     short98: r[6] || undefined,
     shortNew: r[7] || undefined,
-    roots86: r[8] || [],
-    roots98: r[9] || [],
-    rootsNew: r[10] || []
+    roots86: normalizeRoots(char, c86, r[8] || []),
+    roots98: normalizeRoots(char, c98, r[9] || []),
+    rootsNew: normalizeRoots(char, cNew, r[10] || [])
   };
+  attachMeta(item);
   WUBI_CHAR_MAP.set(char, item);
   return item;
 });
@@ -193,32 +786,32 @@ export interface CharBreakdownInfo {
 export const ROOT_GLYPH_NORMALIZE: Record<string, string> = {
   '水侧': '氺',
   '氺侧': '氺',
-  '牛前': '⺧',
+  '牛前': '𠂉',
   '京头': '亠',
-  '尤前': '尢',
+  '尤前': '𠂇',
   '艮下': '𧘇',
   '艮底': '𧘇',
   '羊后': '羊',
-  '乐头': '⺈',
+  '乐头': '𠂉',
   '立头': '立',
   '光头': '⺌',
   '具头': '目',
   '隹右': '主',
-  '兴头': '⺌',
-  '長头': '镸',
-  '四竖': '罒',
+  '兴头': '⺍',
+  '長头': '髟',
+  '四竖': '丨',
   '鱼头': '⺈',
   '衣示旁': '礻',
   '马前': '马',
   '乡前': '幺',
-  '舟底': '用',
-  '祭头': '癶',
-  '母框': '毋',
+  '舟底': '丹',
+  '祭头': '祭头',
+  '母框': '⺟',
   '皮前': '皮',
   '虎头': '虍',
   '互框': '互',
   '咼头': '冂',
-  '骨头': '冂',
+  '骨头': '冎',
   '革后': '十',
   '凸头': '凸',
   '県头': '目',
@@ -228,7 +821,39 @@ export const ROOT_GLYPH_NORMALIZE: Record<string, string> = {
   '𬼖框': '勹',
   '婁头': '曲',
   '虛底头': '业',
-  '蒐中': '甶'
+  '蒐中': '甶',
+  '无尾鱼': '⺈田',
+  '祭字头': '祭头'
+};
+
+// 特殊/易混淆字根直观中文注释映射
+export const ROOT_NAME_MAP: Record<string, string> = {
+  '⺈田': '无尾鱼',
+  '\ue131': '无尾鱼',
+  '⺈': '鱼头/角头',
+  '祭头': '祭字头',
+  '冎': '骨字头',
+  '⺼': '肉月旁',
+  '⺌': '小字头',
+  '⺍': '学字头',
+  '豕': '豕字底',
+  '癶': '登字头',
+  '虍': '虎字头',
+  '⻊': '足字旁',
+  '𠂉': '撇两横',
+  '𠂇': '左字头',
+  '氺': '水侧',
+  '龰': '止底',
+  '覀': '西字头',
+  '彐': '雪底',
+  '纟': '绞丝旁',
+  '匚': '区字框',
+  '也': '也字根',
+  '彡': '三撇'
+};
+
+export const getRootName = (root: string): string => {
+  return ROOT_NAME_MAP[root] || '';
 };
 
 /**
@@ -262,9 +887,10 @@ export const getCharBreakdown = (charData: WubiCharData, version: WubiVersion): 
   if (roots && roots.length > 0) {
     let recognitionCode: string | undefined = undefined;
     // 识别码判定：
-    // 只有当拆出字根少于 4 个、非键名/单笔画、且全码长度大于字根数时，全码末位才为交叉识别码
+    // 1. 汉字拆出 4 个或 4 个以上字根时，各码均为真实字根，绝无末笔识别码！
+    // 2. 只有当拆出字根少于 4 个、非键名/单笔画、且全码长度大于字根数时，全码末位才为交叉识别码
     if (!isKeyName && roots.length < 4 && fullCode.length > roots.length) {
-      recognitionCode = fullCode[fullCode.length - 1];
+      recognitionCode = charData.recognitionCode || fullCode[fullCode.length - 1];
     }
 
     const rootSteps: RootStep[] = roots.map((r, i) => ({
@@ -279,20 +905,11 @@ export const getCharBreakdown = (charData: WubiCharData, version: WubiVersion): 
     };
   }
 
-  // 兜底回退：若该字非常生僻无字根数据，按字母对应键位提示
-  const kb = version === '98' ? KEYBOARD_98 : (version === 'newCentury' ? KEYBOARD_NEW : KEYBOARD_86);
-  const derived: string[] = [];
-  const rootSteps: RootStep[] = [];
-  for (let i = 0; i < fullCode.length; i++) {
-    const key = fullCode[i];
-    const info = kb[key];
-    const name = info?.keyName || key;
-    derived.push(name);
-    rootSteps.push({ root: name, key });
-  }
+  // 严正规避：生僻字若无确切字根数据，绝不捏造假字根（严禁把 A/B/V 盲目伪造成 工/子/女）
   return {
-    roots: derived,
-    rootSteps
+    roots: [],
+    rootSteps: [],
+    recognitionCode: charData.recognitionCode || (charData.recognitionFlag && fullCode.length < 4 ? fullCode[fullCode.length - 1] : undefined)
   };
 };
 
@@ -308,7 +925,33 @@ export const getRootSteps = (charData: WubiCharData, version: WubiVersion): Root
 
 // 获取某版本下的末笔识别码
 export const getRecognitionCode = (charData: WubiCharData, version: WubiVersion): string | undefined => {
-  return getCharBreakdown(charData, version).recognitionCode || charData.recognitionCode;
+  return getCharBreakdown(charData, version).recognitionCode;
+};
+
+// 五笔末笔字型交叉识别码规则明细映射
+const RECOGNITION_EXPLAIN_MAP: Record<string, string> = {
+  'G': '末笔横 · 左右型',
+  'F': '末笔横 · 上下型',
+  'D': '末笔横 · 杂合型',
+  'H': '末笔竖 · 左右型',
+  'J': '末笔竖 · 上下型',
+  'K': '末笔竖 · 杂合型',
+  'T': '末笔撇 · 左右型',
+  'R': '末笔撇 · 上下型',
+  'E': '末笔撇 · 杂合型',
+  'Y': '末笔点 · 左右型',
+  'U': '末笔点 · 上下型',
+  'I': '末笔点 · 杂合型',
+  'N': '末笔折 · 左右型',
+  'B': '末笔折 · 上下型',
+  'V': '末笔折 · 杂合型',
+};
+
+// 获取识别码的字型与末笔拆解说明（优先展示权威规则描述，如“折·杂合〔乛 ⿻〕”或“末笔折 · 杂合型”）
+export const getRecognitionCodeExplain = (code: string | undefined, flag?: string): string => {
+  if (flag) return flag;
+  if (!code) return '';
+  return RECOGNITION_EXPLAIN_MAP[code.toUpperCase()] || '';
 };
 
 /**

@@ -16,7 +16,24 @@ const theme = ref<ThemeName>(getSavedTheme());
 const audio = ref<AudioEffect>(getSavedAudio());
 const inputMode = ref<InputMode>(getSavedInputMode());
 const commitMode = ref<CommitMode>((localStorage.getItem('wubi_commit_mode') as CommitMode) || 'auto');
-const activeTab = ref<MainTab>('practice');
+const getInitialTab = (): MainTab => {
+  if (typeof window === 'undefined') return 'practice';
+  const hash = window.location.hash.replace('#', '');
+  if (['practice', 'article', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(hash)) {
+    return hash as MainTab;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab && ['practice', 'article', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(tab)) {
+    return tab as MainTab;
+  }
+  if (params.get('char') || params.get('q')) {
+    return 'lookup';
+  }
+  return 'practice';
+};
+
+const activeTab = ref<MainTab>(getInitialTab());
 const practiceCategory = ref<PracticeCategory>('level1');
 
 // 键盘互动高亮状态

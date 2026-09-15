@@ -54,6 +54,10 @@ export interface WubiCharData {
   roots98: string[];        // 98版拆分字根列表
   rootsNew: string[];       // 新世纪版拆分字根列表
   recognitionCode?: string; // 识别码（若有）
+  recognitionFlag?: string; // 识别码汉字结构规则，如 '折·杂合〔乛 ⿻〕'
+  ids?: string;             // 汉字结构序列，如 '⿷匚也'
+  strokes?: number;         // 笔画数
+  radical?: string;         // 部首
   frequency?: number;       // 词频顺序
   type?: 'keyname' | 'formed' | 'general'; // 键名/成字/合体字
 }
