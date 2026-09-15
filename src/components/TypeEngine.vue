@@ -360,6 +360,7 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const inputBuffer = ref('');
 const isFocused = ref(true);
 const hasError = ref(false);
+const charHasMistake = ref(false); // 标记当前汉字是否出现过击错
 const smartTip = ref<string | null>(null);
 const showHints = ref(true);
 const useMiZiGe = ref(true);
@@ -623,6 +624,7 @@ const resetSession = () => {
   backspaceCount.value = 0;
   startTime.value = null;
   hasError.value = false;
+  charHasMistake.value = false;
   smartTip.value = null;
   isFinished.value = false;
   stats.value = {
@@ -666,6 +668,18 @@ const handleInput = (e: Event) => {
     if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
       hasError.value = true;
       soundPlayer.playKey(store.audio.value, false, true);
+
+      // 击错时立即记录至生字错题本（每字只记录一次，避免重复击键膨胀 count）
+      if (!charHasMistake.value) {
+        charHasMistake.value = true;
+        errorCount.value += 1;
+        store.recordMistake(
+          currentChar.value.char,
+          clean,
+          targetFullCode.value,
+          currentRoots.value
+        );
+      }
     } else {
       hasError.value = false;
     }
@@ -738,6 +752,7 @@ const handleCheck = (hasPressedSpace: boolean) => {
     correctCount.value += 1;
     hasError.value = false;
     inputBuffer.value = '';
+    charHasMistake.value = false; // 进入下一个字前重置错误标记
 
     if (res.tip) {
       smartTip.value = res.tip;
@@ -751,18 +766,20 @@ const handleCheck = (hasPressedSpace: boolean) => {
       currentIndex.value += 1;
     }
   } else {
-    // 击错
+    // 敲空格或者出字校验失败
     hasError.value = true;
-    errorCount.value += 1;
     soundPlayer.playKey(store.audio.value, false, true);
 
-    // 记录到错题本
-    store.recordMistake(
-      currentChar.value.char,
-      inputBuffer.value,
-      targetFullCode.value,
-      currentRoots.value
-    );
+    if (!charHasMistake.value) {
+      charHasMistake.value = true;
+      errorCount.value += 1;
+      store.recordMistake(
+        currentChar.value.char,
+        inputBuffer.value,
+        targetFullCode.value,
+        currentRoots.value
+      );
+    }
   }
 };
 

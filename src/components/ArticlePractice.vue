@@ -382,6 +382,7 @@ const inputBuffer = ref('');
 const isFocused = ref(true);
 const charIndex = ref(0);
 const hasError = ref(false);
+const charHasMistake = ref(false);
 
 const scrollToCurrentChar = () => {
   if (!textContainerRef.value) return;
@@ -600,6 +601,17 @@ const handleInput = (e: Event) => {
     if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
       hasError.value = true;
       soundPlayer.playKey(store.audio.value, false, true);
+
+      if (!charHasMistake.value && currentCharData.value) {
+        charHasMistake.value = true;
+        errorCount.value += 1;
+        store.recordMistake(
+          currentCharData.value.char,
+          clean,
+          targetFullCode.value,
+          currentRoots.value
+        );
+      }
     } else {
       hasError.value = false;
     }
@@ -676,23 +688,28 @@ const checkChar = (hasPressedSpace: boolean) => {
     soundPlayer.playKey(store.audio.value, true);
     correctCount.value += 1;
     hasError.value = false;
+    charHasMistake.value = false;
     inputBuffer.value = '';
     advanceNextChar();
   } else {
     hasError.value = true;
-    errorCount.value += 1;
     soundPlayer.playKey(store.audio.value, false, true);
 
-    store.recordMistake(
-      currentCharData.value.char,
-      inputBuffer.value,
-      targetFullCode.value,
-      currentRoots.value
-    );
+    if (!charHasMistake.value && currentCharData.value) {
+      charHasMistake.value = true;
+      errorCount.value += 1;
+      store.recordMistake(
+        currentCharData.value.char,
+        inputBuffer.value,
+        targetFullCode.value,
+        currentRoots.value
+      );
+    }
   }
 };
 
 const advanceNextChar = () => {
+  charHasMistake.value = false;
   if (charIndex.value + 1 >= totalChars.value) {
     finishArticle();
   } else {
