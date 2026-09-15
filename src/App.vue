@@ -83,8 +83,11 @@ onMounted(() => {
   // 后台闲时异步初始化 IndexedDB 全量五笔字库（零阻塞首屏渲染与交互）
   if (typeof window !== 'undefined') {
     const startPopulate = () => {
-      import('./data/wubiDb').then(({ ensureDictPopulated }) => {
+      import('./data/wubiDb').then(({ ensureDictPopulated, applyDbCorrections }) => {
         ensureDictPopulated();
+        // 将精修字根（EXPERT_CORRECTED_CHARS）同步写回 IndexedDB，
+        // 以 corrections_v1 标记防止重复执行（仅首次运行 < 5ms）
+        applyDbCorrections();
       }).catch(err => {
         console.warn('[App] ensureDictPopulated error:', err);
       });
