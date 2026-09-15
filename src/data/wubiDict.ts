@@ -554,6 +554,60 @@ export const EXPERT_CORRECTED_CHARS: WubiCharData[] = [
     roots98: ['衤'],
     rootsNew: ['衤'],
     recognitionCode: 'I'
+  },
+  // 晋：一(G) + 业头(O) + 一(G) + 日(J)，四码全满无末笔识别码
+  {
+    char: '晋',
+    pinyin: 'jìn',
+    code86: 'GOGJ',
+    code98: 'GOJF',
+    codeNew: 'GOGJ',
+    short86: 'GOG',
+    short98: 'GOJ',
+    shortNew: 'GOG',
+    roots86: ['一', '业头', '一', '日'],
+    roots98: ['一', '业头', '日'],
+    rootsNew: ['一', '业头', '一', '日'],
+    ids: '⿳一业头日',
+    strokes: 10,
+    radical: '日'
+  },
+  // 亚：一(G) + 业头(O) + 一(G) + 末笔识别码 D (末笔横+杂合型 13=D)
+  {
+    char: '亚',
+    pinyin: 'yà',
+    code86: 'GOGD',
+    code98: 'GOGD',
+    codeNew: 'GOGD',
+    short86: 'GOG',
+    short98: 'GOG',
+    shortNew: 'GOG',
+    roots86: ['一', '业头', '一'],
+    roots98: ['一', '业头', '一'],
+    rootsNew: ['一', '业头', '一'],
+    recognitionCode: 'D',
+    recognitionFlag: '横·杂合〔一 ⿻〕',
+    ids: '⿻二业头',
+    strokes: 6,
+    radical: '二'
+  },
+  // 业：业头(O) + 一(G) + 末笔识别码 D (末笔横+杂合型 13=D)
+  {
+    char: '业',
+    pinyin: 'yè',
+    code86: 'OGD',
+    code98: 'OGD',
+    codeNew: 'OGD',
+    short86: 'OG',
+    short98: 'OG',
+    shortNew: 'OG',
+    roots86: ['业头', '一'],
+    roots98: ['业头', '一'],
+    rootsNew: ['业头', '一'],
+    recognitionCode: 'D',
+    recognitionFlag: '横·杂合〔一 ⿻〕',
+    strokes: 5,
+    radical: '一'
   }
 ];
 
@@ -617,9 +671,10 @@ const JI_HEAD_CHARS = new Set([
  * 1. 鱼部字自动合成为标准 Q 键一体化字根 [⺈田]（上下叠合，对应无尾鱼）；
  * 2. 骨部字规范为 M 键 冎 (骨字头) + E 键 月；
  * 3. 区分登字头(癶)与祭字头(祭头)：蔡、祭、察、擦等字 W 键字根修正为祭字头；
- * 4. 展开轻/径(LCAG/TCAG)被吞并的工/一等字根；
- * 5. 展开泽/译(ICFH/YCFH)生僻字根为标准 又+十；
- * 6. 将 Ext-G/F/C 和 PUA 乱码生僻字替换为全平台兼容的纯正五笔字根。
+ * 4. 展开足字旁(KH)展开为口+止；
+ * 5. 展开革字旁(AF)展开为廿+十；
+ * 6. 将 Ext-G/F/C 和 PUA 乱码生僻字替换为全平台兼容的纯正五笔字根；
+ * 7. 业/亚部汉字(OG码)：O 键字根由 灬 纠正为 业头（原始字典错标）。
  */
 export const normalizeRoots = (char: string, code: string, roots: string[]): string[] => {
   if (!roots || !roots.length) return [];
@@ -659,6 +714,15 @@ export const normalizeRoots = (char: string, code: string, roots: string[]): str
   if (code && code.startsWith('AF') && res.length > 0 && res[0] === '革') {
     res.splice(0, 1, '廿', '十');
   }
+
+  // 7. 业/亚部汉字（OG/GO 系编码）：原始字典将 O 键字根错写为 灬（四点底），
+  //    正确应为 业头（业字头/亚字头上部）。口诀"火业头，四点米"中 O 键含 业头。
+  //    真正含 灬 的字：点/然/热/照/燕/熊/熟/黑/烈/焦/煮/熏/庶/羔 等，编码均不含 OG/GO。
+  //    凡编码含 OG 或 GO 且字根含 灬 者，一律纠正为 业头。
+  if (code && (code.includes('OG') || code.includes('GO')) && res.includes('灬')) {
+    res = res.map(r => r === '灬' ? '业头' : r);
+  }
+
 
   // 6. 展开/规范复合扩展字与冷门乱码字形
   const newRes: string[] = [];
@@ -901,7 +965,8 @@ export const ROOT_NAME_MAP: Record<string, string> = {
   '纟': '绞丝旁',
   '匚': '区字框',
   '也': '也字根',
-  '彡': '三撇'
+  '彡': '三撇',
+  '业头': '业字头'
 };
 
 export const getRootName = (root: string): string => {
