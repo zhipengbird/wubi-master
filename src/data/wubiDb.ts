@@ -92,6 +92,42 @@ export const ensureDictPopulated = async (
 };
 
 /**
+ * 将内存精修字典（EXPERT_CORRECTED_CHARS + normalizeRoots 修正）同步回 IndexedDB。
+ * 使用 corrections_v1 标记防止重复执行；每次新增精修时升级版本号。
+ * 仅更新受影响字符，耗时极短（< 5ms）。
+ */
+export const applyDbCorrections = async (): Promise<void> => {
+  try {
+    const CORRECTIONS_KEY = 'corrections_v1';
+    const already = await db.meta.get(CORRECTIONS_KEY);
+    if (already && already.value === true) return;
+
+    const { WUBI_CHAR_MAP } = await import('./wubiDict');
+
+    // 已知需要修正的字（字根灬→业头 等所有精修字）
+    const CORRECTED_CHARS = [
+      '晋', '亚', '业', '恶', '严', '哑', '娅', '垩', '垭', '戬', '桠', '痖', '鄑', '挜',
+      // 未来新增精修字继续追加到此处
+    ];
+
+    const toUpdate: WubiCharData[] = [];
+    for (const ch of CORRECTED_CHARS) {
+      const corrected = WUBI_CHAR_MAP.get(ch);
+      if (corrected) toUpdate.push(corrected);
+    }
+
+    if (toUpdate.length > 0) {
+      await db.chars.bulkPut(toUpdate);
+      console.log(`[WubiDb] 精修字根补丁已写入 IndexedDB，共更新 ${toUpdate.length} 字`);
+    }
+
+    await db.meta.put({ key: CORRECTIONS_KEY, value: true });
+  } catch (e) {
+    console.warn('[WubiDb] applyDbCorrections error:', e);
+  }
+};
+
+/**
  * 按单个汉字查询。
  * 优先级：内存 WUBI_CHAR_MAP（含 EXPERT_CORRECTED_CHARS 精修）> IndexedDB 缓存 > 兜底
  * 这样可保证字根纠正等精修数据永远生效，不被旧 DB 缓存覆盖。

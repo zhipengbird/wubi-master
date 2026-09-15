@@ -939,7 +939,8 @@ export const ROOT_GLYPH_NORMALIZE: Record<string, string> = {
   '虛底头': '业',
   '蒐中': '甶',
   '无尾鱼': '⺈田',
-  '祭字头': '祭头'
+  '祭字头': '祭头',
+  '业头': '业'
 };
 
 // 特殊/易混淆字根直观中文注释映射
@@ -966,7 +967,7 @@ export const ROOT_NAME_MAP: Record<string, string> = {
   '匚': '区字框',
   '也': '也字根',
   '彡': '三撇',
-  '业头': '业字头'
+  '业': '业字头'
 };
 
 export const getRootName = (root: string): string => {
