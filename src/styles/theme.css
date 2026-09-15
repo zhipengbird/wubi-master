@@ -16,6 +16,12 @@
   --success: #10b981;
   --warning: #f59e0b;
 
+  /* 兼容与通用别名映射（确保任何组件使用通用命名时均能正确适配主题） */
+  --text-color: var(--text-main);
+  --primary-color: var(--accent);
+  --bg-color: var(--bg-primary);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
   --key-bg: #1e293b;
   --key-border: #334155;
   --key-shadow: 0 4px 0 #090d16;

@@ -416,14 +416,14 @@ onMounted(async () => {
 .dict-title {
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--text-main);
   margin: 0;
 }
 
 .dict-badge {
   font-size: 0.78rem;
   padding: 0.2rem 0.6rem;
-  background: var(--primary-color);
+  background: var(--accent);
   color: #fff;
   border-radius: 999px;
   font-weight: 600;
@@ -477,19 +477,19 @@ onMounted(async () => {
 
 .lookup-input {
   width: 100%;
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 0.85rem 3.5rem 0.85rem 2.8rem;
   font-size: 1.15rem;
-  color: var(--text-color);
+  color: var(--text-main);
   outline: none;
   transition: all 0.2s ease;
 }
 
 .lookup-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-subtle);
 }
 
 .input-actions {
@@ -523,7 +523,7 @@ onMounted(async () => {
 }
 
 .clear-btn:hover {
-  color: var(--text-color);
+  color: var(--text-main);
   background: var(--border-color);
 }
 
@@ -540,26 +540,26 @@ onMounted(async () => {
 }
 
 .quick-word-btn {
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 0.25rem 0.65rem;
-  color: var(--text-color);
+  color: var(--text-main);
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .quick-word-btn:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateY(-1px);
 }
 
 .quick-word-btn.code-tag {
-  border-color: rgba(99, 102, 241, 0.3);
-  color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.05);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .quick-word-btn.pinyin-tag {
@@ -596,25 +596,25 @@ onMounted(async () => {
   gap: 0.5rem;
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text-main);
   flex-wrap: wrap;
 }
 
 .cand-type {
-  color: var(--primary-color);
+  color: var(--accent);
   font-weight: 700;
 }
 
 .cand-keyword {
   font-family: var(--font-mono, monospace);
   font-weight: 800;
-  color: var(--text-color);
+  color: var(--text-main);
 }
 
 .cand-count {
   font-size: 0.8rem;
   color: var(--text-muted);
-  background: var(--bg-color);
+  background: var(--bg-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   border: 1px solid var(--border-color);
@@ -636,7 +636,7 @@ onMounted(async () => {
 
 .candidate-card-btn {
   position: relative;
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 1.5px solid var(--border-color);
   border-radius: 10px;
   padding: 0.6rem 0.4rem;
@@ -647,24 +647,25 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  color: var(--text-main);
 }
 
 .candidate-card-btn:hover {
-  border-color: var(--primary-color);
+  border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 4px 12px var(--accent-subtle);
 }
 
 .candidate-card-btn.active {
-  border-color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.1);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .cand-char {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--text-color);
+  color: var(--text-main);
   line-height: 1.1;
 }
 
@@ -680,7 +681,7 @@ onMounted(async () => {
   font-family: var(--font-mono, monospace);
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--accent);
   letter-spacing: 0.5px;
 }
 
@@ -705,13 +706,13 @@ onMounted(async () => {
 /* 词组整词编码卡片 */
 .phrase-result-card {
   background: var(--card-bg);
-  border: 2px solid var(--primary-color);
+  border: 2px solid var(--accent);
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.08);
+  box-shadow: 0 8px 24px var(--accent-subtle);
 }
 
 .phrase-header {
@@ -729,7 +730,7 @@ onMounted(async () => {
 }
 
 .phrase-tag {
-  background: var(--primary-color);
+  background: var(--accent);
   color: #fff;
   font-size: 0.8rem;
   font-weight: 700;
@@ -740,7 +741,7 @@ onMounted(async () => {
 .phrase-word {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--text-color);
+  color: var(--text-main);
   letter-spacing: 2px;
 }
 
@@ -750,7 +751,7 @@ onMounted(async () => {
   gap: 0.4rem;
   font-size: 0.88rem;
   color: var(--text-muted);
-  background: var(--bg-color);
+  background: var(--bg-primary);
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
@@ -763,7 +764,7 @@ onMounted(async () => {
 }
 
 .phrase-code-col {
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
@@ -775,8 +776,8 @@ onMounted(async () => {
 }
 
 .phrase-code-col.active {
-  border-color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.06);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .p-ver-tag {
@@ -790,7 +791,7 @@ onMounted(async () => {
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: 4px;
-  color: var(--primary-color);
+  color: var(--accent);
 }
 
 .section-divider {
@@ -840,7 +841,7 @@ onMounted(async () => {
 .main-char {
   font-size: 3.2rem;
   font-weight: 800;
-  color: var(--text-color);
+  color: var(--text-main);
   line-height: 1.1;
 }
 
@@ -862,7 +863,7 @@ onMounted(async () => {
 .meta-pill {
   font-size: 0.72rem;
   color: var(--text-muted);
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   padding: 0.12rem 0.45rem;
   border-radius: 4px;
@@ -887,7 +888,7 @@ onMounted(async () => {
 }
 
 .version-row {
-  background: var(--bg-color);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 0.65rem 1rem;
@@ -898,8 +899,8 @@ onMounted(async () => {
 }
 
 .version-row.active {
-  border-color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .ver-name {
@@ -912,7 +913,7 @@ onMounted(async () => {
   font-family: var(--font-mono, monospace);
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--accent);
   letter-spacing: 1px;
 }
 
@@ -962,8 +963,8 @@ onMounted(async () => {
 .tip-code-chip {
   font-family: var(--font-mono, monospace);
   font-weight: 700;
-  color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  background: var(--accent-subtle);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
@@ -982,10 +983,10 @@ onMounted(async () => {
 
 .root-code-chip {
   font-size: 0.72rem;
-  color: var(--primary-color);
+  color: var(--accent);
   font-weight: 700;
   font-family: var(--font-mono, monospace);
-  background: rgba(99, 102, 241, 0.08);
+  background: var(--accent-subtle);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
 }
@@ -995,8 +996,8 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px dashed var(--primary-color);
+  background: var(--accent-subtle);
+  border: 1px dashed var(--accent);
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
 }
@@ -1010,7 +1011,7 @@ onMounted(async () => {
   font-family: var(--font-mono, monospace);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--primary-color);
+  color: var(--accent);
 }
 
 .recog-chip-explain {
@@ -1024,7 +1025,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  background: var(--bg-color);
+  background: var(--bg-primary);
   padding: 0.85rem 1rem;
   border-radius: 10px;
   border: 1px solid var(--border-color);
@@ -1062,7 +1063,7 @@ onMounted(async () => {
 .step-ch {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--text-main);
 }
 
 .step-sub {
@@ -1079,8 +1080,8 @@ onMounted(async () => {
   font-family: var(--font-mono, monospace);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--primary-color);
-  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent);
+  background: var(--accent-subtle);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
@@ -1104,7 +1105,7 @@ onMounted(async () => {
 .empty-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--text-main);
 }
 
 .empty-desc {

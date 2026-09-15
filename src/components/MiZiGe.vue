@@ -195,7 +195,7 @@ withDefaults(defineProps<{
 .mizige-svg-glyph {
   width: 72%;
   height: 72%;
-  color: var(--text-color, #f8fafc);
+  color: var(--text-main, #f8fafc);
   z-index: 1;
   pointer-events: none;
 }
