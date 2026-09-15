@@ -102,16 +102,19 @@ export const applyDbCorrections = async (): Promise<void> => {
     const already = await db.meta.get(CORRECTIONS_KEY);
     if (already && already.value === true) return;
 
-    const { WUBI_CHAR_MAP } = await import('./wubiDict');
+    const { WUBI_CHAR_MAP, EXPERT_CORRECTED_CHARS } = await import('./wubiDict');
 
-    // 已知需要修正的字（字根灬→业头 等所有精修字）
-    const CORRECTED_CHARS = [
-      '晋', '亚', '业', '恶', '严', '哑', '娅', '垩', '垭', '戬', '桠', '痖', '鄑', '挜',
-      // 未来新增精修字继续追加到此处
+    // 自动纳入所有 EXPERT_CORRECTED_CHARS 专家校准字，以及 normalizeRoots 规则7纠正的业/亚部字
+    const RULE_CORRECTED_CHARS = [
+      '晋', '亚', '业', '恶', '严', '哑', '娅', '垩', '垭', '戬', '桠', '痖', '鄑', '挜'
     ];
+    const allTargetChars = new Set([
+      ...RULE_CORRECTED_CHARS,
+      ...EXPERT_CORRECTED_CHARS.map(c => c.char)
+    ]);
 
     const toUpdate: WubiCharData[] = [];
-    for (const ch of CORRECTED_CHARS) {
+    for (const ch of allTargetChars) {
       const corrected = WUBI_CHAR_MAP.get(ch);
       if (corrected) toUpdate.push(corrected);
     }
