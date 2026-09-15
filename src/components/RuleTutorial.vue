@@ -1143,11 +1143,17 @@ const simPhraseBreakdown = computed(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 1. 四大法则图解卡片 */
+/* 1. 四大法则图解卡片：两排，每排2个 */
 .principles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .principles-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .principle-card {
