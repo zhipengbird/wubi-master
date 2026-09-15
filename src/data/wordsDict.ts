@@ -1,6 +1,10 @@
 import type { WubiPhraseData } from '../types/wubi';
+import { getAllDynamicPhrases, getPhrasesByLength, getDynamicPhrase, HIGH_FREQ_PHRASES } from './phraseData';
 
-export const COMMON_PHRASES: WubiPhraseData[] = [
+/**
+ * 经典教学范例词组（涵盖双字/三字/四字成语/多字长词各类标准取码规则）
+ */
+export const CANONICAL_PHRASES: WubiPhraseData[] = [
   // 双字词（2+2规则）
   { word: '中国', pinyin: 'zhōng guó', code86: 'KHLG', code98: 'KHLG', codeNew: 'KHLG', breakdown: '中(KH) + 国(LG)' },
   { word: '人民', pinyin: 'rén mín', code86: 'WWNA', code98: 'WWNA', codeNew: 'WWNA', breakdown: '人(WW) + 民(NA)' },
@@ -40,3 +44,23 @@ export const COMMON_PHRASES: WubiPhraseData[] = [
   { word: '中华人民共和国', pinyin: 'zhōng huá rén mín gòng hé guó', code86: 'KWWL', code98: 'KWWL', codeNew: 'KWWL', breakdown: '中(K) + 华(W) + 人(W) + ... + 国(L)' },
   { word: '中国特色社会主义', pinyin: 'zhōng guó tè sè shè huì zhǔ yì', code86: 'KLTY', code98: 'KLCY', codeNew: 'KLTY', breakdown: '中(K) + 国(L) + 特(T/C) + ... + 义(Y)' }
 ];
+
+// 构建融合了 3,000 条现代高频词的常用词组全集
+const canonicalWords = new Set(CANONICAL_PHRASES.map(p => p.word));
+const additionalDynamic = getAllDynamicPhrases().filter(p => !canonicalWords.has(p.word));
+
+/**
+ * 全量扩容词组库（3,000+ 条高频词组，全部动态算码支持）
+ */
+export const COMMON_PHRASES: WubiPhraseData[] = [
+  ...CANONICAL_PHRASES,
+  ...additionalDynamic
+];
+
+export {
+  getAllDynamicPhrases,
+  getPhrasesByLength,
+  getDynamicPhrase,
+  HIGH_FREQ_PHRASES
+};
+

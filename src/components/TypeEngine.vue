@@ -345,7 +345,7 @@ const categoryList = [
   { id: 'top500' as PracticeCategory, name: '常用前500字' },
   { id: 'top1500' as PracticeCategory, name: '常用前1500字' },
   { id: 'top3500' as PracticeCategory, name: '3500常用字全集' },
-  { id: 'phrase' as PracticeCategory, name: '高频双字词' },
+  { id: 'phrase' as PracticeCategory, name: '高频词组特训 (3000词)' },
 ];
 
 const currentCategory = ref<PracticeCategory>('level1');

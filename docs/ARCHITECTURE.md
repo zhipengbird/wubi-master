@@ -1,7 +1,7 @@
 # 🛠️ 五笔学堂 (Wubi Master) 技术架构与核心算法文档
 
-> 最后更新：2026-09-15 v1.4.0  
-> 文档版本：v1.4.0 (深度核实与全链路校准)
+> 最后更新：2026-09-15 v1.5.0  
+> 文档版本：v1.5.0 (词库扩容与 Vitest 自动化防回退体系)
 
 ## 一、技术栈选型
 
@@ -10,6 +10,7 @@
 | 核心框架 | [Vue 3.5.42](https://vuejs.org/) | SFC + `<script setup>` + Composition API |
 | 开发语言 | [TypeScript 6.0.2](https://www.typescriptlang.org/) | 全链路严格类型检查 |
 | 构建工具 | [Vite 8.3.0](https://vitejs.dev/) + [Bun](https://bun.sh/) | 毫秒级编译与极速 HMR，构建仅需 ~300ms |
+| 测试框架 | [Vitest 5.0.0](https://vitest.dev/) | 自动化单元测试与业务规则防回退校验（72 测试用例 100% 通过） |
 | 状态管理 | [Vue 3 Composition Store](https://vuejs.org/) | 原生响应式单例（`ref` + `reactive`），集中管理五笔版本、输入模式、出字模式、错题本，零第三方依赖轻量化设计 |
 | 本地数据库 | [Dexie.js 4.4.6](https://dexie.org/) | 封装 IndexedDB，28,058 汉字持久化 + 7 重多维索引 |
 | 图标库 | [lucide-vue-next 1.0.0](https://lucide.dev/) | 现代矢量线性图标 |

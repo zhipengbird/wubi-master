@@ -1,12 +1,14 @@
 {
   "name": "wubi-master",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "bun ./node_modules/vite/bin/vite.js",
     "build": "bun ./node_modules/vite/bin/vite.js build",
-    "preview": "bun ./node_modules/vite/bin/vite.js preview"
+    "preview": "bun ./node_modules/vite/bin/vite.js preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -21,6 +23,7 @@
     "@vue/tsconfig": "^0.9.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11"
   }
 }

@@ -4,6 +4,30 @@
 
 ---
 
+## [1.5.0] - 2026-09-15
+
+### 🌟 核心亮点
+- **常用词组库深度扩容（3,000+ 条高频现代词汇）**：
+  - 提取 2,000 双字高频词 + 400 三字词 + 600 四字成语/词组，语料来自高频权威语料库；
+  - **100% 纯动态算码**：全量基于 `calculatePhraseCode` 动态推导三代编码与拼音，零体积冗余，主包保持极限轻量（Gzip 仅 ~396KB）；
+  - `TypeEngine.vue` 词组特训板块直接接入 3,000 词库，支持海量真实语言环境下的五笔词组盲打训练。
+- **引入 Vitest 自动化防回退测试体系**：
+  - 建立 3 大专项测试套件（72 个断言用例 100% 通过，耗时 <2s）；
+  - **规则防退化**：锁定一级简码 25 字单键、键名字 25 字 4 击、成字字根（五、干、雨、石等）报户头取码，严防“五”等字再次多出第 5 码；
+  - **清洗防退化**：锁定业/亚部汉字“业头”、祭字头与登字头区分、足部展开（口+止）、革部展开（廿+十）、Unicode 生僻字符清洗；
+  - **算法防退化**：锁定双字/三字/四字/多字词组全套五笔推导规则。
+
+### 🚀 新增与改进 (Added & Improved)
+- 新增 `src/data/phraseData.ts`：导出 3,000 高频词汇表及 `getAllDynamicPhrases`、`getPhrasesByLength` 动态生成 API；
+- 扩展 `src/data/wordsDict.ts`：`COMMON_PHRASES` 扩容至 3,010+ 词，保持与既有调用完全向下兼容；
+- 升级 `src/components/TypeEngine.vue`：词组特训分类升级为「高频词组特训 (3000词)」；
+- 新增测试配置 `vitest.config.ts` 与三组自动化测试文件：
+  - `tests/wubiRules.test.ts`（43 tests）
+  - `tests/wubiDictCorrections.test.ts`（21 tests）
+  - `tests/phraseCalculation.test.ts`（8 tests）
+
+---
+
 ## [1.4.0] - 2026-09-15
 
 ### 🌟 核心亮点
