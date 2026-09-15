@@ -131,7 +131,7 @@ export const SPLIT_PRINCIPLES_DETAILED: SplitPrincipleDetail[] = [
     examples: [
       { char: '天', roots: ['一', '大'], code: 'GDI', reason: '“一”与“大”是相连相依；若拆成“二”与“人”，则“人”被横线腰斩穿越变成相交大忌！', breakdownNote: 'G (一) + D (大) + I (杂合识别码)' },
       { char: '于', roots: ['一', '十'], code: 'GFK', reason: '先写横“一”，连着写“十/干底”；绝不拆成相交的“二”与竖钩', breakdownNote: 'G (一) + F (十) + K (杂合识别码)' },
-      { char: '未', roots: ['二', '𡭔'], code: 'FII', reason: '“二”与“木底”相连相接，不把中间的长竖和横相交割裂', breakdownNote: 'F (二) + I (小木底) + I (识别码)' }
+      { char: '未', roots: ['二', '小'], code: 'FII', reason: '“二”与“木底(小)”相连相接，不把中间的长竖和横相交割裂', breakdownNote: 'F (二) + I (小木底) + I (识别码)' }
     ]
   }
 ];
@@ -291,7 +291,7 @@ export const SPLIT_QUIZ_QUESTIONS: SplitQuizItem[] = [
     pinyin: 'mò',
     question: '如何一眼区分“末”和“未”在五笔中的取码拆解？',
     options: [
-      { label: '末是上长下短，取大为“一 + 木”(GS)；未是上短下长，拆为“二 + 𡭔”(FI)', roots: ['一', '木'], code: 'GSI', isCorrect: true, feedback: '高分洞察！末字底下一个完整木，因此直观取“一+木”；未字上短下长只能取“二”！' },
+      { label: '末是上长下短，取大为“一 + 木”(GS)；未是上短下长，拆为“二 + 小(木底)”(FI)', roots: ['一', '木'], code: 'GSI', isCorrect: true, feedback: '高分洞察！末字底下一个完整木，因此直观取“一+木”；未字上短下长只能取“二”！' },
       { label: '两者都是一横加木，完全一样编码', roots: ['一', '木'], code: 'GSI', isCorrect: false, feedback: '大错特错！五笔对未和末有严格区分，未是 FII，末是 GSI！' },
       { label: '末拆为“二 + 小木底”', roots: ['二', '小木底'], code: 'FII', isCorrect: false, feedback: '记反了！FII 是“未”的拆法！' }
     ],
