@@ -419,7 +419,8 @@
 
         <div class="victory-actions">
           <button class="btn-secondary" @click="exitBattle">返回关卡地图</button>
-          <button class="btn-primary" @click="restartCurrentBattle">再次迎战</button>
+          <button class="btn-secondary" @click="restartCurrentBattle">再次迎战</button>
+          <button class="btn-primary next-stage-btn" v-if="nextStage" @click="goToNextStage">进入下一关 ⚔️</button>
         </div>
       </div>
     </div>
@@ -635,6 +636,24 @@ const restartCurrentBattle = () => {
   }
 };
 
+const nextStage = computed<DungeonStage | null>(() => {
+  if (!currentStage.value) return null;
+  const idx = DUNGEON_STAGES.findIndex(s => s.id === currentStage.value!.id);
+  if (idx >= 0 && idx < DUNGEON_STAGES.length - 1) {
+    return DUNGEON_STAGES[idx + 1];
+  }
+  return null;
+});
+
+const goToNextStage = () => {
+  if (nextStage.value) {
+    activeVolume.value = nextStage.value.volume;
+    startBattle(nextStage.value);
+  } else {
+    exitBattle();
+  }
+};
+
 const exitBattle = () => {
   stopAtbTicker();
   currentStage.value = null;
@@ -831,6 +850,8 @@ const handleDefeat = () => {
   showDefeatModal.value = true;
 };
 
+let lastImeCommitTime = 0;
+
 // 键盘事件处理
 const onKeyDown = (e: KeyboardEvent) => {
   if (isComposing.value) return;
@@ -842,9 +863,12 @@ const onKeyDown = (e: KeyboardEvent) => {
     return;
   }
 
-  if (e.key === ' ') {
+  if (e.key === ' ' || e.key === 'Spacebar') {
     e.preventDefault();
-    // 按空格：校验简码或全码是否匹配
+    // 防抖：若刚在 250ms 内完成输入法选字上屏，该空格属于输入法确认键，忽略之
+    if (Date.now() - lastImeCommitTime < 250) {
+      return;
+    }
     checkAndCommit();
     return;
   }
@@ -864,11 +888,21 @@ const checkAutoCommit = () => {
   const full = currentTargetCode.value;
   const short = currentTargetShortCode.value;
 
-  if (typed === full || (short && typed === short && typed.length === full.length)) {
+  // 1. 敲满全码直接命中
+  if (typed === full) {
     onPlayerHit(typed.length);
     return;
   }
 
+  // 2. 一级简码关卡（一键一字）或在 auto 提交模式下达到简码长度且完全匹配
+  if (short && typed === short) {
+    if (currentStage.value?.id === 'stage-6' || (store.commitMode.value === 'auto' && short.length === 1)) {
+      onPlayerHit(typed.length);
+      return;
+    }
+  }
+
+  // 3. 敲满 4 码且不匹配
   if (typed.length === 4 && typed !== full) {
     onPlayerError();
   }
@@ -900,6 +934,7 @@ const onCompositionEnd = (e: CompositionEvent) => {
   const committedText = e.data || '';
   composingText.value = '';
   rawInput.value = '';
+  lastImeCommitTime = Date.now();
 
   if (committedText.includes(currentTargetText.value)) {
     onPlayerHit(4);
@@ -910,6 +945,8 @@ const onCompositionEnd = (e: CompositionEvent) => {
 
 const onNativeInput = (e: Event) => {
   if (isComposing.value) return;
+  // 防抖：避免 compositionend 紧随其后的 input 重复触发
+  if (Date.now() - lastImeCommitTime < 80) return;
   const target = e.target as HTMLInputElement;
   const val = target.value.trim();
   if (val && val.includes(currentTargetText.value)) {

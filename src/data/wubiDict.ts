@@ -818,6 +818,23 @@ export const parseRawEntry = (r: RawDictTuple): WubiCharData => {
   return item;
 };
 
+// 关卡与高频拓展补充字表（确保常用字根、生字、成语字秒级同步命中）
+const SUPPLEMENTAL_CHAR_TUPLES: RawDictTuple[] = [
+  ["络", "luò", "XTKG", "XTKG", "XTKG", "XTK", "XTK", "XTK", ["纟", "夂", "口"], ["纟", "夂", "口"], ["纟", "夂", "口"]],
+  ["沐", "mù", "ISY", "ISY", "ISY", "ISY", "ISY", "ISY", ["氵", "木"], ["氵", "木"], ["氵", "木"]],
+  ["囚", "qiú", "LWI", "LWI", "LWI", "LWI", "LWI", "LWI", ["囗", "人"], ["囗", "人"], ["囗", "人"]],
+  ["庐", "lú", "YYNE", "OYNE", "OYNE", "", "", "", ["广", "丶", "尸"], ["广", "丶", "尸"], ["广", "丶", "尸"]],
+  ["勺", "sháo", "QYI", "QYI", "QYI", "QYI", "QYI", "QYI", ["勹", "丶"], ["勹", "丶"], ["勹", "丶"]],
+  ["苔", "tái", "ACKF", "ACKF", "ACKF", "ACK", "ACK", "ACK", ["艹", "厶", "口"], ["艹", "厶", "口"], ["艹", "厶", "口"]],
+  ["奋", "fèn", "DLF", "DLF", "DLF", "DLF", "DLF", "DL", ["大", "田"], ["大", "田"], ["大", "田"]],
+  ["匕", "bǐ", "XTN", "XTN", "XTN", "XTN", "XTN", "XTN", ["匕", "㇟", "丿"], ["匕", "㇟", "丿"], ["匕", "㇟", "丿"]],
+  ["陋", "lòu", "BGMN", "BGMN", "BGMN", "BGM", "BGM", "BGM", ["阝", "一", "冂", "𠃊"], ["阝", "一", "冂", "𠃊"], ["阝", "一", "冂", "𠃊"]],
+  ["臼", "jiù", "VTHG", "ETHG", "ETHG", "VTH", "ETH", "ETH", ["臼", "丿", "丨", "一"], ["臼", "丿", "丨", "一"], ["臼", "丿", "丨", "一"]],
+  ["绎", "yì", "XCFH", "XCGH", "XCGH", "XCF", "XCG", "XCG", ["纟", "又"], ["纟", "又"], ["纟", "又"]],
+  ["牍", "dú", "THGD", "THGD", "THGD", "", "", "", ["丿", "丨", "一", "大"], ["丿", "丨", "一", "大"], ["丿", "丨", "一", "大"]]
+];
+SUPPLEMENTAL_CHAR_TUPLES.forEach(parseRawEntry);
+
 // 预加载并解析首屏 3,500 常用核心字库（极速启动，零延迟输入）
 const parsedCommonChars: WubiCharData[] = (rawCommonDictData as unknown as RawDictTuple[]).map(parseRawEntry);
 
