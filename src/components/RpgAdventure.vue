@@ -1823,8 +1823,9 @@ onUnmounted(() => {
 }
 
 .energy-track {
-  height: 8px;
-  background: var(--bg-secondary, rgba(255, 255, 255, 0.1));
+  height: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1839,13 +1840,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.85rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid var(--border-color, #475569);
-  background: var(--bg-secondary, #1e293b);
-  color: var(--text-muted, #64748b);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-muted);
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: not-allowed;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -1961,7 +1962,7 @@ onUnmounted(() => {
   height: 54px;
   border-radius: 12px;
   border: 2px solid var(--border-color, #475569);
-  background: var(--bg-secondary, rgba(0, 0, 0, 0.3));
+  background: var(--bg-primary, rgba(0, 0, 0, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1974,6 +1975,7 @@ onUnmounted(() => {
 
 .key-slot.active {
   border-color: var(--accent, #38bdf8);
+  background: var(--card-bg, #ffffff);
   box-shadow: 0 0 12px var(--accent-subtle, rgba(56, 189, 248, 0.5));
   transform: translateY(-2px);
 }
