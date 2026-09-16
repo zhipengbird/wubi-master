@@ -8,7 +8,8 @@
     "build": "bun ./node_modules/vite/bin/vite.js build",
     "preview": "bun ./node_modules/vite/bin/vite.js preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "push:baidu": "bun ./scripts/pushBaidu.ts"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
