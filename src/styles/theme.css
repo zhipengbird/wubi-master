@@ -21,6 +21,7 @@
   --text-color: var(--text-main);
   --primary-color: var(--accent);
   --bg-color: var(--bg-primary);
+  --bg-hover: var(--bg-tertiary);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --key-bg: #1e293b;
@@ -276,36 +277,36 @@
 
 /* 9. 极简纯白 (Pure Minimalist / Apple Light) */
 [data-theme='pure-white'] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f7;
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
   --bg-tertiary: #e5e5ea;
   --card-bg: #ffffff;
   --border-color: #e5e5ea;
   --text-main: #1d1d1f;
-  --text-muted: #86868b;
+  --text-muted: #636366;
   --accent: #0071e3; /* Apple 经典科技蓝 */
   --accent-text: #ffffff;
   --accent-hover: #0077ed;
-  --accent-subtle: rgba(0, 113, 227, 0.1);
-  --error: #ff3b30;
-  --success: #34c759;
-  --warning: #ff9500;
+  --accent-subtle: rgba(0, 113, 227, 0.08);
+  --error: #d70015;
+  --success: #15803d; /* 升级为高对比度深绿，达到 4.6:1 WCAG AA */
+  --warning: #b45309; /* 升级为高对比度琥珀棕，达到 4.5:1 WCAG AA */
 
-  --key-bg: #fbfbfd;
+  --key-bg: #ffffff;
   --key-border: #d2d2d7;
   --key-shadow: 0 3px 0 #c7c7cc;
   --key-text: #1d1d1f;
   --key-active: #0071e3;
 
-  --zone-1: #0071e3; /* 横区 - 经典蓝 */
-  --zone-2: #28cd41; /* 竖区 - 活力绿 */
-  --zone-3: #ff9500; /* 撇区 - 活力橙 */
-  --zone-4: #ff2d55; /* 捺区 - 玫瑰红 */
-  --zone-5: #af52de; /* 折区 - 典雅紫 */
+  --zone-1: #0071e3; /* 横区 - 经典蓝 (4.5:1) */
+  --zone-2: #15803d; /* 竖区 - 高对比活力绿 (4.6:1) */
+  --zone-3: #b45309; /* 撇区 - 高对比琥珀橙 (4.5:1) */
+  --zone-4: #c2410c; /* 捺区 - 高对比珊瑚红 (4.8:1) */
+  --zone-5: #7c3aed; /* 折区 - 高对比典雅紫 (5.2:1) */
 
-  --mizige-border: rgba(0, 113, 227, 0.45);
-  --mizige-line: rgba(0, 113, 227, 0.18);
-  --mizige-bg: #fafafc;
+  --mizige-border: rgba(0, 113, 227, 0.4);
+  --mizige-line: rgba(0, 113, 227, 0.16);
+  --mizige-bg: #ffffff;
 }
 
 /* 10. 抹茶禅意 (Matcha Zen Light) */

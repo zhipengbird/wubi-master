@@ -394,7 +394,7 @@ const currentZoneColor = computed(() => {
 
 .z-capsule.is-active .z-badge {
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--accent-text, #0f172a);
 }
 
 .keyboard-board {

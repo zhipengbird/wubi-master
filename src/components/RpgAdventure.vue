@@ -1213,7 +1213,7 @@ onUnmounted(() => {
   margin: 0 auto;
   padding: 1.5rem 1rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
-  color: var(--text-color, #e2e8f0);
+  color: var(--text-main);
 }
 
 /* 顶部 HUD */
@@ -1245,21 +1245,23 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.85rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid var(--border-color, #475569);
-  background: var(--bg-hover, #334155);
-  color: var(--text-color, #f8fafc);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-main);
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hud-btn:hover {
   transform: translateY(-2px);
-  border-color: #38bdf8;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: 0 4px 12px var(--accent-subtle);
 }
 
 .player-realm-badge {
@@ -1268,8 +1270,8 @@ onUnmounted(() => {
   gap: 0.6rem;
   padding: 0.4rem 0.85rem;
   border-radius: 8px;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid var(--realm-color, #38bdf8);
+  background: var(--accent-subtle);
+  border: 1px solid var(--realm-color, var(--accent));
 }
 
 .realm-icon {
@@ -1279,12 +1281,12 @@ onUnmounted(() => {
 .realm-name {
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--realm-color, #38bdf8);
+  color: var(--realm-color, var(--accent));
 }
 
 .player-level {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .coin-badge {
@@ -1292,11 +1294,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.35rem;
   padding: 0.45rem 0.75rem;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid var(--warning);
   border-radius: 8px;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--warning);
 }
 
 /* 经验条 & 血条通用 */
@@ -1310,15 +1312,15 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .bar-track {
   height: 10px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .bar-fill {
@@ -1365,7 +1367,7 @@ onUnmounted(() => {
   border-radius: 12px;
   background: var(--card-bg, #1e293b);
   border: 1px solid var(--border-color, #334155);
-  color: var(--text-color, #cbd5e1);
+  color: var(--text-main);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -1373,17 +1375,18 @@ onUnmounted(() => {
 }
 
 .volume-tab-btn.active {
-  background: rgba(56, 189, 248, 0.12);
-  border-color: #38bdf8;
-  color: #38bdf8;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 4px 16px var(--accent-subtle);
 }
 
 .vol-tag {
   font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
 }
 
 .stages-grid {
@@ -1400,14 +1403,14 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
 }
 
 .stage-card:hover:not(.is-locked) {
   transform: translateY(-4px);
-  border-color: #38bdf8;
-  box-shadow: 0 10px 24px rgba(56, 189, 248, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px var(--accent-subtle);
 }
 
 .stage-card.is-locked {
@@ -1424,8 +1427,8 @@ onUnmounted(() => {
 .stage-category-pill {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  background: var(--accent-subtle);
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -1436,7 +1439,8 @@ onUnmounted(() => {
   gap: 1rem;
   padding: 0.75rem;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .monster-avatar {
@@ -1447,8 +1451,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 2px solid #38bdf8;
-  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--accent);
+  background: var(--card-bg);
 }
 
 .monster-name {
@@ -1459,13 +1463,13 @@ onUnmounted(() => {
 
 .monster-title {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .monster-hp-tag {
   font-size: 0.75rem;
-  color: #ef4444;
+  color: var(--error);
   font-weight: 600;
   margin-top: 0.2rem;
 }
@@ -1478,7 +1482,7 @@ onUnmounted(() => {
 
 .stage-subtitle {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
@@ -1496,13 +1500,13 @@ onUnmounted(() => {
 }
 
 .reward-pill.exp {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .reward-pill.coins {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
 }
 
 .battle-start-btn {
@@ -1646,8 +1650,8 @@ onUnmounted(() => {
   position: absolute;
   top: -12px;
   left: 20px;
-  background: #38bdf8;
-  color: #0f172a;
+  background: var(--accent, #38bdf8);
+  color: var(--accent-text, #0f172a);
   font-size: 0.8rem;
   font-weight: 800;
   padding: 2px 10px;
@@ -1694,8 +1698,8 @@ onUnmounted(() => {
   width: 90px;
   height: 90px;
   border-radius: 20px;
-  border: 3px solid #38bdf8;
-  background: rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--accent, #38bdf8);
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1729,21 +1733,23 @@ onUnmounted(() => {
 .boss-name {
   font-size: 1.6rem;
   font-weight: 900;
+  color: var(--text-main);
 }
 
 .boss-title {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .monster-dialogue-bubble {
   margin-top: 1rem;
   padding: 0.6rem 1rem;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-color, transparent);
   border-radius: 8px;
   font-style: italic;
   font-size: 0.9rem;
-  color: #cbd5e1;
+  color: var(--text-main, #cbd5e1);
 }
 
 /* 战斗中部核心 */
@@ -1791,7 +1797,7 @@ onUnmounted(() => {
   gap: 1rem;
   width: 100%;
   max-width: 580px;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--card-bg, rgba(15, 23, 42, 0.6));
   border: 1px solid var(--border-color, #334155);
   border-radius: 14px;
   padding: 0.75rem 1rem;
@@ -1807,25 +1813,25 @@ onUnmounted(() => {
   justify-content: space-between;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   margin-bottom: 0.35rem;
 }
 
 .energy-pct {
-  color: #38bdf8;
+  color: var(--accent, #38bdf8);
   font-weight: 800;
 }
 
 .energy-track {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.1));
   border-radius: 999px;
   overflow: hidden;
 }
 
 .energy-fill {
   height: 100%;
-  background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+  background: linear-gradient(90deg, var(--accent, #38bdf8), #818cf8, #c084fc);
   transition: width 0.25s ease;
 }
 
@@ -1835,9 +1841,9 @@ onUnmounted(() => {
   gap: 0.4rem;
   padding: 0.5rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid #475569;
-  background: #1e293b;
-  color: #64748b;
+  border: 1px solid var(--border-color, #475569);
+  background: var(--bg-secondary, #1e293b);
+  color: var(--text-muted, #64748b);
   font-size: 0.85rem;
   font-weight: 800;
   cursor: not-allowed;
@@ -1862,7 +1868,7 @@ onUnmounted(() => {
 .kill-progress-pill {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .target-focus-card {
@@ -1873,15 +1879,15 @@ onUnmounted(() => {
   border-radius: 24px;
   padding: 2.5rem 2rem;
   text-align: center;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
 }
 
 .target-character-display {
   font-size: 4.5rem;
   font-weight: 900;
   font-family: 'Kaiti SC', 'STKaiti', serif;
-  color: #f8fafc;
-  text-shadow: 0 4px 16px rgba(56, 189, 248, 0.4);
+  color: var(--text-main, #f8fafc);
+  text-shadow: 0 4px 16px var(--accent-subtle, rgba(56, 189, 248, 0.4));
   margin-bottom: 1rem;
   letter-spacing: 4px;
 }
@@ -1902,8 +1908,8 @@ onUnmounted(() => {
 }
 
 .root-tag {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: var(--accent-subtle, rgba(56, 189, 248, 0.15));
+  color: var(--accent, #38bdf8);
   border-radius: 4px;
   padding: 2px 6px;
   font-weight: 700;
@@ -1911,13 +1917,13 @@ onUnmounted(() => {
 
 .hint-code {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .code-pill {
   font-family: monospace;
   font-weight: 800;
-  color: #10b981;
+  color: var(--success, #10b981);
   background: rgba(16, 185, 129, 0.15);
   padding: 2px 8px;
   border-radius: 4px;
@@ -1927,7 +1933,7 @@ onUnmounted(() => {
 .short-pill {
   font-family: monospace;
   font-weight: 800;
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
   background: rgba(251, 191, 36, 0.15);
   padding: 2px 8px;
   border-radius: 4px;
@@ -1940,7 +1946,7 @@ onUnmounted(() => {
 
 .hint-tip-row {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   margin-top: 0.35rem;
 }
 
@@ -1955,26 +1961,26 @@ onUnmounted(() => {
   height: 54px;
   border-radius: 12px;
   border: 2px solid var(--border-color, #475569);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.6rem;
   font-weight: 900;
   font-family: monospace;
-  color: #38bdf8;
+  color: var(--accent, #38bdf8);
   transition: all 0.15s ease;
 }
 
 .key-slot.active {
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+  border-color: var(--accent, #38bdf8);
+  box-shadow: 0 0 12px var(--accent-subtle, rgba(56, 189, 248, 0.5));
   transform: translateY(-2px);
 }
 
 .key-slot.filled {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
+  background: var(--accent-subtle, rgba(56, 189, 248, 0.15));
+  border-color: var(--accent, #38bdf8);
 }
 
 .key-slot.error {
@@ -1986,11 +1992,11 @@ onUnmounted(() => {
 .composing-echo {
   margin-top: 1rem;
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .composing-letters {
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
   font-weight: 800;
   font-family: monospace;
 }
@@ -2009,7 +2015,7 @@ onUnmounted(() => {
 }
 
 .shield-tag {
-  background: #fbbf24;
+  background: var(--warning, #fbbf24);
   color: #0f172a;
   font-size: 0.7rem;
   font-weight: 800;
@@ -2033,7 +2039,7 @@ onUnmounted(() => {
   border-radius: 10px;
   background: var(--card-bg, #1e293b);
   border: 1px solid var(--border-color, #475569);
-  color: var(--text-color, #f8fafc);
+  color: var(--text-main, #f8fafc);
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -2042,7 +2048,7 @@ onUnmounted(() => {
 
 .combat-item-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: #fbbf24;
+  border-color: var(--warning, #fbbf24);
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
 }
 
@@ -2054,9 +2060,9 @@ onUnmounted(() => {
 .toggle-kb-btn {
   padding: 0.6rem 1.1rem;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.06));
   border: 1px solid var(--border-color, #475569);
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-size: 0.85rem;
   cursor: pointer;
 }
@@ -2081,8 +2087,9 @@ onUnmounted(() => {
   width: 100%;
   max-width: 500px;
   padding: 2rem;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
   text-align: center;
+  color: var(--text-main);
 }
 
 .modal-header {
@@ -2095,28 +2102,30 @@ onUnmounted(() => {
 .modal-title {
   font-size: 1.3rem;
   margin: 0;
+  color: var(--text-main);
 }
 
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-size: 1.2rem;
   cursor: pointer;
 }
 
 .shop-coin-balance {
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(180, 83, 9, 0.1);
+  border: 1px solid rgba(180, 83, 9, 0.25);
   padding: 0.75rem;
   border-radius: 10px;
   margin-bottom: 1.5rem;
   font-size: 0.95rem;
+  color: var(--text-main);
 }
 
 .coins-highlight {
   font-weight: 800;
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
 }
 
 .shop-items-list {
@@ -2132,7 +2141,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0.85rem;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.2));
   border: 1px solid var(--border-color, #334155);
 }
 
@@ -2149,25 +2158,26 @@ onUnmounted(() => {
 .item-title {
   margin: 0 0 0.2rem 0;
   font-size: 1rem;
+  color: var(--text-main);
 }
 
 .owned-tag {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-weight: normal;
 }
 
 .item-desc {
   margin: 0;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
 }
 
 .buy-btn {
   padding: 0.5rem 0.85rem;
   border-radius: 8px;
-  background: #f59e0b;
-  color: #0f172a;
+  background: var(--warning, #f59e0b);
+  color: #ffffff;
   border: none;
   font-weight: 800;
   cursor: pointer;
@@ -2191,9 +2201,9 @@ onUnmounted(() => {
   width: 100%;
   padding: 0.75rem;
   border-radius: 10px;
-  background: #334155;
-  color: #ffffff;
-  border: none;
+  background: var(--bg-secondary, #334155);
+  color: var(--text-main, #ffffff);
+  border: 1px solid var(--border-color, transparent);
   font-weight: 700;
   cursor: pointer;
 }
@@ -2207,12 +2217,12 @@ onUnmounted(() => {
 .victory-title {
   font-size: 1.8rem;
   font-weight: 900;
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
   margin: 0 0 0.5rem 0;
 }
 
 .victory-subtitle {
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   margin: 0 0 1.5rem 0;
 }
 
@@ -2232,7 +2242,8 @@ onUnmounted(() => {
 }
 
 .rewards-summary-box {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-color, transparent);
   border-radius: 12px;
   padding: 1rem;
   display: flex;
@@ -2246,15 +2257,16 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 0.95rem;
+  color: var(--text-main);
 }
 
 .exp-val {
-  color: #38bdf8;
+  color: var(--accent, #38bdf8);
   font-weight: 800;
 }
 
 .coin-val {
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
   font-weight: 800;
 }
 
@@ -2269,20 +2281,20 @@ onUnmounted(() => {
 .loot-chest-container {
   margin-top: 0.85rem;
   padding-top: 0.85rem;
-  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.15));
   text-align: center;
 }
 
 .chest-banner-title {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--warning, #fbbf24);
   margin-bottom: 0.5rem;
 }
 
 .chest-box.unopened {
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px dashed #fbbf24;
+  background: rgba(180, 83, 9, 0.08);
+  border: 1px dashed var(--warning, #fbbf24);
   border-radius: 10px;
   padding: 0.75rem;
   cursor: pointer;
@@ -2294,7 +2306,7 @@ onUnmounted(() => {
 }
 
 .chest-box.unopened:hover {
-  background: rgba(251, 191, 36, 0.2);
+  background: rgba(180, 83, 9, 0.15);
   transform: translateY(-2px);
 }
 
@@ -2310,12 +2322,12 @@ onUnmounted(() => {
 
 .chest-hint {
   font-size: 0.8rem;
-  color: #cbd5e1;
+  color: var(--text-muted, #cbd5e1);
 }
 
 .chest-opened-result {
   background: rgba(16, 185, 129, 0.15);
-  border: 1px solid #10b981;
+  border: 1px solid var(--success, #10b981);
   border-radius: 10px;
   padding: 0.75rem;
   display: flex;
@@ -2346,13 +2358,13 @@ onUnmounted(() => {
 .chest-reward-name {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-main, #ffffff);
 }
 
 .chest-reward-val {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #10b981;
+  color: var(--success, #10b981);
 }
 
 .victory-actions, .defeat-actions {
@@ -2376,8 +2388,9 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  background: #334155;
-  color: #cbd5e1;
+  background: var(--bg-secondary, #334155);
+  color: var(--text-main, #cbd5e1);
+  border: 1px solid var(--border-color, transparent);
 }
 
 .defeat-title {
@@ -2388,7 +2401,7 @@ onUnmounted(() => {
 }
 
 .defeat-subtitle {
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   margin: 0 0 1.5rem 0;
 }
 
@@ -2398,7 +2411,7 @@ onUnmounted(() => {
   padding: 0.85rem;
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #fca5a5;
+  color: #ef4444;
   margin-bottom: 1.5rem;
   text-align: left;
 }

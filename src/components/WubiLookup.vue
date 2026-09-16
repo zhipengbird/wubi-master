@@ -446,7 +446,7 @@ onMounted(async () => {
 
 .db-status-pill.ready {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--success);
   border-color: rgba(16, 185, 129, 0.25);
 }
 
@@ -564,7 +564,7 @@ onMounted(async () => {
 
 .quick-word-btn.pinyin-tag {
   border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  color: var(--success);
   background: rgba(16, 185, 129, 0.05);
 }
 
@@ -696,7 +696,7 @@ onMounted(async () => {
   right: 4px;
   font-size: 0.62rem;
   font-weight: 700;
-  color: #10b981;
+  color: var(--success);
   background: rgba(16, 185, 129, 0.15);
   padding: 0.05rem 0.25rem;
   border-radius: 3px;
@@ -918,13 +918,13 @@ onMounted(async () => {
 }
 
 .ver-code-recog {
-  color: #f59e0b;
+  color: var(--warning);
   font-weight: 800;
 }
 
 .ver-short {
   font-size: 0.8rem;
-  color: #10b981;
+  color: var(--success);
   background: rgba(16, 185, 129, 0.1);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;

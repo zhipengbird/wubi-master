@@ -1374,12 +1374,12 @@ watch(() => charIndex.value, () => {
 
 .badge.punct {
   background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
+  color: var(--warning, #f59e0b);
+  border: 1px solid var(--warning, #f59e0b);
 }
 
 .focus-char.punct-char {
-  color: #f59e0b;
+  color: var(--warning, #f59e0b);
 }
 
 .roots-tag {

@@ -1235,7 +1235,7 @@ const simPhraseBreakdown = computed(() => {
 }
 
 .priority-tag {
-  color: #eab308;
+  color: var(--warning, #d97706);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2471,7 +2471,7 @@ const simPhraseBreakdown = computed(() => {
   font-family: monospace;
   font-size: 0.85rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--success, #10b981);
 }
 
 .phrase-name {
