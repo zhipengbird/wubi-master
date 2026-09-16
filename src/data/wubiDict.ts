@@ -908,6 +908,97 @@ export const getShortCode = (charData: WubiCharData, version: WubiVersion): stri
   }
 };
 
+// 键名汉字所在键映射表 (连击两键即为二级简码)
+export const KEYNAME_KEYS_MAP: Record<string, string> = {
+  '王': 'G', '土': 'F', '大': 'D', '木': 'S', '工': 'A',
+  '目': 'H', '日': 'J', '口': 'K', '田': 'L', '山': 'M',
+  '禾': 'T', '白': 'R', '月': 'E', '人': 'W', '金': 'Q',
+  '言': 'Y', '立': 'U', '水': 'I', '火': 'O', '之': 'P',
+  '已': 'N', '子': 'B', '女': 'V', '又': 'C', '纟': 'X'
+};
+
+// 一级简码标准映射表 (按 1 键即可出字)
+export const LEVEL_1_KEY_MAP: Record<string, string> = {
+  '一': 'G', '地': 'F', '在': 'D', '要': 'S', '工': 'A',
+  '上': 'H', '是': 'J', '中': 'K', '国': 'L', '同': 'M',
+  '和': 'T', '的': 'R', '有': 'E', '人': 'W', '我': 'Q',
+  '主': 'Y', '产': 'U', '不': 'I', '为': 'O', '这': 'P',
+  '民': 'N', '了': 'B', '发': 'V', '以': 'C', '经': 'X'
+};
+
+export interface TargetCodesResult {
+  full: string;
+  shorts: string[];
+  all: string[];
+}
+
+/**
+ * 获取当前目标汉字或词组的所有合法编码（包含全码、一级简码、二级简码、三级简码）
+ * 全面支持用户直敲全码、简码+空格或输入法整词上屏
+ */
+export function getAllValidCodes(targetText: string, version: WubiVersion = '86'): TargetCodesResult {
+  if (!targetText) {
+    return { full: '', shorts: [], all: [] };
+  }
+
+  if (targetText.length > 1) {
+    // 词组 / 句子
+    const code = calculatePhraseCode(targetText, version)?.toUpperCase() || '';
+    return {
+      full: code,
+      shorts: [],
+      all: code ? [code] : []
+    };
+  }
+
+  const charData = lookupWubiChar(targetText);
+  if (!charData) {
+    return { full: '', shorts: [], all: [] };
+  }
+
+  const full = getFullCode(charData, version).toUpperCase();
+  const shortsSet = new Set<string>();
+
+  // 1. 一级简码 (G-X)
+  if (LEVEL_1_KEY_MAP[targetText]) {
+    shortsSet.add(LEVEL_1_KEY_MAP[targetText]);
+  }
+
+  // 2. 键名汉字二简 (连敲两下按键，如 GG、FF、DD、AA、HH 等)
+  if (KEYNAME_KEYS_MAP[targetText]) {
+    const k = KEYNAME_KEYS_MAP[targetText];
+    shortsSet.add(k + k);
+  }
+
+  // 3. 词典登记的已知简码 (一级或二级简码)
+  let rawShort: string | undefined;
+  if (version === '98') rawShort = charData.short98;
+  else if (version === 'newCentury') rawShort = charData.shortNew;
+  else rawShort = charData.short86;
+
+  if (rawShort) {
+    const s = rawShort.toUpperCase().trim();
+    if (s && s !== full) {
+      shortsSet.add(s);
+    }
+  }
+
+  // 4. 三级简码规则：如果全码是 4 位，前 3 位可作为三级简码+空格出字
+  if (full.length === 4) {
+    shortsSet.add(full.slice(0, 3));
+  }
+
+  // 排除掉与全码完全相同的项，排序确保简码从短到长 (1码 -> 2码 -> 3码)
+  shortsSet.delete(full);
+  const shorts = Array.from(shortsSet).sort((a, b) => a.length - b.length);
+
+  return {
+    full,
+    shorts,
+    all: [full, ...shorts]
+  };
+}
+
 export interface RootStep {
   root: string; // 拆解字根，例如 '⺌'
   key: string;  // 对应按键，例如 'I'

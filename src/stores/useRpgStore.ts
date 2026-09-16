@@ -109,6 +109,11 @@ export function useRpgStore() {
     return true;
   };
 
+  const rewardItem = (itemId: string, count: number = 1) => {
+    profile.value.inventory[itemId] = (profile.value.inventory[itemId] || 0) + count;
+    save();
+  };
+
   const recordStageClear = (stageId: string, stars: number) => {
     // 记录关卡最高星级
     const currentStars = profile.value.stageStars[stageId] || 0;
@@ -183,6 +188,7 @@ export function useRpgStore() {
     earnCoins,
     buyItem,
     consumeItem,
+    rewardItem,
     recordStageClear,
     updateHighestCombo,
     resetHp,

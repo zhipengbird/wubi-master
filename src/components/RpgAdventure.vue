@@ -114,13 +114,31 @@
           </div>
 
           <div class="stage-action">
-            <button
-              v-if="!isStageLocked(stage)"
-              class="battle-start-btn"
-              @click="startBattle(stage)"
-            >
-              ⚔️ {{ getStageStars(stage.id) > 0 ? '再次迎战' : '出剑讨伐' }}
-            </button>
+            <template v-if="!isStageLocked(stage)">
+              <div class="stage-play-actions" v-if="getStageStars(stage.id) > 0">
+                <button
+                  class="battle-start-btn mode-btn shuffle-mode"
+                  @click="startBattle(stage, 'shuffled')"
+                  title="随机乱序出字，每次重玩充满新鲜感"
+                >
+                  🎲 乱序破阵
+                </button>
+                <button
+                  class="battle-start-btn mode-btn normal-mode"
+                  @click="startBattle(stage, 'sequential')"
+                  title="按字根区位顺序复习"
+                >
+                  📖 循序复习
+                </button>
+              </div>
+              <button
+                v-else
+                class="battle-start-btn"
+                @click="startBattle(stage, 'sequential')"
+              >
+                ⚔️ 出剑讨伐
+              </button>
+            </template>
             <div v-else class="locked-hint">
               🔒 需先击败前一关守卫
             </div>
@@ -175,7 +193,12 @@
             'is-attacking': isMonsterAttacking 
           }"
         >
-          <div class="monster-stage-tag">{{ currentStage.title }}</div>
+          <div class="monster-stage-tag">
+            <span class="stage-tag-title">{{ currentStage.title }}</span>
+            <span class="mode-tag-pill" v-if="playMode === 'shuffled'">🎲 乱序破阵</span>
+            <span class="mode-tag-pill" v-else>📖 循序练功</span>
+            <span class="enrage-badge" v-if="isMonsterEnraged">🔥 狂暴状态！</span>
+          </div>
           
           <div class="monster-body">
             <div class="monster-boss-avatar" :style="{ borderColor: currentStage.monster.themeColor }">
@@ -236,9 +259,32 @@
           <span class="combo-crit-tag" v-if="combo >= 5">{{ (currentDamageMultiplier).toFixed(1) }}x 暴击</span>
         </div>
 
+        <!-- 灵气蓄能与【万剑归宗】大招 -->
+        <div class="ultimate-skill-bar">
+          <div class="energy-track-container">
+            <div class="energy-header">
+              <span class="energy-title">⚡ 飞剑灵气</span>
+              <span class="energy-pct">{{ playerEnergy }}%</span>
+            </div>
+            <div class="energy-track">
+              <div class="energy-fill" :style="{ width: `${playerEnergy}%` }"></div>
+            </div>
+          </div>
+          <button
+            class="ultimate-btn"
+            :class="{ ready: playerEnergy >= 100 }"
+            :disabled="playerEnergy < 100"
+            @click="castUltimateSword"
+            title="灵气满蓄后直接斩灭当前目标，重创怪兽并定身 5 秒！快捷键：Tab"
+          >
+            <span class="sword-icon">🗡️</span>
+            <span class="sword-text">{{ playerEnergy >= 100 ? '万剑归宗！(Tab)' : '万剑蓄能中' }}</span>
+          </button>
+        </div>
+
         <!-- 击杀进度 -->
         <div class="kill-progress-pill">
-          ⚔️ 讨伐进度：{{ currentTargetIndex + 1 }} / {{ currentStage.targets.length }}
+          ⚔️ 本关讨伐进度：{{ currentTargetIndex + 1 }} / {{ totalTargets }}
         </div>
 
         <!-- 目标字展示核心卡片 -->
@@ -249,14 +295,20 @@
 
           <!-- 拆字与编码提示 -->
           <div class="target-hints-box">
-            <div class="hint-roots" v-if="currentTargetRoots.length > 0">
+            <div class="hint-roots" v-if="currentTargetRoots && currentTargetRoots.length > 0">
               <span class="hint-label">字根拆解：</span>
               <span class="root-tag" v-for="(r, idx) in currentTargetRoots" :key="idx">{{ r }}</span>
             </div>
             <div class="hint-code">
-              <span class="hint-label">标准五笔码：</span>
-              <span class="code-pill">{{ currentTargetCode }}</span>
-              <span class="short-pill" v-if="currentTargetShortCode">简码: {{ currentTargetShortCode }}</span>
+              <span class="hint-label">全码：</span>
+              <span class="code-pill">{{ currentTargetCodes.full }}</span>
+              <template v-if="currentTargetCodes.shorts.length > 0">
+                <span class="hint-label short-prefix">简码：</span>
+                <span class="short-pill" v-for="sc in currentTargetCodes.shorts" :key="sc">{{ sc }}</span>
+              </template>
+            </div>
+            <div class="hint-tip-row">
+              💡 玩法提示：直敲全码或简码均可秒速出字换字，亦可敲击空格破阵！
             </div>
           </div>
 
@@ -415,11 +467,28 @@
           <div class="reward-row" v-if="didLevelUpInBattle">
             <span class="lvl-up-tag">⚡ 境界突破！当前等级提升至 Lv.{{ profile.level }}！</span>
           </div>
+
+          <!-- 斩妖奇遇宝箱 -->
+          <div class="loot-chest-container">
+            <div class="chest-banner-title">🎁 斩妖奇遇秘宝</div>
+            <div v-if="!isChestOpened" class="chest-box unopened" @click="openChest" title="点击开启奇遇宝箱">
+              <span class="chest-icon-bounce">📦</span>
+              <span class="chest-hint">点击开启随机掉落法宝或铜钱！</span>
+            </div>
+            <div v-else class="chest-opened-result animate-pop">
+              <span class="chest-reward-icon">{{ chestReward?.icon }}</span>
+              <div class="chest-reward-desc">
+                <span class="chest-reward-name">{{ chestReward?.name }}</span>
+                <span class="chest-reward-val">+{{ chestReward?.count }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="victory-actions">
           <button class="btn-secondary" @click="exitBattle">返回关卡地图</button>
-          <button class="btn-secondary" @click="restartCurrentBattle">再次迎战</button>
+          <button class="btn-secondary" @click="restartCurrentBattle('shuffled')" title="乱序再战，随机出字">🎲 乱序再战</button>
+          <button class="btn-secondary" @click="restartCurrentBattle('sequential')" title="循序温习原顺序">📖 循序再战</button>
           <button class="btn-primary next-stage-btn" v-if="nextStage" @click="goToNextStage">进入下一关 ⚔️</button>
         </div>
       </div>
@@ -452,7 +521,7 @@ import { useWubiStore } from '../stores/useWubiStore';
 import { useRpgStore } from '../stores/useRpgStore';
 import { DUNGEON_STAGES, type DungeonStage, type RpgItem } from '../data/rpgStages';
 import type { FloatingDamage } from '../types/rpg';
-import { lookupWubiChar, getFullCode, getShortCode, calculatePhraseCode } from '../data/wubiDict';
+import { lookupWubiChar, getFullCode, getShortCode, calculatePhraseCode, getRoots, getAllValidCodes } from '../data/wubiDict';
 import { soundPlayer } from '../utils/audio';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 
@@ -495,19 +564,36 @@ const isStageLocked = (stage: DungeonStage): boolean => {
   const idx = DUNGEON_STAGES.findIndex(s => s.id === stage.id);
   if (idx <= 0) return false;
   const prevStage = DUNGEON_STAGES[idx - 1];
-  return (profile.value.stageStars[prevStage.id] || 0) <= 0;
+  return ((profile.value.stageStars || {})[prevStage.id] || 0) <= 0;
 };
 
 const getStageStars = (stageId: string): number => {
-  return profile.value.stageStars[stageId] || 0;
+  return (profile.value.stageStars || {})[stageId] || 0;
 };
 
 // 战斗核心状态
 const currentStage = ref<DungeonStage | null>(null);
+const playMode = ref<'sequential' | 'shuffled'>('sequential');
+const activeStageTargets = ref<string[]>([]);
+const totalTargets = computed(() => activeStageTargets.value.length || currentStage.value?.targets.length || 0);
+
 const monsterHp = ref<number>(100);
 const monsterAtbRemaining = ref<number>(5000);
 const currentMonsterAttackInterval = ref<number>(5000);
 const currentTargetIndex = ref<number>(0);
+
+// 玩家飞剑灵气蓄力槽 (0-100%)
+const playerEnergy = ref<number>(0);
+
+// 怪兽低血量狂暴机制 (<= 35% HP 时进入狂暴，攻速提升 30%)
+const isMonsterEnraged = computed(() => {
+  if (!currentStage.value) return false;
+  return (monsterHp.value / currentStage.value.monster.maxHp) <= 0.35;
+});
+
+// 奇遇宝箱状态
+const isChestOpened = ref<boolean>(false);
+const chestReward = ref<{ type: 'coins' | 'item'; name: string; icon: string; count: number } | null>(null);
 
 const combo = ref<number>(0);
 const isMonsterHit = ref<boolean>(false);
@@ -542,35 +628,33 @@ let atbTimer: any = null;
 
 const currentTargetText = computed<string>(() => {
   if (!currentStage.value) return '';
-  return currentStage.value.targets[currentTargetIndex.value] || '';
+  const list = activeStageTargets.value.length ? activeStageTargets.value : currentStage.value.targets;
+  return list[currentTargetIndex.value] || '';
 });
 
-// 计算当前目标的全码与简码
-const currentTargetData = computed(() => {
-  const text = currentTargetText.value;
-  if (!text) return { fullCode: '', shortCode: '', roots: [] };
-
-  if (text.length === 1) {
-    const item = lookupWubiChar(text);
-    return {
-      fullCode: item ? getFullCode(item, store.version.value).toUpperCase() : '',
-      shortCode: item ? (getShortCode(item, store.version.value)?.toUpperCase() || '') : '',
-      roots: item ? item.roots : []
-    };
-  } else {
-    // 词组
-    const code = calculatePhraseCode(text, store.version.value);
-    return {
-      fullCode: code ? code.toUpperCase() : '',
-      shortCode: '',
-      roots: []
-    };
+// 洗牌算法
+const shuffleArray = <T>(array: T[]): T[] => {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
+};
+
+// 计算当前目标的所有合法编码（全码与简码集合，简码全码双轨支持）
+const currentTargetCodes = computed(() => {
+  return getAllValidCodes(currentTargetText.value, store.version.value);
 });
 
-const currentTargetCode = computed(() => currentTargetData.value.fullCode);
-const currentTargetShortCode = computed(() => currentTargetData.value.shortCode);
-const currentTargetRoots = computed(() => currentTargetData.value.roots);
+const currentTargetCode = computed(() => currentTargetCodes.value.full);
+const currentTargetShortCodes = computed(() => currentTargetCodes.value.shorts);
+const currentTargetRoots = computed<string[]>(() => {
+  const text = currentTargetText.value;
+  if (!text || text.length > 1) return [];
+  const item = lookupWubiChar(text);
+  return item ? (getRoots(item, store.version.value) || []) : [];
+});
 
 const nextExpectedKey = computed<string | null>(() => {
   const code = currentTargetCode.value;
@@ -600,13 +684,25 @@ const focusHiddenInput = () => {
 };
 
 // 开启战斗
-const startBattle = (stage: DungeonStage) => {
+const startBattle = (stage: DungeonStage, mode: 'sequential' | 'shuffled' = 'sequential') => {
   currentStage.value = stage;
+  playMode.value = mode;
+
+  // 若选择乱序破阵，随机洗牌关卡字库，保证每次重玩充满新鲜感
+  if (mode === 'shuffled') {
+    activeStageTargets.value = shuffleArray(stage.targets);
+  } else {
+    activeStageTargets.value = [...stage.targets];
+  }
+
   monsterHp.value = stage.monster.maxHp;
   currentMonsterAttackInterval.value = stage.monster.attackIntervalMs;
   monsterAtbRemaining.value = stage.monster.attackIntervalMs;
   currentTargetIndex.value = 0;
   combo.value = 0;
+  playerEnergy.value = 0;
+  isChestOpened.value = false;
+  chestReward.value = null;
   inputKeys.value = [];
   rawInput.value = '';
   composingText.value = '';
@@ -630,10 +726,88 @@ const startBattle = (stage: DungeonStage) => {
   });
 };
 
-const restartCurrentBattle = () => {
+const restartCurrentBattle = (mode?: 'sequential' | 'shuffled') => {
   if (currentStage.value) {
-    startBattle(currentStage.value);
+    startBattle(currentStage.value, mode || playMode.value);
   }
+};
+
+// 释放终极大招：【万剑归宗】
+const castUltimateSword = () => {
+  if (playerEnergy.value < 100 || !currentStage.value) return;
+  playerEnergy.value = 0;
+
+  // 剑阵特效：怪兽定身 5 秒，ATB 增加 5000ms
+  monsterAtbRemaining.value += 5000;
+  activeItems.value.slow = true;
+  setTimeout(() => {
+    activeItems.value.slow = false;
+  }, 5000);
+
+  // 终极斩击伤害
+  const ultDmg = Math.ceil(currentStage.value.monster.maxHp * 0.4);
+  monsterHp.value = Math.max(0, monsterHp.value - ultDmg);
+
+  isMonsterHit.value = true;
+  setTimeout(() => { isMonsterHit.value = false; }, 300);
+
+  spawnDamage(`⚡ 万剑归宗！-${ultDmg} CRIT!`, true, false, 50, 20);
+  soundPlayer.playKey(store.audio.value, true, false);
+
+  // 剑气华丽全屏彩带
+  confetti({
+    particleCount: 80,
+    spread: 90,
+    origin: { y: 0.5 }
+  });
+
+  // 斩灭当前目标，直接挺进下一字
+  inputKeys.value = [];
+  rawInput.value = '';
+  composingText.value = '';
+
+  const total = totalTargets.value;
+  if (currentTargetIndex.value < total - 1) {
+    currentTargetIndex.value += 1;
+  } else {
+    monsterHp.value = 0;
+    handleVictory();
+  }
+};
+
+// 开启奇遇宝箱
+const openChest = () => {
+  if (isChestOpened.value) return;
+  isChestOpened.value = true;
+
+  // 50% 概率掉落额外铜钱，50% 概率掉落法宝
+  const isItemDrop = Math.random() < 0.5;
+  if (isItemDrop) {
+    const candidateItems = [
+      { id: 'shield', name: '金钟罩', icon: '🛡️' },
+      { id: 'slow', name: '定身符', icon: '⏳' },
+      { id: 'crit', name: '暴击丹', icon: '⚡' }
+    ];
+    const picked = candidateItems[Math.floor(Math.random() * candidateItems.length)];
+    rpgStore.rewardItem(picked.id, 1);
+    chestReward.value = {
+      type: 'item',
+      name: picked.name,
+      icon: picked.icon,
+      count: 1
+    };
+  } else {
+    const coinBonus = Math.floor(Math.random() * 60) + 40; // 40~100 铜钱
+    rpgStore.earnCoins(coinBonus);
+    chestReward.value = {
+      type: 'coins',
+      name: '修为铜钱',
+      icon: '🪙',
+      count: coinBonus
+    };
+  }
+
+  soundPlayer.playKey(store.audio.value, true, false);
 };
 
 const nextStage = computed<DungeonStage | null>(() => {
@@ -668,7 +842,11 @@ const startAtbTicker = () => {
   atbTimer = setInterval(() => {
     if (!currentStage.value || showVictoryModal.value || showDefeatModal.value) return;
 
-    const timeDecay = activeItems.value.slow ? tickInterval * 0.5 : tickInterval;
+    let timeDecay = activeItems.value.slow ? tickInterval * 0.5 : tickInterval;
+    // 怪兽狂暴阶段攻速提升 30%
+    if (isMonsterEnraged.value) {
+      timeDecay *= 1.3;
+    }
     monsterAtbRemaining.value -= timeDecay;
 
     if (monsterAtbRemaining.value <= 0) {
@@ -740,14 +918,17 @@ const onPlayerHit = (matchedLetters: number) => {
   combo.value += 1;
   rpgStore.updateHighestCombo(combo.value);
 
-  // 基础伤害计算
+  // 积攒万剑归宗灵气 (常规命中 +10%，暴击 +20%)
   const isCrit = combo.value >= 5 || activeItems.value.critRounds > 0;
   if (activeItems.value.critRounds > 0) {
     activeItems.value.critRounds -= 1;
   }
+  playerEnergy.value = Math.min(100, playerEnergy.value + (isCrit ? 20 : 10));
 
-  const baseDamage = 35 + profile.value.level * 5;
-  const actualDamage = Math.floor(baseDamage * currentDamageMultiplier.value);
+  // 基础伤害计算：按本关总目标数平滑扣减怪物生命值，保证完整打完关卡丰富内容
+  const total = totalTargets.value;
+  const damagePerTarget = Math.ceil(currentStage.value.monster.maxHp / total);
+  const actualDamage = Math.floor(damagePerTarget * currentDamageMultiplier.value);
 
   monsterHp.value = Math.max(0, monsterHp.value - actualDamage);
 
@@ -765,21 +946,17 @@ const onPlayerHit = (matchedLetters: number) => {
 
   soundPlayer.playKey(store.audio.value, true, false);
 
-  // 检查怪物是否阵亡
-  if (monsterHp.value <= 0) {
-    handleVictory();
-    return;
-  }
-
-  // 推进到下一个目标
+  // 清空输入缓冲区
   inputKeys.value = [];
   rawInput.value = '';
   composingText.value = '';
 
-  if (currentTargetIndex.value < currentStage.value.targets.length - 1) {
+  // 推进到下一个目标，打完本关全部字后决出胜利
+  if (currentTargetIndex.value < total - 1) {
     currentTargetIndex.value += 1;
   } else {
-    // 循环或胜利
+    // 全部目标顺利击破，怪兽彻底阵亡
+    monsterHp.value = 0;
     handleVictory();
   }
 };
@@ -856,6 +1033,14 @@ let lastImeCommitTime = 0;
 const onKeyDown = (e: KeyboardEvent) => {
   if (isComposing.value) return;
 
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (playerEnergy.value >= 100) {
+      castUltimateSword();
+    }
+    return;
+  }
+
   if (e.key === 'Backspace') {
     if (inputKeys.value.length > 0) {
       inputKeys.value.pop();
@@ -865,6 +1050,9 @@ const onKeyDown = (e: KeyboardEvent) => {
 
   if (e.key === ' ' || e.key === 'Spacebar') {
     e.preventDefault();
+    if (inputKeys.value.length === 0) {
+      return;
+    }
     // 防抖：若刚在 250ms 内完成输入法选字上屏，该空格属于输入法确认键，忽略之
     if (Date.now() - lastImeCommitTime < 250) {
       return;
@@ -883,39 +1071,62 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 };
 
-const checkAutoCommit = () => {
-  const typed = inputKeys.value.join('');
-  const full = currentTargetCode.value;
-  const short = currentTargetShortCode.value;
+let autoCommitTimer: any = null;
 
-  // 1. 敲满全码直接命中
-  if (typed === full) {
+const checkAutoCommit = () => {
+  if (autoCommitTimer) {
+    clearTimeout(autoCommitTimer);
+    autoCommitTimer = null;
+  }
+
+  const typed = inputKeys.value.join('');
+  const codes = currentTargetCodes.value;
+
+  // 1. 敲满全码直接瞬间命中（0 延迟盲打，免敲空格）
+  if (typed === codes.full) {
     onPlayerHit(typed.length);
     return;
   }
 
-  // 2. 一级简码关卡（一键一字）或在 auto 提交模式下达到简码长度且完全匹配
-  if (short && typed === short) {
-    if (currentStage.value?.id === 'stage-6' || (store.commitMode.value === 'auto' && short.length === 1)) {
+  // 2. 敲满 4 码且不匹配任何合法编码（全码或已知简码）-> 立即报错走火入魔
+  if (typed.length === 4 && !codes.all.includes(typed)) {
+    onPlayerError();
+    return;
+  }
+
+  // 3. 匹配任一合法简码（一简、二简、三简、键名二简等）
+  if (codes.shorts.includes(typed)) {
+    // 一级简码关卡（一键一字），0 延迟即刻出字
+    if (currentStage.value?.id === 'stage-6' || typed.length === codes.full.length) {
       onPlayerHit(typed.length);
       return;
     }
-  }
 
-  // 3. 敲满 4 码且不匹配
-  if (typed.length === 4 && typed !== full) {
-    onPlayerError();
+    // 其他关卡简码：等待 120ms 防抖
+    // 若玩家停手（如输入 SS 后等待换字），120ms 后秒速自动出字破阵！
+    // 若玩家继续敲全码（如 SSSS），后续击键将取消定时器，绝不切断全码流转！
+    autoCommitTimer = setTimeout(() => {
+      if (inputKeys.value.join('') === typed && codes.shorts.includes(typed)) {
+        onPlayerHit(typed.length);
+      }
+    }, 120);
   }
 };
 
 const checkAndCommit = () => {
-  const typed = inputKeys.value.join('');
-  const full = currentTargetCode.value;
-  const short = currentTargetShortCode.value;
+  if (autoCommitTimer) {
+    clearTimeout(autoCommitTimer);
+    autoCommitTimer = null;
+  }
 
-  if (typed === full || (short && typed === short)) {
+  const typed = inputKeys.value.join('');
+  if (!typed) return;
+  const codes = currentTargetCodes.value;
+
+  // 敲简码或全码后按空格，只要属于合法编码集（全码、一简、二简、三简），直接判定破阵！
+  if (codes.all.includes(typed)) {
     onPlayerHit(typed.length);
-  } else if (typed.length > 0) {
+  } else {
     onPlayerError();
   }
 };
@@ -1313,6 +1524,26 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
 }
 
+.stage-play-actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.65rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.mode-btn.shuffle-mode {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.mode-btn.normal-mode {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+}
+
 .locked-hint {
   text-align: center;
   font-size: 0.85rem;
@@ -1412,6 +1643,35 @@ onUnmounted(() => {
   font-weight: 800;
   padding: 2px 10px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mode-tag-pill {
+  background: rgba(139, 92, 246, 0.4);
+  color: #e9d5ff;
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.enrage-badge {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fecaca;
+  border: 1px solid #ef4444;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  animation: pulseEnrage 0.8s infinite alternate;
+}
+
+@keyframes pulseEnrage {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.6)); }
+  100% { transform: scale(1.05); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)); }
 }
 
 .monster-body {
@@ -1515,6 +1775,81 @@ onUnmounted(() => {
   border-radius: 4px;
 }
 
+/* 终极剑气蓄能槽 */
+.ultimate-skill-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 580px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+}
+
+.energy-track-container {
+  flex: 1;
+}
+
+.energy-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 0.35rem;
+}
+
+.energy-pct {
+  color: #38bdf8;
+  font-weight: 800;
+}
+
+.energy-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.energy-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+  transition: width 0.25s ease;
+}
+
+.ultimate-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ultimate-btn.ready {
+  background: linear-gradient(135deg, #ec4899, #f59e0b);
+  border-color: #f59e0b;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+  animation: pulseReady 1.2s infinite alternate;
+}
+
+@keyframes pulseReady {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.04); }
+}
+
 .kill-progress-pill {
   font-size: 0.85rem;
   font-weight: 700;
@@ -1587,6 +1922,17 @@ onUnmounted(() => {
   background: rgba(251, 191, 36, 0.15);
   padding: 2px 8px;
   border-radius: 4px;
+  margin-right: 4px;
+}
+
+.short-prefix {
+  margin-left: 0.65rem;
+}
+
+.hint-tip-row {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
 }
 
 .key-slots-container {
@@ -1908,6 +2254,96 @@ onUnmounted(() => {
   font-weight: 800;
   text-align: center;
   width: 100%;
+}
+
+/* 奇遇秘宝箱 */
+.loot-chest-container {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.chest-banner-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 0.5rem;
+}
+
+.chest-box.unopened {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px dashed #fbbf24;
+  border-radius: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.chest-box.unopened:hover {
+  background: rgba(251, 191, 36, 0.2);
+  transform: translateY(-2px);
+}
+
+.chest-icon-bounce {
+  font-size: 2rem;
+  animation: chestBounce 1s infinite alternate ease-in-out;
+}
+
+@keyframes chestBounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.chest-hint {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.chest-opened-result {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.animate-pop {
+  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.chest-reward-icon {
+  font-size: 2rem;
+}
+
+.chest-reward-desc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.chest-reward-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.chest-reward-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #10b981;
 }
 
 .victory-actions, .defeat-actions {

@@ -88,16 +88,22 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '王旁青头怪',
       title: '横区初级巡逻怪',
       avatar: '🌱',
-      maxHp: 80,
+      maxHp: 720,
       attackIntervalMs: 6500,
-      attackPower: 10,
+      attackPower: 8,
       quote: '“G王旁青头兼五一，F土士二干十寸雨！尔等休想跨过 1 区！”',
       themeColor: '#0284c7'
     },
-    targets: ['王', '土', '大', '木', '工', '青', '干', '石', '寸', '雨', '戈', '五'],
+    targets: [
+      '王', '一', '五', '玩', '青', '规',
+      '土', '士', '二', '干', '十', '寸', '雨', '地',
+      '大', '犬', '三', '羊', '古', '厂', '在', '百',
+      '木', '丁', '西', '要', '林', '相', '本',
+      '工', '戈', '草', '节', '花', '功', '戒'
+    ],
     requiredExp: 0,
-    rewardExp: 80,
-    rewardCoins: 30,
+    rewardExp: 100,
+    rewardCoins: 40,
     tipSnippet: '💡 横区口诀：G王旁青头 F土士二干 D大犬三羊 S木丁西 A工戈草头'
   },
   {
@@ -113,16 +119,22 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '目具虎皮兽',
       title: '竖区重甲守护魔',
       avatar: '🦂',
-      maxHp: 100,
-      attackIntervalMs: 6000,
-      attackPower: 12,
+      maxHp: 720,
+      attackIntervalMs: 6200,
+      attackPower: 9,
       quote: '“H目具上止卜虎皮，J日早两竖与虫依，我的硬甲可不怕敲击！”',
       themeColor: '#059669'
     },
-    targets: ['目', '日', '口', '田', '山', '具', '止', '早', '虫', '车', '力', '贝'],
+    targets: [
+      '目', '上', '具', '止', '卜', '虎', '皮', '卓',
+      '日', '早', '虫', '是', '时', '明', '晨', '量',
+      '口', '川', '中', '叫', '吃', '啊', '唱', '听',
+      '田', '甲', '申', '四', '车', '力', '男', '轴',
+      '山', '由', '贝', '册', '骨', '见', '财', '岩'
+    ],
     requiredExp: 60,
-    rewardExp: 100,
-    rewardCoins: 40,
+    rewardExp: 120,
+    rewardCoins: 50,
     tipSnippet: '💡 竖区口诀：H目具上止卜虎皮 J日早两竖与虫依 K口川 L田甲方框四车力 M山由贝下峰躯'
   },
   {
@@ -138,16 +150,22 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '禾竹一撇蛟',
       title: '撇区竹影灵妖',
       avatar: '🎋',
-      maxHp: 120,
-      attackIntervalMs: 5500,
-      attackPower: 14,
+      maxHp: 720,
+      attackIntervalMs: 6000,
+      attackPower: 10,
       quote: '“T禾竹一撇斤字当，R白手看头三二斤！看剑走龙蛇！”',
       themeColor: '#d97706'
     },
-    targets: ['禾', '白', '月', '人', '金', '竹', '手', '看', '乃', '八', '勺', '反'],
+    targets: [
+      '禾', '竹', '斤', '和', '秋', '秀', '笔', '笑', '香',
+      '白', '手', '看', '拓', '打', '拍', '提', '泉', '扫',
+      '月', '彡', '乃', '家', '衣', '有', '朋', '彩', '貌',
+      '人', '八', '他', '们', '全', '会', '信', '份', '做',
+      '金', '针', '钱', '鱼', '负', '色', '角', '句', '争'
+    ],
     requiredExp: 150,
-    rewardExp: 120,
-    rewardCoins: 50,
+    rewardExp: 150,
+    rewardCoins: 60,
     tipSnippet: '💡 撇区口诀：T禾竹一撇斤 R白手看头三二斤 E月彡乃用家衣底 W人和八 Q金勺缺点无尾鱼'
   },
   {
@@ -163,16 +181,22 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '言文方广火龙',
       title: '捺区地心炎魔',
       avatar: '🔥',
-      maxHp: 140,
-      attackIntervalMs: 5200,
-      attackPower: 16,
+      maxHp: 740,
+      attackIntervalMs: 5800,
+      attackPower: 11,
       quote: '“Y言文方广在四一，U立辛两点六门疒，烈焰之下谁能盲打？！”',
       themeColor: '#e11d48'
     },
-    targets: ['言', '立', '水', '火', '之', '文', '方', '辛', '门', '米', '道', '底'],
+    targets: [
+      '言', '话', '语', '说', '文', '方', '广', '主', '计',
+      '立', '辛', '产', '门', '间', '问', '闹', '亲', '音',
+      '水', '河', '湖', '江', '海', '汉', '法', '清', '小',
+      '火', '炎', '炮', '点', '然', '照', '热', '烤', '烦',
+      '之', '这', '道', '通', '边', '安', '宁', '空', '军', '宝'
+    ],
     requiredExp: 260,
-    rewardExp: 150,
-    rewardCoins: 60,
+    rewardExp: 180,
+    rewardCoins: 70,
     tipSnippet: '💡 捺区口诀：Y言文方广 U立辛两点六门疒 I水旁三点水 O火业四点米 P之字军盖建道底'
   },
   {
@@ -188,16 +212,22 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '九臼折天魔',
       title: '折区深渊魔督',
       avatar: '🌌',
-      maxHp: 160,
-      attackIntervalMs: 5000,
-      attackPower: 18,
+      maxHp: 740,
+      attackIntervalMs: 5500,
+      attackPower: 12,
       quote: '“N已半巳满不出己，V女刀九臼山朝西！折笔变化多端，你可认得？！”',
       themeColor: '#9333ea'
     },
-    targets: ['已', '子', '女', '又', '弓', '耳', '刀', '九', '臼', '巴', '马', '匕'],
+    targets: [
+      '已', '半', '己', '巳', '尸', '心', '羽', '导', '展', '局',
+      '子', '耳', '了', '也', '承', '孩', '取', '阳', '阴',
+      '女', '刀', '九', '臼', '好', '妈', '娘', '始', '切', '如',
+      '又', '巴', '马', '欢', '双', '戏', '参', '驰', '驻',
+      '纟', '红', '绿', '细', '级', '练', '经', '幼', '纪', '结'
+    ],
     requiredExp: 400,
-    rewardExp: 180,
-    rewardCoins: 70,
+    rewardExp: 200,
+    rewardCoins: 80,
     tipSnippet: '💡 折区口诀：N已半巳满不出己 B子耳了也框向上 V女刀九臼 C又巴马 X慈母衣示弓匕'
   },
   {
@@ -213,9 +243,9 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '一简至尊 · 廿五天王',
       title: '字根觉醒境终极守关Boss',
       avatar: '👑',
-      maxHp: 250,
-      attackIntervalMs: 4500,
-      attackPower: 22,
+      maxHp: 750,
+      attackIntervalMs: 5000,
+      attackPower: 14,
       quote: '“吾乃一简至尊！按一键即出一字，你可能在吾狂暴攻势下全部一击必杀？！”',
       themeColor: '#f59e0b'
     },
@@ -224,7 +254,7 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       '上', '是', '中', '国', '同',
       '和', '的', '有', '人', '我',
       '主', '产', '不', '为', '这',
-      '民', '了', '子', '经', '发'
+      '民', '了', '以', '经', '发'
     ],
     requiredExp: 550,
     rewardExp: 300,
@@ -246,16 +276,20 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '报户头石巨人',
       title: '成字字根矩阵核心',
       avatar: '🗿',
-      maxHp: 220,
+      maxHp: 780,
       attackIntervalMs: 4800,
-      attackPower: 20,
+      attackPower: 15,
       quote: '“打成字字根，需先报户头！键名先敲一下，再补首笔次笔与末笔！”',
       themeColor: '#64748b'
     },
-    targets: ['干', '寸', '雨', '西', '石', '车', '手', '止', '心', '门', '八', '方', '辛'],
+    targets: [
+      '干', '寸', '雨', '西', '石', '车', '手', '止', '心',
+      '门', '八', '方', '辛', '刀', '九', '匕', '乙', '厂',
+      '广', '七', '丁', '乃', '戈', '甲', '由', '川'
+    ],
     requiredExp: 800,
-    rewardExp: 220,
-    rewardCoins: 80,
+    rewardExp: 260,
+    rewardCoins: 90,
     tipSnippet: '💡 成字字根规则：键名所在键 + 第一笔代码 + 第二笔代码 + 最后一笔代码（不足4码敲空格）'
   },
   {
@@ -271,16 +305,20 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '疾风二简狼',
       title: '高频简码迅捷兽',
       avatar: '🐺',
-      maxHp: 280,
-      attackIntervalMs: 4200,
-      attackPower: 22,
+      maxHp: 900,
+      attackIntervalMs: 4500,
+      attackPower: 16,
       quote: '“两击即走！我的速度非寻常全码可比，快用二级简码跟上我的节奏！”',
       themeColor: '#0ea5e9'
     },
-    targets: ['吧', '帮', '报', '笔', '边', '参', '操', '草', '查', '朝', '唱', '超', '成', '城', '赤', '传', '窗', '答', '达', '带', '单', '但', '岛', '道', '得', '等', '低', '底', '点', '店'],
+    targets: [
+      '吧', '帮', '报', '笔', '边', '参', '操', '草', '查', '朝',
+      '唱', '超', '成', '城', '传', '窗', '答', '达', '带', '单',
+      '但', '岛', '道', '得', '等', '低', '底', '点', '店', '动'
+    ],
     requiredExp: 1000,
-    rewardExp: 260,
-    rewardCoins: 90,
+    rewardExp: 300,
+    rewardCoins: 100,
     tipSnippet: '💡 二级简码前两码即为字根编码，配合空格直接上屏，能大幅节省 50% 击键！'
   },
   {
@@ -296,16 +334,20 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '拆字千手邪神',
       title: '汉字结构迷魂守卫',
       avatar: '🎭',
-      maxHp: 320,
-      attackIntervalMs: 4000,
-      attackPower: 25,
+      maxHp: 800,
+      attackIntervalMs: 4400,
+      attackPower: 18,
       quote: '“汉字拆解多迷障，连还是交？散还是连？唯有参悟黄金准则方能伤我！”',
       themeColor: '#a855f7'
     },
-    targets: ['天', '丰', '自', '尺', '严', '昼', '夷', '申', '充', '毕', '本', '果', '更', '未'],
+    targets: [
+      '天', '丰', '自', '尺', '严', '昼', '夷', '申', '充', '毕',
+      '本', '果', '更', '未', '兼', '产', '里', '束', '农', '舞',
+      '事', '甩', '垂', '央'
+    ],
     requiredExp: 1250,
-    rewardExp: 320,
-    rewardCoins: 110,
+    rewardExp: 350,
+    rewardCoins: 120,
     tipSnippet: '💡 四大黄金准则：①取大优先 ②能连不交 ③能散不连 ④兼顾直观'
   },
   {
@@ -321,13 +363,17 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '识别码千幻魔君',
       title: '拆字破阵境终极守关Boss',
       avatar: '🔮',
-      maxHp: 400,
-      attackIntervalMs: 3800,
-      attackPower: 28,
+      maxHp: 850,
+      attackIntervalMs: 4200,
+      attackPower: 20,
       quote: '“不足4个字根的汉字，必须附加吾之末笔字型交叉识别码！算错区位便化为灰烬！”',
       themeColor: '#ec4899'
     },
-    targets: ['卡', '午', '生', '各', '少', '召', '边', '沐', '汀', '肚', '辽', '囚', '困', '汉', '字'],
+    targets: [
+      '卡', '午', '生', '各', '少', '召', '边', '沐', '汀', '肚',
+      '辽', '囚', '困', '汉', '字', '节', '功', '司', '句', '杂',
+      '义', '庆', '匹', '巨'
+    ],
     requiredExp: 1550,
     rewardExp: 450,
     rewardCoins: 160,
@@ -348,16 +394,20 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '词海双子星魔',
       title: '高频双词狂澜主',
       avatar: '♊',
-      maxHp: 450,
-      attackIntervalMs: 3600,
-      attackPower: 30,
+      maxHp: 950,
+      attackIntervalMs: 4000,
+      attackPower: 22,
       quote: '“我们乃双生合体！单字击打慢如蜗牛，唯有双字词码方能瞬破我们护盾！”',
       themeColor: '#3b82f6'
     },
-    targets: ['中国', '人民', '我们', '发展', '工作', '国家', '可以', '社会', '经济', '建设', '国际', '合作', '开始', '问题', '学习', '提高'],
+    targets: [
+      '中国', '人民', '我们', '发展', '工作', '国家', '可以', '社会', '经济', '建设',
+      '国际', '合作', '开始', '问题', '学习', '提高', '坚持', '生产', '组织', '历史',
+      '实现', '文化', '加强', '研究', '创新'
+    ],
     requiredExp: 2000,
-    rewardExp: 400,
-    rewardCoins: 150,
+    rewardExp: 500,
+    rewardCoins: 180,
     tipSnippet: '💡 双字词规则：首字取前2码，次字取前2码，组合成4码（如“中国”：K(口)+H(目) + L(田)+G(一) = KHLG）'
   },
   {
@@ -373,16 +423,21 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '四象成语尊者',
       title: '中华成语守护巨灵',
       avatar: '🗿',
-      maxHp: 550,
-      attackIntervalMs: 3400,
-      attackPower: 34,
+      maxHp: 1000,
+      attackIntervalMs: 3800,
+      attackPower: 25,
       quote: '“四字成语，一字一码！四键连击，气贯长虹！”',
       themeColor: '#10b981'
     },
-    targets: ['一心一意', '自强不息', '欣欣向荣', '守正创新', '络绎不绝', '坚定不移', '奋发图强', '日新月异', '循序渐进', '继往开来'],
+    targets: [
+      '一心一意', '自强不息', '欣欣向荣', '守正创新', '络绎不绝',
+      '坚定不移', '奋发图强', '日新月异', '循序渐进', '继往开来',
+      '实事求是', '脚踏实地', '齐心协力', '全心全意', '迎难而上',
+      '锐意进取', '众志成城', '勇往直前', '守望相助', '同心同德'
+    ],
     requiredExp: 2500,
-    rewardExp: 500,
-    rewardCoins: 180,
+    rewardExp: 600,
+    rewardCoins: 220,
     tipSnippet: '💡 四字词/成语规则：一二三四字各取第一码（如“自强不息”：自(T)+强(X)+不(D)+息(T) = TXDT）'
   },
   {
@@ -398,9 +453,9 @@ export const DUNGEON_STAGES: DungeonStage[] = [
       name: '苍穹键仙 · 太古青龙',
       title: '修仙境至高神龙守卫',
       avatar: '🐉',
-      maxHp: 750,
-      attackIntervalMs: 3000,
-      attackPower: 38,
+      maxHp: 1200,
+      attackIntervalMs: 3500,
+      attackPower: 28,
       quote: '“亿万人欲问鼎键仙之位，终困于盲打心障！今日让吾见证尔等真正的五笔通天神技！”',
       themeColor: '#ef4444'
     },
