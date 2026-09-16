@@ -4,7 +4,20 @@
       <!-- 品牌 Logo 与版本标签 -->
       <div class="brand-area" @click="store.setActiveTab('practice')">
         <div class="brand-icon">
-          <span>五</span>
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="brand-svg">
+            <defs>
+              <linearGradient id="nav-seal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#e11d48"/>
+                <stop offset="100%" stop-color="#9f1239"/>
+              </linearGradient>
+            </defs>
+            <rect x="8" y="8" width="84" height="84" rx="20" fill="url(#nav-seal-grad)" stroke="#f43f5e" stroke-width="2"/>
+            <path d="M8 50 H92 M50 8 V92" stroke="#ffffff" stroke-opacity="0.18" stroke-dasharray="3 3" stroke-width="1.2"/>
+            <rect x="20" y="20" width="60" height="60" rx="9" fill="none" stroke="#ffffff" stroke-opacity="0.32" stroke-width="1.5"/>
+            <path d="M30 35 H70" stroke="#ffffff" stroke-width="6.5" stroke-linecap="square"/>
+            <path d="M49 35 V49 H63 V65 M37 49 H49 V65" stroke="#ffffff" stroke-width="6.5" stroke-linecap="square" stroke-linejoin="miter"/>
+            <path d="M26 65 H74" stroke="#ffffff" stroke-width="7" stroke-linecap="square"/>
+          </svg>
         </div>
         <div>
           <h1 class="brand-title">五笔学堂 <span class="brand-subtitle">Wubi Master</span></h1>
@@ -185,14 +198,23 @@ const handleThemeChange = (e: Event) => {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--zone-5));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  color: #fff;
-  font-size: 1.25rem;
-  box-shadow: 0 4px 10px var(--accent-subtle);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.22);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-area:hover .brand-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.brand-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 10px;
 }
 
 .brand-title {
