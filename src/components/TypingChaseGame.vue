@@ -219,10 +219,7 @@
         <div class="keystroke-label">
           <span>击键编码：</span>
           <span class="ime-mode-chip">
-            ⚡ 自由输入：支持「单字/词组直接敲码」与「系统输入法多字上屏」
-          </span>
-          <span class="phrase-hint-chip" v-if="upcomingGamePhrase">
-            💡 词组 [{{ upcomingGamePhrase.text }}]: {{ upcomingGamePhrase.fullCode }}
+            ⚡ 自由输入：支持「全码/简码直接敲键」与「系统输入法汉字上屏」
           </span>
         </div>
         <div class="keystroke-slots">
@@ -457,15 +454,22 @@ const gameCharsList = computed(() => {
   return targetChars.value.map(item => item.char);
 });
 
-// 提取当前光标处的单字及多字词组候选集
+// 提取当前光标处的单字候选（全码与简码均备）
 const upcomingGameCandidates = computed(() => {
-  return getUpcomingCandidates(gameCharsList.value, playerIndex.value, store.version.value);
+  const currentItem = targetChars.value[playerIndex.value];
+  if (!currentItem) return [];
+  return [
+    {
+      type: 'single' as const,
+      length: 1,
+      text: currentItem.char,
+      fullCode: getCharTargetCode(currentItem),
+      shortCode: getCharShortCode(currentItem)
+    }
+  ];
 });
 
-// 嗅探当前是否存在多字词组
-const upcomingGamePhrase = computed(() => {
-  return upcomingGameCandidates.value.find(c => c.type === 'phrase');
-});
+const upcomingGamePhrase = computed(() => null);
 
 const visibleTargetChars = computed(() => {
   return targetChars.value.slice(playerIndex.value, playerIndex.value + 6);
@@ -667,19 +671,19 @@ const increaseAiDifficulty = () => {
 const handleKeyDown = (e: KeyboardEvent) => {
   if (gameState.value !== 'running') return;
 
-  // 1. 如果输入法正在组合组字（例如五笔/拼音候选窗打开），绝对不拦截任何按键，放行给输入法
-  if (e.isComposing || isComposingRef.value || e.keyCode === 229) {
-    return;
-  }
+  const key = e.key;
 
   // 忽略控制键
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-  const key = e.key;
+  // 如果输入法正在组字，放行常规字符给输入法，但若敲击空格/回车则不拦截以执行出字判定
+  if ((e.isComposing || isComposingRef.value || e.keyCode === 229) && key !== ' ' && key !== 'Enter') {
+    return;
+  }
 
   // 退格删除
   if (key === 'Backspace') {
-    if (inputBuffer.value.length > 0) {
+    if (inputBuffer.value.length > 0 || composingText.value.length > 0) {
       e.preventDefault();
       inputBuffer.value = inputBuffer.value.slice(0, -1);
       composingText.value = '';
@@ -698,6 +702,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
     // 关键防抖：如果刚在 250ms 内完成输入法选词汉字上屏，该空格属于输入法确认键，忽略之，杜绝误跳下一个字
     if (Date.now() - lastImeCommitTime < 250) {
       return;
+    }
+    if (composingText.value) {
+      inputBuffer.value = composingText.value;
+      composingText.value = '';
+      if (hiddenInputRef.value) hiddenInputRef.value.value = '';
     }
     verifyCurrentInput(true);
     return;
@@ -727,6 +736,18 @@ const handleCompositionUpdate = (e: CompositionEvent) => {
   isComposingRef.value = true;
   hasInputError.value = false;
   composingText.value = (e.data || (hiddenInputRef.value?.value || '')).toUpperCase().slice(0, 4);
+
+  // 实时判定：若组字内容已完全吻合全码或简码，立即推进出字！
+  const currentItem = targetChars.value[playerIndex.value];
+  if (currentItem) {
+    const full = getCharTargetCode(currentItem);
+    const short = getCharShortCode(currentItem);
+    if (composingText.value === full || (store.commitMode.value === 'auto' && short && composingText.value === short)) {
+      onCharSuccess(1);
+      composingText.value = '';
+      if (hiddenInputRef.value) hiddenInputRef.value.value = '';
+    }
+  }
 };
 
 // 输入法组合结束 (用户在输入法候选框中敲击空格或数字完成选字上屏)
@@ -735,7 +756,12 @@ const handleCompositionEnd = (e: CompositionEvent) => {
   const committedData = e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '') || composingText.value;
   composingText.value = '';
   if (committedData) {
-    processChineseCommit(committedData);
+    if (/[\u4e00-\u9fa5]/.test(committedData)) {
+      processChineseCommit(committedData);
+    } else {
+      inputBuffer.value = committedData.toUpperCase().slice(0, 4);
+      verifyCurrentInput(true);
+    }
   }
 };
 
@@ -769,10 +795,33 @@ const handleNativeInput = (e: Event) => {
 
   const target = e.target as HTMLInputElement;
 
-  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面槽位中显示
+  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面槽位中显示并判定
   if (isComposingRef.value || (e as InputEvent).isComposing) {
     hasInputError.value = false;
-    composingText.value = target.value.toUpperCase().slice(0, 4);
+    const comp = target.value.toUpperCase().slice(0, 4);
+    composingText.value = comp;
+
+    // A. 输入法送来汉字
+    if (/[\u4e00-\u9fa5]/.test(comp)) {
+      const currentItem = targetChars.value[playerIndex.value];
+      if (currentItem && comp.includes(currentItem.char)) {
+        processChineseCommit(comp);
+      }
+      return;
+    }
+
+    // B. 即时判定英文字母编码：敲出全码或自动模式下的简码，立即推进出字！
+    const currentItem = targetChars.value[playerIndex.value];
+    if (currentItem) {
+      const full = getCharTargetCode(currentItem);
+      const short = getCharShortCode(currentItem);
+      if (comp === full || (store.commitMode.value === 'auto' && short && comp === short)) {
+        onCharSuccess(1);
+        target.value = '';
+        composingText.value = '';
+        return;
+      }
+    }
     return;
   }
 
@@ -811,12 +860,12 @@ const handleNativeInput = (e: Event) => {
   }
 };
 
-// 验证输入是否与当前字或多字词组匹配
+// 验证输入是否与当前字匹配（支持全码与简码任意输入，拒绝偏废）
 const verifyCurrentInput = (forceSpace: boolean) => {
   const currentItem = targetChars.value[playerIndex.value];
   if (!currentItem) return;
 
-  const currentBuf = inputBuffer.value.trim().toUpperCase();
+  const currentBuf = (inputBuffer.value || composingText.value).trim().toUpperCase();
   if (!currentBuf) {
     hasInputError.value = false;
     return;
@@ -828,14 +877,23 @@ const verifyCurrentInput = (forceSpace: boolean) => {
     return;
   }
 
-  // 2. 候选集嗅探与动态匹配（同时覆盖单字与二字词、三字词、四字词）
-  const candidates = upcomingGameCandidates.value;
-  const evalRes = evaluateCandidates(currentBuf, candidates, forceSpace, store.commitMode.value);
+  const fullCode = getCharTargetCode(currentItem);
+  const shortCode = getCharShortCode(currentItem);
 
-  if (evalRes.isMatch && evalRes.matchedCandidate) {
-    const step = evalRes.matchedCandidate.length;
-    onCharSuccess(step);
-    return;
+  // 2. 简码命中（按空格出字，或在 auto 自动出字模式下敲完即出）
+  if (shortCode && currentBuf === shortCode) {
+    if (store.commitMode.value === 'auto' || forceSpace) {
+      onCharSuccess(1);
+      return;
+    }
+  }
+
+  // 3. 全码命中（打出全码无论满4码还是敲空格，一律合法成功出字！）
+  if (currentBuf === fullCode) {
+    if (store.commitMode.value === 'auto' || forceSpace || currentBuf.length >= 4) {
+      onCharSuccess(1);
+      return;
+    }
   }
 
   if (forceSpace) {
@@ -843,12 +901,9 @@ const verifyCurrentInput = (forceSpace: boolean) => {
     return;
   }
 
-  // 击键输入中的前缀核对
-  if (!evalRes.isPrefixMatch) {
-    hasInputError.value = true;
-  } else {
-    hasInputError.value = false;
-  }
+  // 4. 前缀合法性（只要是全码或简码的前缀，均不报红）
+  const isPrefix = fullCode.startsWith(currentBuf) || (shortCode ? shortCode.startsWith(currentBuf) : false);
+  hasInputError.value = !isPrefix;
 };
 
 const onCharSuccess = (step = 1) => {

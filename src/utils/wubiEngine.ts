@@ -41,28 +41,23 @@ export const evaluateInput = (
       return { isMatch: false, matchedVia: 'none', isPrefixMatch: fullCode.startsWith(cleanInput) };
     }
 
-    if (mode === 'quick') {
-      const targetCode = shortCode || fullCode;
-      if (cleanInput === targetCode) {
+    if (mode === 'quick' || mode === 'smart') {
+      // 1. 优先简码匹配
+      if (shortCode && cleanInput === shortCode) {
         return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
       }
-      return { isMatch: false, matchedVia: 'none', isPrefixMatch: targetCode.startsWith(cleanInput) };
-    }
-
-    // smart 模式：简码与全码皆可出字
-    if (shortCode && cleanInput === shortCode) {
-      return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
-    }
-    if (cleanInput === fullCode) {
-      let tip: string | undefined;
-      if (shortCode && shortCode.length < fullCode.length) {
-        tip = `打【${shortCode}】键更快捷！`;
+      // 2. 无论何时输入全码均合法出字
+      if (cleanInput === fullCode) {
+        let tip: string | undefined;
+        if (shortCode && shortCode.length < fullCode.length) {
+          tip = `打【${shortCode}】键更快捷！`;
+        }
+        return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
       }
-      return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
-    }
 
-    const isPrefix = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
-    return { isMatch: false, matchedVia: 'none', isPrefixMatch: isPrefix };
+      const isPrefix = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
+      return { isMatch: false, matchedVia: 'none', isPrefixMatch: isPrefix };
+    }
   }
 
   // B. 真实空格出字模式 (space)
@@ -75,36 +70,28 @@ export const evaluateInput = (
     return { isMatch: false, matchedVia: 'none', isPrefixMatch: fullCode.startsWith(cleanInput) };
   }
 
-  if (mode === 'quick') {
-    const targetCode = shortCode || fullCode;
-    if (hasPressedSpace || (targetCode.length >= 4 && cleanInput.length >= 4)) {
-      if (cleanInput === targetCode) {
+  if (mode === 'quick' || mode === 'smart') {
+    if (hasPressedSpace) {
+      if (shortCode && cleanInput === shortCode) {
         return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
       }
-    }
-    return { isMatch: false, matchedVia: 'none', isPrefixMatch: targetCode.startsWith(cleanInput) };
-  }
-
-  // smart 模式下 space 触发
-  if (hasPressedSpace) {
-    if (shortCode && cleanInput === shortCode) {
-      return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
-    }
-    if (cleanInput === fullCode) {
-      let tip: string | undefined;
-      if (shortCode && shortCode.length < fullCode.length) {
-        tip = `打【${shortCode} + 空格】出字更快哦！`;
+      if (cleanInput === fullCode) {
+        let tip: string | undefined;
+        if (shortCode && shortCode.length < fullCode.length) {
+          tip = `打【${shortCode} + 空格】出字更快哦！`;
+        }
+        return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
       }
-      return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
     }
-  }
 
-  if (cleanInput.length >= 4 && cleanInput === fullCode) {
-    return { isMatch: true, matchedVia: 'full', isPrefixMatch: false };
-  }
+    // 满4码时全码自动判定
+    if (cleanInput.length >= 4 && cleanInput === fullCode) {
+      return { isMatch: true, matchedVia: 'full', isPrefixMatch: false };
+    }
 
-  const isPrefixMatch = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
-  return { isMatch: false, matchedVia: 'none', isPrefixMatch };
+    const isPrefixMatch = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
+    return { isMatch: false, matchedVia: 'none', isPrefixMatch };
+  }
 };
 
 /**
