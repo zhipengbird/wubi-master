@@ -97,6 +97,9 @@
             <span class="badge short" v-if="targetShortCode && targetShortCode !== targetFullCode">
               简码: {{ targetShortCode }}
             </span>
+            <span class="badge phrase" v-if="upcomingPhrase">
+              词组[{{ upcomingPhrase.text }}]: {{ upcomingPhrase.fullCode }}
+            </span>
             <span class="roots-tag">拆解: {{ currentRoots.join(' + ') }}</span>
           </div>
         </div>
@@ -110,13 +113,14 @@
             :value="inputBuffer"
             @keydown="handleKeyDown"
             @input="handleInput"
+            @compositionstart="handleCompositionStart"
+            @compositionend="handleCompositionEnd"
             @focus="isFocused = true"
             @blur="isFocused = false"
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            inputmode="latin"
           />
 
           <div class="capsule-content">
@@ -348,6 +352,7 @@ import { getArticleProgress, saveArticleProgress } from '../utils/storage';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import { Plus, BookOpen, X, Upload, FileText, Clipboard } from 'lucide-vue-next';
 import confetti from 'canvas-confetti';
+import { getUpcomingCandidates, evaluateCandidates, matchChineseStream } from '../utils/phraseMatching';
 
 const store = useWubiStore();
 
@@ -487,6 +492,16 @@ const currentRoots = computed(() => {
   return getRoots(currentCharData.value, store.version.value);
 });
 
+// 动态提取从当前字起始的候选集（单字、二字词、三字词、四字词）
+const upcomingCandidates = computed(() => {
+  return getUpcomingCandidates(articleChars.value, charIndex.value, store.version.value);
+});
+
+// 嗅探当前位置是否存在待打多字词组，用于界面智能提示
+const upcomingPhrase = computed(() => {
+  return upcomingCandidates.value.find(c => c.type === 'phrase');
+});
+
 const nextExpectedKey = computed(() => {
   if (!currentCharData.value) return null;
   const target = (store.inputMode.value === 'quick' && targetShortCode.value)
@@ -573,13 +588,75 @@ const nextArticle = () => {
   loadSavedProgress();
 };
 
+// 跟踪输入法组合状态与最近提交时间戳
+const isComposingRef = ref(false);
+let lastImeCommitTime = 0;
+
+const handleCompositionStart = () => {
+  isComposingRef.value = true;
+};
+
+const handleCompositionEnd = (e: CompositionEvent) => {
+  isComposingRef.value = false;
+  const committedData = e.data || (inputRef.value ? inputRef.value.value : '');
+  if (committedData && /[\u4e00-\u9fa5]/.test(committedData)) {
+    processChineseCommit(committedData);
+  }
+};
+
+// 核心流式汉字核销：支持输入法直接上屏单字、两字词、四字成语乃至整句长句
+const processChineseCommit = (text: string) => {
+  lastImeCommitTime = Date.now();
+  inputBuffer.value = '';
+  if (inputRef.value) inputRef.value.value = '';
+
+  // 过滤出所有汉字字符
+  const chineseChars = Array.from(text).filter(c => /[\u4e00-\u9fa5]/.test(c));
+  if (chineseChars.length === 0) return;
+
+  const res = matchChineseStream(chineseChars, articleChars.value, charIndex.value);
+  if (res.matchedCount > 0) {
+    soundPlayer.playKey(store.audio.value, true);
+    correctCount.value += res.matchedCount;
+    keystrokes.value += res.matchedCount * 2;
+    hasError.value = false;
+    charHasMistake.value = false;
+    advanceNextChar(res.matchedCount);
+  }
+
+  // 若存在错字，触发错误震慑与记错
+  if (!res.isAllMatched) {
+    hasError.value = true;
+    soundPlayer.playKey(store.audio.value, false, true);
+    charHasMistake.value = true;
+    errorCount.value += (chineseChars.length - res.matchedCount);
+    if (currentCharData.value) {
+      store.recordMistake(
+        currentCharData.value.char,
+        text,
+        targetFullCode.value,
+        currentRoots.value
+      );
+    }
+  }
+};
+
 const handleInput = (e: Event) => {
+  if (isComposingRef.value || (e as InputEvent).isComposing) {
+    return;
+  }
+
   const target = e.target as HTMLInputElement;
   const raw = target.value.trim();
 
-  // 兼容两种方式：① 开启系统五笔打出汉字；② 切英文键盘打五笔字母编码
-  const hasChinese = /[\u4e00-\u9fa5]/.test(raw);
-  const clean = hasChinese ? raw : raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+  // 1. 若为汉字输入法直接上屏，调用流式多字流水线
+  if (/[\u4e00-\u9fa5]/.test(raw)) {
+    processChineseCommit(raw);
+    return;
+  }
+
+  // 2. 纯英文字母模式 (直接敲五笔字母盲打)
+  const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
 
@@ -588,47 +665,47 @@ const handleInput = (e: Event) => {
     return;
   }
 
-  if (currentCharData.value) {
-    const isAuto = store.commitMode.value === 'auto';
-    const evalRes = evaluateInput(
-      clean,
-      currentCharData.value,
-      store.inputMode.value,
-      store.version.value,
-      false,
-      store.commitMode.value
-    );
-    if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
-      hasError.value = true;
-      soundPlayer.playKey(store.audio.value, false, true);
+  // 动态结合当前单字与多字词组候选集进行比对
+  const candidates = upcomingCandidates.value;
+  const evalRes = evaluateCandidates(clean, candidates, false, store.commitMode.value);
 
-      if (!charHasMistake.value && currentCharData.value) {
-        charHasMistake.value = true;
-        errorCount.value += 1;
-        store.recordMistake(
-          currentCharData.value.char,
-          clean,
-          targetFullCode.value,
-          currentRoots.value
-        );
+  if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
+    hasError.value = true;
+    soundPlayer.playKey(store.audio.value, false, true);
+
+    if (!charHasMistake.value && currentCharData.value) {
+      charHasMistake.value = true;
+      errorCount.value += 1;
+      store.recordMistake(
+        currentCharData.value.char,
+        clean,
+        targetFullCode.value,
+        currentRoots.value
+      );
+    }
+  } else {
+    hasError.value = false;
+  }
+
+  // 自动出字（auto 模式下命中，或满4码自动核验命中）
+  const isAuto = store.commitMode.value === 'auto';
+  const shouldAutoCommit = (isAuto && evalRes.isMatch) || (clean.length === 4 && evalRes.isMatch);
+  if (shouldAutoCommit) {
+    setTimeout(() => {
+      if (inputBuffer.value === clean) {
+        checkChar(false);
       }
-    } else {
-      hasError.value = false;
-    }
-
-    const shouldAutoCommit = (isAuto && evalRes.isMatch) || (clean.length >= 4 && evalRes.isMatch) || (hasChinese && evalRes.isMatch);
-    if (shouldAutoCommit) {
-      setTimeout(() => {
-        if (inputBuffer.value === clean) {
-          checkChar(false);
-        }
-      }, isAuto ? 90 : 120);
-    }
+    }, isAuto ? 90 : 120);
   }
 };
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (isFinished.value) return;
+
+  // 输入法正在组合候选时不拦截
+  if (e.isComposing || isComposingRef.value || e.keyCode === 229) {
+    return;
+  }
 
   if (!startTime.value) {
     startTime.value = Date.now();
@@ -637,7 +714,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   // 标点符号直接按任意键或者空格跳过
   if (isPunctuation(targetChar.value)) {
     e.preventDefault();
-    advanceNextChar();
+    advanceNextChar(1);
     return;
   }
 
@@ -650,6 +727,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
   if (e.key === ' ' || e.code === 'Space') {
     e.preventDefault();
+    // 关键防抖：如果刚在 250ms 内完成输入法选词汉字上屏，该空格属于输入法确认键，忽略之
+    if (Date.now() - lastImeCommitTime < 250) {
+      return;
+    }
     checkChar(true);
     return;
   }
@@ -671,26 +752,27 @@ const handleKeyDown = (e: KeyboardEvent) => {
 const checkChar = (hasPressedSpace: boolean) => {
   if (!currentCharData.value) {
     // 词库未收录字或标点直接前进
-    advanceNextChar();
+    advanceNextChar(1);
     return;
   }
 
-  const res = evaluateInput(
+  const candidates = upcomingCandidates.value;
+  const res = evaluateCandidates(
     inputBuffer.value,
-    currentCharData.value,
-    store.inputMode.value,
-    store.version.value,
+    candidates,
     hasPressedSpace,
     store.commitMode.value
   );
 
-  if (res.isMatch) {
+  if (res.isMatch && res.matchedCandidate) {
+    const step = res.matchedCandidate.length;
     soundPlayer.playKey(store.audio.value, true);
-    correctCount.value += 1;
+    correctCount.value += step;
     hasError.value = false;
     charHasMistake.value = false;
     inputBuffer.value = '';
-    advanceNextChar();
+    if (inputRef.value) inputRef.value.value = '';
+    advanceNextChar(step);
   } else {
     hasError.value = true;
     soundPlayer.playKey(store.audio.value, false, true);
@@ -708,12 +790,13 @@ const checkChar = (hasPressedSpace: boolean) => {
   }
 };
 
-const advanceNextChar = () => {
+const advanceNextChar = (step = 1) => {
   charHasMistake.value = false;
-  if (charIndex.value + 1 >= totalChars.value) {
+  if (charIndex.value + step >= totalChars.value) {
+    charIndex.value = totalChars.value;
     finishArticle();
   } else {
-    charIndex.value += 1;
+    charIndex.value += step;
     saveArticleProgress(currentArticle.value.id, charIndex.value);
     scrollToCurrentChar();
   }
@@ -1197,6 +1280,13 @@ watch(() => charIndex.value, () => {
   background: rgba(16, 185, 129, 0.15);
   color: var(--success);
   border: 1px solid var(--success);
+}
+
+.badge.phrase {
+  background: rgba(192, 132, 252, 0.15);
+  color: var(--zone-5);
+  border: 1px solid var(--zone-5);
+  font-weight: 700;
 }
 
 .roots-tag {

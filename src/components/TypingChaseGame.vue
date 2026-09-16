@@ -216,7 +216,10 @@
         <div class="keystroke-label">
           <span>击键编码：</span>
           <span class="ime-mode-chip">
-            ⚡ 支持「直接敲字母查码」与「系统输入法打汉字」
+            ⚡ 自由输入：支持「单字/词组直接敲码」与「系统输入法多字上屏」
+          </span>
+          <span class="phrase-hint-chip" v-if="upcomingGamePhrase">
+            💡 词组 [{{ upcomingGamePhrase.text }}]: {{ upcomingGamePhrase.fullCode }}
           </span>
         </div>
         <div class="keystroke-slots">
@@ -367,6 +370,7 @@ import {
 import { soundPlayer } from '../utils/audio';
 import MiZiGe from './MiZiGe.vue';
 import confetti from 'canvas-confetti';
+import { getUpcomingCandidates, evaluateCandidates } from '../utils/phraseMatching';
 
 const store = useWubiStore();
 
@@ -427,6 +431,20 @@ const aiCharProgress = ref<number>(0);
 const aiWpm = computed(() => selectedAiWpm.value);
 
 // 计算属性
+const gameCharsList = computed(() => {
+  return targetChars.value.map(item => item.char);
+});
+
+// 提取当前光标处的单字及多字词组候选集
+const upcomingGameCandidates = computed(() => {
+  return getUpcomingCandidates(gameCharsList.value, playerIndex.value, store.version.value);
+});
+
+// 嗅探当前是否存在多字词组
+const upcomingGamePhrase = computed(() => {
+  return upcomingGameCandidates.value.find(c => c.type === 'phrase');
+});
+
 const visibleTargetChars = computed(() => {
   return targetChars.value.slice(playerIndex.value, playerIndex.value + 6);
 });
@@ -743,15 +761,12 @@ const handleNativeInput = (e: Event) => {
   }
 };
 
-// 验证输入是否与当前字匹配
+// 验证输入是否与当前字或多字词组匹配
 const verifyCurrentInput = (forceSpace: boolean) => {
   const currentItem = targetChars.value[playerIndex.value];
   if (!currentItem) return;
 
-  const targetFull = getCharTargetCode(currentItem);
-  const targetShort = (getShortCode(currentItem, store.version.value) || currentItem.short86 || '').toUpperCase();
   const currentBuf = inputBuffer.value.trim().toUpperCase();
-
   if (!currentBuf) {
     hasInputError.value = false;
     return;
@@ -759,52 +774,41 @@ const verifyCurrentInput = (forceSpace: boolean) => {
 
   // 1. 汉字直接比对
   if (currentBuf === currentItem.char) {
-    onCharSuccess();
+    onCharSuccess(1);
     return;
   }
 
-  // 2. 空格直接出字 (简码匹配 或 全码未满四位匹配)
+  // 2. 候选集嗅探与动态匹配（同时覆盖单字与二字词、三字词、四字词）
+  const candidates = upcomingGameCandidates.value;
+  const evalRes = evaluateCandidates(currentBuf, candidates, forceSpace, store.commitMode.value);
+
+  if (evalRes.isMatch && evalRes.matchedCandidate) {
+    const step = evalRes.matchedCandidate.length;
+    onCharSuccess(step);
+    return;
+  }
+
   if (forceSpace) {
-    if (currentBuf === targetShort || currentBuf === targetFull) {
-      onCharSuccess();
-      return;
-    } else {
-      onCharError();
-      return;
-    }
-  }
-
-  // 3. 自动出字：简码命中且当前配置为自动出字
-  if (targetShort && currentBuf === targetShort && store.commitMode.value === 'auto') {
-    onCharSuccess();
+    onCharError();
     return;
   }
 
-  // 4. 满四码自动核验
-  if (currentBuf.length === 4) {
-    if (currentBuf === targetFull) {
-      onCharSuccess();
-    } else {
-      onCharError();
-    }
-  } else if (currentBuf.length < 4) {
-    // 提前击键过程中的前缀核对
-    if (!targetFull.startsWith(currentBuf) && !(targetShort && targetShort.startsWith(currentBuf))) {
-      hasInputError.value = true;
-    } else {
-      hasInputError.value = false;
-    }
+  // 击键输入中的前缀核对
+  if (!evalRes.isPrefixMatch) {
+    hasInputError.value = true;
+  } else {
+    hasInputError.value = false;
   }
 };
 
-const onCharSuccess = () => {
-  correctKeystrokes.value += Math.max(1, inputBuffer.value.length);
-  comboCount.value++;
+const onCharSuccess = (step = 1) => {
+  correctKeystrokes.value += Math.max(step, inputBuffer.value.length);
+  comboCount.value += step;
   if (comboCount.value > maxCombo.value) {
     maxCombo.value = comboCount.value;
   }
 
-  playerIndex.value++;
+  playerIndex.value = Math.min(TARGET_COUNT, playerIndex.value + step);
   inputBuffer.value = '';
   if (hiddenInputRef.value) {
     hiddenInputRef.value.value = '';
@@ -1695,6 +1699,17 @@ onUnmounted(() => {
   font-size: 0.75rem;
   font-weight: normal;
   color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.phrase-hint-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--zone-5);
+  background: rgba(192, 132, 252, 0.15);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  padding: 1px 8px;
+  border-radius: 6px;
   margin-left: 8px;
 }
 </style>
