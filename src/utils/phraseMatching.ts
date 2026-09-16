@@ -114,35 +114,85 @@ export const evaluateCandidates = (
   };
 };
 
+export const isPunctuation = (ch: string): boolean => {
+  if (!ch) return false;
+  return /[，。！？；：“”‘’（）《》、\s\.,!?;:()"'`\-—…、～~]/.test(ch);
+};
+
+export const isPunctuationEquivalent = (inputKey: string, targetChar: string): boolean => {
+  if (inputKey === targetChar) return true;
+  const map: Record<string, string[]> = {
+    '，': [',', '，'],
+    '。': ['.', '。'],
+    '！': ['!', '！'],
+    '？': ['?', '？'],
+    '；': [';', '；'],
+    '：': [':', '：'],
+    '、': ['\\', '/', '、'],
+    '“': ['"', '“'],
+    '”': ['"', '”'],
+    '‘': ["'", '‘'],
+    '’': ["'", '’'],
+    '《': ['<', '《'],
+    '》': ['>', '》'],
+    '（': ['(', '（'],
+    '）': [')', '）'],
+    '—': ['-', '_', '—'],
+    '…': ['^', '…', '.']
+  };
+  return map[targetChar]?.includes(inputKey) || false;
+};
+
+export interface StreamMatchResult {
+  matchedCount: number;         // 输入文本中匹配成功的字符数
+  targetAdvancedCount: number;  // 目标文本中前进的字符数（含智能跳过的标点）
+  isAllMatched: boolean;        // 输入文本是否全部正确匹配
+}
+
 /**
- * 顺序核销输入的汉字流（支持输入法直接上屏单字、词组、整句）
- * 返回实际连续匹配成功的汉字数量
+ * 顺序核销输入的汉字/标点流（支持输入法直接上屏单字、词组、整句及标点）
+ * 智能支持标点等价匹配与跨标点自动核销
  */
 export const matchChineseStream = (
-  inputChinese: string[],
+  inputChars: string[],
   targetChars: string[],
   startIndex: number
-): { matchedCount: number; isAllMatched: boolean } => {
-  let matched = 0;
+): StreamMatchResult => {
+  let inputIdx = 0;
   let currTargetIdx = startIndex;
 
-  for (let i = 0; i < inputChinese.length; i++) {
-    const inputChar = inputChinese[i];
-    if (currTargetIdx >= targetChars.length) break;
+  while (inputIdx < inputChars.length && currTargetIdx < targetChars.length) {
+    const inChar = inputChars[inputIdx];
+    const targetChar = targetChars[currTargetIdx];
 
-    // 如果遇到连续的目标文本中的标点或空格，若输入的不是标点则自动跳过标点？
-    // 通常比对严格按目标字符推进：如果目标是汉字，比对该汉字
-    if (inputChar === targetChars[currTargetIdx]) {
-      matched++;
+    // 1. 完全相同
+    if (inChar === targetChar) {
+      inputIdx++;
       currTargetIdx++;
-    } else {
-      // 出现错字，立即中断流水核销
-      break;
+      continue;
     }
+
+    // 2. 标点符号中英文等价（例如输入英文逗号匹配中文逗号）
+    if (isPunctuation(targetChar) && isPunctuationEquivalent(inChar, targetChar)) {
+      inputIdx++;
+      currTargetIdx++;
+      continue;
+    }
+
+    // 3. 智能跳过标点：如果目标当前是标点或空白，但输入的字符不是标点
+    //    自动跳过目标文本中的标点符号，看后面是否与输入字符匹配
+    if (isPunctuation(targetChar) && !isPunctuation(inChar)) {
+      currTargetIdx++;
+      continue;
+    }
+
+    // 4. 出现错字，立即中断流水核销
+    break;
   }
 
   return {
-    matchedCount: matched,
-    isAllMatched: matched === inputChinese.length
+    matchedCount: inputIdx,
+    targetAdvancedCount: currTargetIdx - startIndex,
+    isAllMatched: inputIdx === inputChars.length
   };
 };

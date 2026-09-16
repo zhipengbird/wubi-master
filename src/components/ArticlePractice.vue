@@ -90,9 +90,9 @@
       <!-- 当前字专属击键控制台 (沉浸居中) -->
       <div class="article-input-console">
         <!-- 当前字与提示信息 -->
-        <div class="char-info-pill" v-if="currentCharData">
-          <span class="focus-char">{{ targetChar }}</span>
-          <div class="codes-group">
+        <div class="char-info-pill" v-if="targetChar">
+          <span class="focus-char" :class="{ 'punct-char': isPunctuation(targetChar) }">{{ targetChar }}</span>
+          <div class="codes-group" v-if="currentCharData">
             <span class="badge full">全码: {{ targetFullCode }}</span>
             <span class="badge short" v-if="targetShortCode && targetShortCode !== targetFullCode">
               简码: {{ targetShortCode }}
@@ -101,6 +101,13 @@
               词组[{{ upcomingPhrase.text }}]: {{ upcomingPhrase.fullCode }}
             </span>
             <span class="roots-tag">拆解: {{ currentRoots.join(' + ') }}</span>
+          </div>
+          <div class="codes-group punct-group" v-else-if="isPunctuation(targetChar)">
+            <span class="badge punct">标点符号</span>
+            <span class="roots-tag">直接键入【{{ targetChar }}】或按【空格】跳过</span>
+          </div>
+          <div class="codes-group fallback-group" v-else>
+            <span class="roots-tag">使用输入法直接打出【{{ targetChar }}】即可</span>
           </div>
         </div>
 
@@ -114,6 +121,7 @@
             @keydown="handleKeyDown"
             @input="handleInput"
             @compositionstart="handleCompositionStart"
+            @compositionupdate="handleCompositionUpdate"
             @compositionend="handleCompositionEnd"
             @focus="isFocused = true"
             @blur="isFocused = false"
@@ -124,18 +132,23 @@
           />
 
           <div class="capsule-content">
-            <template v-if="inputBuffer">
-              <span class="buffer-text">{{ inputBuffer }}</span>
+            <template v-if="displayInput">
+              <span class="buffer-text">{{ displayInput }}</span>
               <span class="cursor cursor-blink"></span>
             </template>
             <template v-else>
               <span class="cursor cursor-blink" v-if="isFocused"></span>
-              <span class="placeholder-text">键入上方高亮汉字编码，按空格出字...</span>
+              <span class="placeholder-text" v-if="isPunctuation(targetChar)">
+                标点符号：键入【{{ targetChar }}】或按【空格】跳过...
+              </span>
+              <span class="placeholder-text" v-else>
+                键入上方高亮汉字编码，按空格出字...
+              </span>
             </template>
           </div>
 
           <button class="space-btn-pill" @click.stop="checkChar(true)">
-            ␣ 空格
+            {{ isPunctuation(targetChar) ? '␣ 跳过' : '␣ 空格' }}
           </button>
         </div>
 
@@ -345,19 +358,33 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useWubiStore } from '../stores/useWubiStore';
 import type { ArticleTopic, TypingStats } from '../types/wubi';
 import { ARTICLES_LIBRARY } from '../data/articles';
-import { lookupWubiChar, getFullCode, getShortCode, getRoots } from '../data/wubiDict';
+import {
+  lookupWubiChar,
+  getFullCode,
+  getShortCode,
+  getRoots,
+  loadFullParsedChars,
+  WUBI_CHAR_MAP
+} from '../data/wubiDict';
 import { evaluateInput, calculateStats } from '../utils/wubiEngine';
 import { soundPlayer } from '../utils/audio';
 import { getArticleProgress, saveArticleProgress } from '../utils/storage';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import { Plus, BookOpen, X, Upload, FileText, Clipboard } from 'lucide-vue-next';
 import confetti from 'canvas-confetti';
-import { getUpcomingCandidates, evaluateCandidates, matchChineseStream } from '../utils/phraseMatching';
+import {
+  getUpcomingCandidates,
+  evaluateCandidates,
+  matchChineseStream,
+  isPunctuation,
+  isPunctuationEquivalent
+} from '../utils/phraseMatching';
 
 const store = useWubiStore();
 
 const articleList = ref<ArticleTopic[]>([...ARTICLES_LIBRARY]);
 const currentArticle = ref<ArticleTopic>(articleList.value[0]);
+const dictReady = ref(false);
 
 const showLibraryModal = ref(false);
 const selectedCategoryTab = ref('all');
@@ -384,6 +411,9 @@ const selectArticleFromLibrary = (art: ArticleTopic) => {
 const textContainerRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const inputBuffer = ref('');
+const isComposingRef = ref(false);
+const composingText = ref('');
+let lastImeCommitTime = 0;
 const isFocused = ref(true);
 const charIndex = ref(0);
 const hasError = ref(false);
@@ -468,11 +498,14 @@ const targetChar = computed(() => {
   return articleChars.value[charIndex.value] || '';
 });
 
-const isPunctuation = (ch: string) => {
-  return /[，。！？；：“”‘’（）《》、\s\.,!?;:()"]/.test(ch);
-};
+const displayInput = computed(() => {
+  return inputBuffer.value || composingText.value;
+});
 
 const currentCharData = computed(() => {
+  if (dictReady.value) {
+    // 建立对 dictReady 响应式依赖，字典全量载入后自动重新计算
+  }
   if (!targetChar.value || isPunctuation(targetChar.value)) return null;
   return lookupWubiChar(targetChar.value);
 });
@@ -503,15 +536,18 @@ const upcomingPhrase = computed(() => {
 });
 
 const nextExpectedKey = computed(() => {
+  if (isPunctuation(targetChar.value)) {
+    return ' ';
+  }
   if (!currentCharData.value) return null;
   const target = (store.inputMode.value === 'quick' && targetShortCode.value)
     ? targetShortCode.value
     : targetFullCode.value;
   if (!target) return null;
 
-  const len = inputBuffer.value.length;
-  if (len < target.length) {
-    return target[len];
+  const currentLen = (inputBuffer.value || composingText.value).length;
+  if (currentLen < target.length) {
+    return target[currentLen];
   }
   return ' ';
 });
@@ -555,6 +591,7 @@ const loadSavedProgress = () => {
 
 const restartSession = () => {
   inputBuffer.value = '';
+  composingText.value = '';
   correctCount.value = 0;
   errorCount.value = 0;
   keystrokes.value = 0;
@@ -588,40 +625,45 @@ const nextArticle = () => {
   loadSavedProgress();
 };
 
-// 跟踪输入法组合状态与最近提交时间戳
-const isComposingRef = ref(false);
-let lastImeCommitTime = 0;
-
+// 跟踪输入法组合状态与事件交互
 const handleCompositionStart = () => {
   isComposingRef.value = true;
+  composingText.value = '';
+};
+
+const handleCompositionUpdate = (e: CompositionEvent) => {
+  isComposingRef.value = true;
+  composingText.value = (e.data || (inputRef.value?.value || '')).toUpperCase();
 };
 
 const handleCompositionEnd = (e: CompositionEvent) => {
   isComposingRef.value = false;
-  const committedData = e.data || (inputRef.value ? inputRef.value.value : '');
-  if (committedData && /[\u4e00-\u9fa5]/.test(committedData)) {
-    processChineseCommit(committedData);
+  const committedData = e.data || (inputRef.value ? inputRef.value.value : '') || composingText.value;
+  composingText.value = '';
+  if (committedData) {
+    processCommit(committedData);
   }
 };
 
-// 核心流式汉字核销：支持输入法直接上屏单字、两字词、四字成语乃至整句长句
-const processChineseCommit = (text: string) => {
+// 核心流式汉字/标点核销：支持输入法直接上屏单字、两字词、四字成语乃至整句长句与标点
+const processCommit = (text: string) => {
   lastImeCommitTime = Date.now();
   inputBuffer.value = '';
+  composingText.value = '';
   if (inputRef.value) inputRef.value.value = '';
 
-  // 过滤出所有汉字字符
-  const chineseChars = Array.from(text).filter(c => /[\u4e00-\u9fa5]/.test(c));
-  if (chineseChars.length === 0) return;
+  // 接收上屏内容（汉字、词组、成语或标点符号，过滤换行符）
+  const cleanChars = Array.from(text).filter(c => !/\r|\n/.test(c));
+  if (cleanChars.length === 0) return;
 
-  const res = matchChineseStream(chineseChars, articleChars.value, charIndex.value);
-  if (res.matchedCount > 0) {
+  const res = matchChineseStream(cleanChars, articleChars.value, charIndex.value);
+  if (res.targetAdvancedCount > 0) {
     soundPlayer.playKey(store.audio.value, true);
     correctCount.value += res.matchedCount;
     keystrokes.value += res.matchedCount * 2;
     hasError.value = false;
     charHasMistake.value = false;
-    advanceNextChar(res.matchedCount);
+    advanceNextChar(res.targetAdvancedCount);
   }
 
   // 若存在错字，触发错误震慑与记错
@@ -629,7 +671,7 @@ const processChineseCommit = (text: string) => {
     hasError.value = true;
     soundPlayer.playKey(store.audio.value, false, true);
     charHasMistake.value = true;
-    errorCount.value += (chineseChars.length - res.matchedCount);
+    errorCount.value += (cleanChars.length - res.matchedCount);
     if (currentCharData.value) {
       store.recordMistake(
         currentCharData.value.char,
@@ -642,20 +684,29 @@ const processChineseCommit = (text: string) => {
 };
 
 const handleInput = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+
+  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面胶囊中显示
   if (isComposingRef.value || (e as InputEvent).isComposing) {
+    composingText.value = target.value.toUpperCase();
     return;
   }
 
-  const target = e.target as HTMLInputElement;
+  // 2. 避免在 compositionend 刚处理完后，后续紧跟的 input 事件导致重复核销
+  if (Date.now() - lastImeCommitTime < 80) {
+    target.value = '';
+    return;
+  }
+
   const raw = target.value.trim();
 
-  // 1. 若为汉字输入法直接上屏，调用流式多字流水线
-  if (/[\u4e00-\u9fa5]/.test(raw)) {
-    processChineseCommit(raw);
+  // 3. 若为汉字输入法直接上屏（包含汉字或标点），调用流式核销流水线
+  if (/[\u4e00-\u9fa5，。！？；：“”‘’（）《》、\.,!?;:()"]/.test(raw)) {
+    processCommit(raw);
     return;
   }
 
-  // 2. 纯英文字母模式 (直接敲五笔字母盲打)
+  // 4. 纯英文字母模式 (直接敲五笔字母盲打)
   const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
@@ -663,6 +714,11 @@ const handleInput = (e: Event) => {
   if (!clean) {
     hasError.value = false;
     return;
+  }
+
+  // 如果当前目标字符是标点符号，纯字母输入自动跳过标点，并作用于标点后的下一个汉字
+  if (isPunctuation(targetChar.value)) {
+    advanceNextChar(1);
   }
 
   // 动态结合当前单字与多字词组候选集进行比对
@@ -711,11 +767,16 @@ const handleKeyDown = (e: KeyboardEvent) => {
     startTime.value = Date.now();
   }
 
-  // 标点符号直接按任意键或者空格跳过
+  // 标点符号处理：敲空格或对应的标点按键直接跳过
   if (isPunctuation(targetChar.value)) {
-    e.preventDefault();
-    advanceNextChar(1);
-    return;
+    if (e.key === ' ' || e.code === 'Space' || isPunctuationEquivalent(e.key, targetChar.value)) {
+      e.preventDefault();
+      soundPlayer.playKey(store.audio.value, true);
+      correctCount.value += 1;
+      keystrokes.value += 1;
+      advanceNextChar(1);
+      return;
+    }
   }
 
   if (e.key === 'Backspace') {
@@ -738,6 +799,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     inputBuffer.value = '';
+    composingText.value = '';
     if (inputRef.value) inputRef.value.value = '';
     hasError.value = false;
     return;
@@ -750,8 +812,19 @@ const handleKeyDown = (e: KeyboardEvent) => {
 };
 
 const checkChar = (hasPressedSpace: boolean) => {
+  if (isFinished.value) return;
+
+  // 如果目标字符是标点符号且按了空格，跳过标点
+  if (isPunctuation(targetChar.value)) {
+    soundPlayer.playKey(store.audio.value, true);
+    correctCount.value += 1;
+    keystrokes.value += 1;
+    advanceNextChar(1);
+    return;
+  }
+
   if (!currentCharData.value) {
-    // 词库未收录字或标点直接前进
+    // 词库未收录字直接前进
     advanceNextChar(1);
     return;
   }
@@ -771,6 +844,7 @@ const checkChar = (hasPressedSpace: boolean) => {
     hasError.value = false;
     charHasMistake.value = false;
     inputBuffer.value = '';
+    composingText.value = '';
     if (inputRef.value) inputRef.value.value = '';
     advanceNextChar(step);
   } else {
@@ -850,6 +924,10 @@ const handleWindowKeyDown = (e: KeyboardEvent) => {
 onMounted(() => {
   loadSavedProgress();
   window.addEventListener('keydown', handleWindowKeyDown);
+  // 后台预热全量五笔字库，确保长文中所有冷僻字（如陋、苔、痕等）均有完整字根与编码提示
+  loadFullParsedChars().then(() => {
+    dictReady.value = true;
+  });
   timerInterval.value = window.setInterval(() => {
     if (startTime.value && !isFinished.value) {
       stats.value = calculateStats(
@@ -1287,6 +1365,16 @@ watch(() => charIndex.value, () => {
   color: var(--zone-5);
   border: 1px solid var(--zone-5);
   font-weight: 700;
+}
+
+.badge.punct {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+
+.focus-char.punct-char {
+  color: #f59e0b;
 }
 
 .roots-tag {

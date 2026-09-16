@@ -88,4 +88,32 @@ describe('长文与竞速赛智能双轨词组匹配核心算法测试', () => {
     expect(res3.matchedCount).toBe(4);
     expect(res3.isAllMatched).toBe(true);
   });
+
+  it('六、标点符号流式核销与智能跳过测试：遇到标点符号可直接键入或直接打下个词跳过', () => {
+    const articleWithPunct = ['山', '不', '在', '高', '，', '有', '仙', '则', '名', '。'];
+
+    // 1. 直接打中文逗号上屏
+    const r1 = matchChineseStream(['，'], articleWithPunct, 4);
+    expect(r1.matchedCount).toBe(1);
+    expect(r1.targetAdvancedCount).toBe(1);
+    expect(r1.isAllMatched).toBe(true);
+
+    // 2. 键入英文逗号等价匹配中文逗号
+    const r2 = matchChineseStream([','], articleWithPunct, 4);
+    expect(r2.matchedCount).toBe(1);
+    expect(r2.targetAdvancedCount).toBe(1);
+    expect(r2.isAllMatched).toBe(true);
+
+    // 3. 不打标点、直接输入下一个词组【有仙】：智能跳过中间的逗号，目标前进 3 字符
+    const r3 = matchChineseStream(['有', '仙'], articleWithPunct, 4);
+    expect(r3.matchedCount).toBe(2);
+    expect(r3.targetAdvancedCount).toBe(3); // 跳过逗号 + 匹配“有”、“仙”
+    expect(r3.isAllMatched).toBe(true);
+
+    // 4. 带标点一起输入【，有仙】
+    const r4 = matchChineseStream(['，', '有', '仙'], articleWithPunct, 4);
+    expect(r4.matchedCount).toBe(3);
+    expect(r4.targetAdvancedCount).toBe(3);
+    expect(r4.isAllMatched).toBe(true);
+  });
 });
