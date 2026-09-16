@@ -38,7 +38,11 @@
           class="wubi-key key-cap"
           :class="[
             getKeyZoneClass(key),
-            { active: activeKey === key, pressed: pressedKey === key }
+            {
+              active: isKeyActive(key),
+              pressed: pressedKey === key,
+              'is-hovered': hoveredKey === key
+            }
           ]"
           @mouseenter="onHover(key)"
           @mouseleave="onLeave"
@@ -65,7 +69,11 @@
           class="wubi-key key-cap"
           :class="[
             getKeyZoneClass(key),
-            { active: activeKey === key, pressed: pressedKey === key }
+            {
+              active: isKeyActive(key),
+              pressed: pressedKey === key,
+              'is-hovered': hoveredKey === key
+            }
           ]"
           @mouseenter="onHover(key)"
           @mouseleave="onLeave"
@@ -92,7 +100,12 @@
           class="wubi-key key-cap"
           :class="[
             getKeyZoneClass(key),
-            { active: activeKey === key, pressed: pressedKey === key, 'z-key': key === 'Z' }
+            {
+              active: isKeyActive(key),
+              pressed: pressedKey === key,
+              'is-hovered': hoveredKey === key,
+              'z-key': key === 'Z'
+            }
           ]"
           @mouseenter="onHover(key)"
           @mouseleave="onLeave"
@@ -122,7 +135,10 @@
       <div class="kb-row">
         <div
           class="wubi-key space-cap"
-          :class="{ pressed: pressedKey === ' ' }"
+          :class="{
+            pressed: pressedKey === ' ',
+            active: props.activeKey === ' '
+          }"
           @click="onClickSpace"
         >
           <span class="space-text">SPACE（确认 / 简码出字）</span>
@@ -186,6 +202,7 @@ const row3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
 const pressedKey = ref<string | null>(null);
 const hoveredKey = ref<string | null>(null);
+const selectedKey = ref<string>('G');
 
 const currentKeyboard = computed(() => getKeyboardByVersion(store.version.value));
 
@@ -199,12 +216,17 @@ const versionName = computed(() => {
   }
 });
 
+const isKeyActive = (key: string): boolean => {
+  if (!props.activeKey) return false;
+  return props.activeKey.trim().toUpperCase() === key.toUpperCase();
+};
+
 const getKeyInfo = (key: string): KeyRootInfo | undefined => {
   return currentKeyboard.value[key];
 };
 
 const activeZoneId = computed(() => {
-  const k = hoveredKey.value || props.activeKey || pressedKey.value;
+  const k = hoveredKey.value || (props.activeKey && props.activeKey.trim() !== '' ? props.activeKey : null) || pressedKey.value || selectedKey.value;
   if (!k) return null;
   const upper = k.toUpperCase();
   if (upper === 'Z') return 0;
@@ -220,6 +242,7 @@ const getKeyZoneClass = (key: string): string => {
 
 const onHover = (key: string) => {
   hoveredKey.value = key;
+  selectedKey.value = key;
 };
 
 const onLeave = () => {
@@ -238,6 +261,7 @@ const triggerPress = (key: string) => {
 
 const onClickKey = (key: string) => {
   triggerPress(key);
+  selectedKey.value = key;
   hoveredKey.value = key;
 };
 
@@ -246,7 +270,11 @@ const onClickSpace = () => {
 };
 
 const currentKey = computed(() => {
-  return hoveredKey.value || props.activeKey || 'G';
+  if (hoveredKey.value) return hoveredKey.value;
+  if (props.activeKey && props.activeKey.trim() !== '') {
+    return props.activeKey.trim().toUpperCase();
+  }
+  return selectedKey.value || 'G';
 });
 
 const currentKeyData = computed(() => {
@@ -395,6 +423,13 @@ const currentZoneColor = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.16s ease,
+              background 0.16s ease,
+              border-color 0.16s ease;
+  will-change: transform, box-shadow;
+  position: relative;
+  z-index: 1;
 }
 
 .key-header {
@@ -407,12 +442,14 @@ const currentZoneColor = computed(() => {
   font-size: 1.1rem;
   font-weight: 800;
   color: var(--text-main);
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .key-code {
   font-size: 0.7rem;
   color: var(--text-muted);
   font-family: monospace;
+  transition: color 0.15s ease;
 }
 
 .key-name {
@@ -420,6 +457,7 @@ const currentZoneColor = computed(() => {
   font-weight: 700;
   text-align: center;
   color: var(--accent);
+  transition: color 0.15s ease, transform 0.15s ease, text-shadow 0.15s ease;
 }
 
 .key-roots {
@@ -429,31 +467,136 @@ const currentZoneColor = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.15s ease;
 }
 
+/* 核心悬停微交互：立体上浮 + 高光光晕 + 键帽内容动态点亮 */
+.key-cap:hover,
+.key-cap.is-hovered {
+  transform: translateY(-4px) scale(1.04);
+  background: var(--bg-secondary) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--accent), 0 0 14px var(--accent-subtle) !important;
+  z-index: 10;
+}
+
+.key-cap:hover .key-letter,
+.key-cap.is-hovered .key-letter {
+  color: var(--accent);
+  transform: scale(1.1);
+}
+
+.key-cap:hover .key-name,
+.key-cap.is-hovered .key-name {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-subtle);
+  transform: scale(1.08);
+}
+
+.key-cap:hover .key-code,
+.key-cap.is-hovered .key-code {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.key-cap:hover .key-roots,
+.key-cap.is-hovered .key-roots {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* 区位顶边条与专属区位悬浮色彩辉光 */
 .zone-1 { border-top: 3px solid var(--zone-1); }
 .zone-2 { border-top: 3px solid var(--zone-2); }
 .zone-3 { border-top: 3px solid var(--zone-3); }
 .zone-4 { border-top: 3px solid var(--zone-4); }
 .zone-5 { border-top: 3px solid var(--zone-5); }
 
-.z-key {
-  border-top: 3px solid var(--text-muted);
-  opacity: 0.85;
+.zone-1:hover, .zone-1.is-hovered {
+  border-top-color: var(--zone-1) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--zone-1), 0 0 16px rgba(59, 130, 246, 0.35) !important;
+}
+.zone-2:hover, .zone-2.is-hovered {
+  border-top-color: var(--zone-2) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--zone-2), 0 0 16px rgba(16, 185, 129, 0.35) !important;
+}
+.zone-3:hover, .zone-3.is-hovered {
+  border-top-color: var(--zone-3) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--zone-3), 0 0 16px rgba(245, 158, 11, 0.35) !important;
+}
+.zone-4:hover, .zone-4.is-hovered {
+  border-top-color: var(--zone-4) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--zone-4), 0 0 16px rgba(239, 68, 68, 0.35) !important;
+}
+.zone-5:hover, .zone-5.is-hovered {
+  border-top-color: var(--zone-5) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), 0 0 0 1.5px var(--zone-5), 0 0 16px rgba(139, 92, 246, 0.35) !important;
 }
 
+.z-key {
+  border-top: 3px solid var(--text-muted);
+  opacity: 0.9;
+}
+
+.z-key:hover, .z-key.is-hovered {
+  border-top-color: var(--accent) !important;
+}
+
+/* 空格键及悬浮效果 */
 .space-cap {
   width: 460px;
   height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.16s ease,
+              background 0.16s ease,
+              border-color 0.16s ease;
 }
 
 .space-text {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.space-cap:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--accent), 0 0 12px var(--accent-subtle);
+  z-index: 5;
+}
+
+.space-cap:hover .space-text {
+  color: var(--accent);
+}
+
+/* 激活状态（如跟打、追逐赛中的下一击推荐按键） */
+.key-cap.active,
+.space-cap.active {
+  border-color: var(--accent) !important;
+  background: var(--accent-subtle) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px var(--accent), 0 4px 14px var(--accent-subtle) !important;
+  animation: key-pulse-glow 1.6s infinite ease-in-out;
+  z-index: 6;
+}
+
+@keyframes key-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 14px var(--accent-subtle);
+  }
+  50% {
+    box-shadow: 0 0 0 3px var(--accent), 0 8px 22px var(--accent);
+  }
+}
+
+.key-cap.active .key-letter {
+  color: var(--accent);
+  font-weight: 900;
 }
 
 .detail-card {
