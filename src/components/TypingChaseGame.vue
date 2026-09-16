@@ -141,6 +141,7 @@
         @keydown="handleKeyDown"
         @input="handleNativeInput"
         @compositionstart="handleCompositionStart"
+        @compositionupdate="handleCompositionUpdate"
         @compositionend="handleCompositionEnd"
         :disabled="gameState === 'finished' || gameState === 'failed'"
         autocomplete="off"
@@ -191,7 +192,9 @@
                 <div class="hint-pinyin">{{ item.pinyin || '—' }}</div>
                 <div class="hint-code-row">
                   全码: <span class="hint-full-code">{{ getCharTargetCode(item) }}</span>
-                  <span class="hint-short-badge" v-if="item.short86">简码: {{ item.short86 }}</span>
+                  <span class="hint-short-badge" v-if="getCharShortCode(item) && getCharShortCode(item) !== getCharTargetCode(item)">
+                    简码: {{ getCharShortCode(item) }}
+                  </span>
                 </div>
                 <div class="hint-roots">
                   拆解:
@@ -228,17 +231,22 @@
             :key="i"
             class="key-slot"
             :class="{
-              'filled': inputBuffer.length >= i,
-              'active-cursor': inputBuffer.length === i - 1,
+              'filled': displayInput.length >= i,
+              'active-cursor': displayInput.length === i - 1,
               'error-shake': hasInputError
             }"
           >
-            {{ inputBuffer[i - 1] || '' }}
+            {{ displayInput[i - 1] || '' }}
           </div>
         </div>
         <div class="input-guide-text">
           敲击五笔编码按字母直接录入，支持按 <kbd>空格</kbd> 提交或退格 <kbd>Backspace</kbd> 修正
         </div>
+      </div>
+
+      <!-- 底部辅助虚拟键盘 (追逐赛击键提示) -->
+      <div class="game-virtual-kb">
+        <VirtualKeyboard :active-key="nextExpectedKey" />
       </div>
 
       <!-- 游戏启动/暂停/结算浮层遮罩 -->
@@ -365,12 +373,18 @@ import {
   getFullCode,
   getShortCode,
   getRoots,
+  loadFullParsedChars,
   type WubiCharData
 } from '../data/wubiDict';
 import { soundPlayer } from '../utils/audio';
 import MiZiGe from './MiZiGe.vue';
+import VirtualKeyboard from './VirtualKeyboard.vue';
 import confetti from 'canvas-confetti';
-import { getUpcomingCandidates, evaluateCandidates } from '../utils/phraseMatching';
+import {
+  getUpcomingCandidates,
+  evaluateCandidates,
+  matchChineseStream
+} from '../utils/phraseMatching';
 
 const store = useWubiStore();
 
@@ -415,7 +429,14 @@ const setAiWpm = (wpm: number) => {
 const targetChars = ref<WubiCharData[]>([]);
 const playerIndex = ref<number>(0);
 const inputBuffer = ref<string>('');
+const isComposingRef = ref(false);
+const composingText = ref('');
+let lastImeCommitTime = 0;
 const hasInputError = ref<boolean>(false);
+
+const displayInput = computed(() => {
+  return (inputBuffer.value || composingText.value).slice(0, 4);
+});
 
 // 玩家统计
 const correctKeystrokes = ref<number>(0);
@@ -525,15 +546,37 @@ const generateGameChars = () => {
   playerIndex.value = 0;
   aiCharProgress.value = 0;
   inputBuffer.value = '';
+  composingText.value = '';
 };
 
 const getCharTargetCode = (item: WubiCharData) => {
   return getFullCode(item, store.version.value).toUpperCase();
 };
 
+const getCharShortCode = (item: WubiCharData) => {
+  return getShortCode(item, store.version.value)?.toUpperCase();
+};
+
 const getCharTargetRoots = (item: WubiCharData) => {
   return getRoots(item, store.version.value);
 };
+
+const nextExpectedKey = computed(() => {
+  const currentItem = targetChars.value[playerIndex.value];
+  if (!currentItem) return null;
+
+  const shortC = getCharShortCode(currentItem);
+  const targetCode = (store.inputMode.value === 'quick' && shortC)
+    ? shortC
+    : getCharTargetCode(currentItem);
+  if (!targetCode) return null;
+
+  const currentLen = (inputBuffer.value || composingText.value).length;
+  if (currentLen < targetCode.length) {
+    return targetCode[currentLen];
+  }
+  return ' ';
+});
 
 const focusInput = () => {
   if (hiddenInputRef.value) {
@@ -619,10 +662,6 @@ const increaseAiDifficulty = () => {
   startGame();
 };
 
-// 跟踪输入法组合状态与最近提交时间戳
-const isComposingRef = ref(false);
-let lastImeCommitTime = 0;
-
 // 键盘特殊功能键处理 (退格、回车、空格)
 const handleKeyDown = (e: KeyboardEvent) => {
   if (gameState.value !== 'running') return;
@@ -642,6 +681,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (inputBuffer.value.length > 0) {
       e.preventDefault();
       inputBuffer.value = inputBuffer.value.slice(0, -1);
+      composingText.value = '';
       if (hiddenInputRef.value) {
         hiddenInputRef.value.value = inputBuffer.value;
       }
@@ -666,6 +706,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (key === 'Enter') {
     e.preventDefault();
     inputBuffer.value = '';
+    composingText.value = '';
     if (hiddenInputRef.value) {
       hiddenInputRef.value.value = '';
     }
@@ -677,48 +718,44 @@ const handleKeyDown = (e: KeyboardEvent) => {
 // 输入法组合开始 (例如敲下五笔/拼音候选字母)
 const handleCompositionStart = () => {
   isComposingRef.value = true;
+  composingText.value = '';
+};
+
+const handleCompositionUpdate = (e: CompositionEvent) => {
+  isComposingRef.value = true;
+  composingText.value = (e.data || (hiddenInputRef.value?.value || '')).toUpperCase().slice(0, 4);
 };
 
 // 输入法组合结束 (用户在输入法候选框中敲击空格或数字完成选字上屏)
 const handleCompositionEnd = (e: CompositionEvent) => {
   isComposingRef.value = false;
-  const committedData = e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '');
-  if (committedData && /[\u4e00-\u9fa5]/.test(committedData)) {
+  const committedData = e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '') || composingText.value;
+  composingText.value = '';
+  if (committedData) {
     processChineseCommit(committedData);
   }
 };
 
-// 统一汉字上屏提交处理逻辑（完美支持单个汉字及连续汉字上屏）
+// 统一汉字上屏提交处理逻辑（完美支持单个汉字及多字词组流式上屏）
 const processChineseCommit = (text: string) => {
   lastImeCommitTime = Date.now();
-
-  // 提取所有汉字字符
-  const chineseChars = Array.from(text).filter(c => /[\u4e00-\u9fa5]/.test(c));
-
-  // 核心清理：立即重置原生 input 与 inputBuffer，彻底杜绝输入残留带入下一个字！
   inputBuffer.value = '';
+  composingText.value = '';
   if (hiddenInputRef.value) {
     hiddenInputRef.value.value = '';
   }
 
-  if (chineseChars.length === 0) return;
+  // 提取所有文字字符（过滤换行符）
+  const cleanChars = Array.from(text).filter(c => !/\r|\n/.test(c));
+  if (cleanChars.length === 0) return;
 
-  for (const char of chineseChars) {
-    const currentItem = targetChars.value[playerIndex.value];
-    if (!currentItem) break;
-
-    if (char === currentItem.char) {
-      onCharSuccess();
-    } else {
-      onCharError();
-      break;
-    }
+  const res = matchChineseStream(cleanChars, gameCharsList.value, playerIndex.value);
+  if (res.targetAdvancedCount > 0) {
+    onCharSuccess(res.targetAdvancedCount);
   }
 
-  // 再次确保清理干净
-  inputBuffer.value = '';
-  if (hiddenInputRef.value) {
-    hiddenInputRef.value.value = '';
+  if (!res.isAllMatched) {
+    onCharError();
   }
 };
 
@@ -726,12 +763,20 @@ const processChineseCommit = (text: string) => {
 const handleNativeInput = (e: Event) => {
   if (gameState.value !== 'running') return;
 
-  // 1. 如果正在输入法候选组字中，严禁干预原生输入法，不执行任何比对与消耗
+  const target = e.target as HTMLInputElement;
+
+  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面槽位中显示
   if (isComposingRef.value || (e as InputEvent).isComposing) {
+    composingText.value = target.value.toUpperCase().slice(0, 4);
     return;
   }
 
-  const target = e.target as HTMLInputElement;
+  // 2. 避免在 compositionend 刚处理完后紧随的 input 事件重复触发二次提交判错
+  if (Date.now() - lastImeCommitTime < 80) {
+    target.value = '';
+    return;
+  }
+
   const raw = target.value.trim();
 
   if (!raw) {
@@ -740,13 +785,13 @@ const handleNativeInput = (e: Event) => {
     return;
   }
 
-  // 2. 情况 A：输入框中出现了汉字（某些浏览器在 compositionend 后或非标准输入法直接通过 input 注入汉字）
+  // 3. 情况 A：输入框中出现了汉字（某些浏览器在 compositionend 后或非标准输入法直接通过 input 注入汉字）
   if (/[\u4e00-\u9fa5]/.test(raw)) {
     processChineseCommit(raw);
     return;
   }
 
-  // 3. 情况 B：用户使用纯英文键盘敲击五笔字母编码 (A-Z)
+  // 4. 情况 B：用户使用纯英文键盘敲击五笔字母编码 (A-Z)
   const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
@@ -810,6 +855,7 @@ const onCharSuccess = (step = 1) => {
 
   playerIndex.value = Math.min(TARGET_COUNT, playerIndex.value + step);
   inputBuffer.value = '';
+  composingText.value = '';
   if (hiddenInputRef.value) {
     hiddenInputRef.value.value = '';
   }
@@ -827,6 +873,7 @@ const onCharError = () => {
   soundPlayer.playKey(store.audio.value, false, true);
 
   inputBuffer.value = '';
+  composingText.value = '';
   if (hiddenInputRef.value) {
     hiddenInputRef.value.value = '';
   }
@@ -838,6 +885,7 @@ const onCharError = () => {
 
 onMounted(() => {
   generateGameChars();
+  loadFullParsedChars();
 });
 
 onUnmounted(() => {
@@ -1711,5 +1759,10 @@ onUnmounted(() => {
   padding: 1px 8px;
   border-radius: 6px;
   margin-left: 8px;
+}
+
+.game-virtual-kb {
+  margin-top: 1.5rem;
+  width: 100%;
 }
 </style>
