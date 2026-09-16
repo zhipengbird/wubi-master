@@ -344,7 +344,8 @@ import {
   getRootSteps,
   getCharBreakdown,
   getRecognitionCode,
-  getPhraseBreakdown
+  getPhraseBreakdown,
+  WUBI_CHAR_MAP
 } from '../data/wubiDict';
 import { COMMON_PHRASES } from '../data/wordsDict';
 import { evaluateInput, calculateStats } from '../utils/wubiEngine';
@@ -380,15 +381,21 @@ const modeList = [
   { id: 'quick' as InputMode, name: '简码专练', icon: Zap },
 ];
 
-const categoryList = [
-  { id: 'level1' as PracticeCategory, name: '一级简码 (25字)' },
-  { id: 'level2' as PracticeCategory, name: '二级简码精选' },
-  { id: 'root' as PracticeCategory, name: '键名与字根' },
-  { id: 'top500' as PracticeCategory, name: '常用前500字' },
-  { id: 'top1500' as PracticeCategory, name: '常用前1500字' },
-  { id: 'top3500' as PracticeCategory, name: '3500常用字全集' },
-  { id: 'phrase' as PracticeCategory, name: '高频词组特训 (3000词)' },
-];
+const categoryList = computed(() => {
+  const base = [
+    { id: 'level1' as PracticeCategory, name: '一级简码 (25字)' },
+    { id: 'level2' as PracticeCategory, name: '二级简码精选' },
+    { id: 'root' as PracticeCategory, name: '键名与字根' },
+    { id: 'top500' as PracticeCategory, name: '常用前500字' },
+    { id: 'top1500' as PracticeCategory, name: '常用前1500字' },
+    { id: 'top3500' as PracticeCategory, name: '3500常用字全集' },
+    { id: 'phrase' as PracticeCategory, name: '高频词组特训 (3000词)' },
+  ];
+  if (store.mistakeList.value.length > 0) {
+    base.push({ id: 'mistakes' as PracticeCategory, name: `错字攻坚 (${store.mistakeList.value.length}字)` });
+  }
+  return base;
+});
 
 const batchSizeOptions = [
   { value: 20, label: '20字' },
@@ -421,7 +428,12 @@ const setPhraseFilter = (f: 'all' | '2' | '3' | '4') => {
   loadPracticeData();
 };
 
-const currentCategory = ref<PracticeCategory>('level1');
+const currentCategory = computed<PracticeCategory>({
+  get: () => store.practiceCategory.value,
+  set: (cat: PracticeCategory) => {
+    store.setPracticeCategory(cat);
+  }
+});
 
 // 全量练习池与分批练习队列
 const fullPool = ref<WubiCharData[]>([]);
@@ -503,6 +515,27 @@ const loadPracticeData = () => {
         roots98: [],
         rootsNew: []
       }));
+      break;
+    }
+    case 'mistakes': {
+      if (store.mistakeList.value.length > 0) {
+        list = store.mistakeList.value.map(m => {
+          const found = WUBI_CHAR_MAP.get(m.char);
+          if (found) return found;
+          return {
+            char: m.char,
+            pinyin: '',
+            code86: m.correctCode,
+            code98: m.correctCode,
+            codeNew: m.correctCode,
+            roots86: m.roots || [],
+            roots98: m.roots || [],
+            rootsNew: m.roots || []
+          } as WubiCharData;
+        });
+      } else {
+        list = [...LEVEL_1_CHARS];
+      }
       break;
     }
     case 'single':
@@ -610,8 +643,9 @@ const selectCategory = (cat: PracticeCategory) => {
 };
 
 const nextCategory = () => {
-  const idx = categoryList.findIndex(c => c.id === currentCategory.value);
-  const next = categoryList[(idx + 1) % categoryList.length];
+  const list = categoryList.value;
+  const idx = list.findIndex(c => c.id === currentCategory.value);
+  const next = list[(idx + 1) % list.length];
   selectCategory(next.id);
 };
 
@@ -833,6 +867,10 @@ onUnmounted(() => {
 
 watch(() => store.version.value, () => {
   resetSession();
+});
+
+watch(() => store.practiceCategory.value, () => {
+  loadPracticeData();
 });
 </script>
 

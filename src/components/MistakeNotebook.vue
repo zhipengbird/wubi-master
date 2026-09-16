@@ -89,7 +89,8 @@ const clearAll = () => {
 };
 
 const drillMistakes = () => {
-  // 切换至打字模块开始特训
+  // 切换至打字模块并激活错字消灭战专练
+  store.setPracticeCategory('mistakes');
   store.setActiveTab('practice');
 };
 </script>

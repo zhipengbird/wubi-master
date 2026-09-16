@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { WubiCharData, WubiVersion } from '../types/wubi';
+import type { WubiCharData, WubiVersion, MistakeRecord } from '../types/wubi';
 
 export interface DbMetaItem {
   key: string;
@@ -9,6 +9,7 @@ export interface DbMetaItem {
 export class WubiDatabase extends Dexie {
   chars!: Table<WubiCharData, string>;
   meta!: Table<DbMetaItem, string>;
+  mistakes!: Table<MistakeRecord, string>;
 
   constructor() {
     super('WubiMasterDB');
@@ -19,6 +20,11 @@ export class WubiDatabase extends Dexie {
     this.version(2).stores({
       chars: 'char, code86, code98, codeNew, pinyin, pinyinPlain, strokes, radical',
       meta: 'key'
+    });
+    this.version(3).stores({
+      chars: 'char, code86, code98, codeNew, pinyin, pinyinPlain, strokes, radical',
+      meta: 'key',
+      mistakes: 'char, count, lastErrorTime'
     });
   }
 }
@@ -326,4 +332,115 @@ export const searchMultiModal = async (
   }
 
   return { mode: 'empty', keyword: kw, results: [] };
+};
+
+/**
+ * 获取 IndexedDB 中全部错题，默认按最近出错时间倒序排列
+ */
+export const getDbMistakes = async (): Promise<MistakeRecord[]> => {
+  try {
+    return await db.mistakes.orderBy('lastErrorTime').reverse().toArray();
+  } catch (err) {
+    console.warn('[WubiDb] 获取数据库错题失败:', err);
+    return [];
+  }
+};
+
+/**
+ * 记录/更新错题至 IndexedDB
+ */
+export const saveDbMistake = async (
+  char: string,
+  errorCode: string,
+  correctCode: string,
+  roots: string[]
+): Promise<MistakeRecord> => {
+  try {
+    const existing = await db.mistakes.get(char);
+    const now = Date.now();
+    let record: MistakeRecord;
+    if (existing) {
+      const errorCodes = existing.errorCodes.includes(errorCode)
+        ? existing.errorCodes
+        : [...existing.errorCodes, errorCode];
+      record = {
+        ...existing,
+        count: existing.count + 1,
+        lastErrorTime: now,
+        errorCodes,
+        correctCode: correctCode || existing.correctCode,
+        roots: (roots && roots.length > 0) ? roots : existing.roots
+      };
+    } else {
+      record = {
+        char,
+        errorCodes: errorCode ? [errorCode] : [],
+        correctCode,
+        roots: roots || [],
+        count: 1,
+        lastErrorTime: now
+      };
+    }
+    await db.mistakes.put(record);
+    return record;
+  } catch (err) {
+    console.warn('[WubiDb] 写入错题至数据库失败:', err);
+    return {
+      char,
+      errorCodes: errorCode ? [errorCode] : [],
+      correctCode,
+      roots: roots || [],
+      count: 1,
+      lastErrorTime: Date.now()
+    };
+  }
+};
+
+/**
+ * 从 IndexedDB 移除错题（已掌握）
+ */
+export const removeDbMistake = async (char: string): Promise<void> => {
+  try {
+    await db.mistakes.delete(char);
+  } catch (err) {
+    console.warn('[WubiDb] 从数据库移除错题失败:', err);
+  }
+};
+
+/**
+ * 清空 IndexedDB 所有错题
+ */
+export const clearDbMistakes = async (): Promise<void> => {
+  try {
+    await db.mistakes.clear();
+  } catch (err) {
+    console.warn('[WubiDb] 清空数据库错题失败:', err);
+  }
+};
+
+/**
+ * 将旧版 localStorage 错题平滑自动迁移到 IndexedDB（仅首次无感执行，零数据丢失）
+ */
+export const migrateMistakesFromLocalStorage = async (): Promise<MistakeRecord[]> => {
+  try {
+    const migrated = await db.meta.get('mistakes_migrated_v1');
+    if (migrated && migrated.value === true) {
+      return await getDbMistakes();
+    }
+
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('wubi_mistakes') : null;
+    if (raw) {
+      const list: MistakeRecord[] = JSON.parse(raw);
+      if (Array.isArray(list) && list.length > 0) {
+        await db.mistakes.bulkPut(list);
+        console.log(`[WubiDb] 成功从 localStorage 自动迁移 ${list.length} 条错题至 IndexedDB！`);
+      }
+    }
+
+    await db.meta.put({ key: 'mistakes_migrated_v1', value: true });
+    return await getDbMistakes();
+  } catch (err) {
+    console.warn('[WubiDb] 迁移 localStorage 错题至数据库失败:', err);
+    return [];
+  }
 };
