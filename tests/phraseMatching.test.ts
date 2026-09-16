@@ -116,4 +116,29 @@ describe('长文与竞速赛智能双轨词组匹配核心算法测试', () => {
     expect(r4.targetAdvancedCount).toBe(3);
     expect(r4.isAllMatched).toBe(true);
   });
+
+  it('七、多级简码（键名二简如【木】打 SS、词典二简等）匹配测试', () => {
+    const article = ['木', '已', '成', '舟'];
+    const candidates = getUpcomingCandidates(article, 0, '86');
+
+    // 目标字【木】，键名二简为 SS，全码为 SSSS
+    expect(candidates[0].text).toBe('木');
+    expect(candidates[0].shortCodes).toBeDefined();
+    expect(candidates[0].shortCodes).toContain('SS');
+
+    // 1. 输入 SS + 空格匹配成功
+    const matchWithSpace = evaluateCandidates('SS', candidates, true, 'space');
+    expect(matchWithSpace.isMatch).toBe(true);
+    expect(matchWithSpace.matchedCandidate?.text).toBe('木');
+
+    // 2. auto 模式下输入 SS 直接匹配成功
+    const matchAuto = evaluateCandidates('SS', candidates, false, 'auto');
+    expect(matchAuto.isMatch).toBe(true);
+    expect(matchAuto.matchedCandidate?.text).toBe('木');
+
+    // 3. 前缀检查：输入单个 S 不应报错
+    const prefixCheck = evaluateCandidates('S', candidates, false, 'space');
+    expect(prefixCheck.isPrefixMatch).toBe(true);
+  });
 });
+

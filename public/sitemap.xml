@@ -13,7 +13,7 @@
 
   <!-- 五笔打字特训（一级简码、二级简码、高频词组、键名字练习） -->
   <url>
-    <loc>https://wubi.pinme.dev/?tab=type</loc>
+    <loc>https://wubi.pinme.dev/?tab=practice</loc>
     <lastmod>2026-09-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>

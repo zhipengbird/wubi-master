@@ -91,7 +91,7 @@ wubi-master/
 ├── scripts/                       # 自动化测试与辅助脚本
 │   └── e2eAllStagesHarness.ts     # Puppeteer 13关端到端自动化测试巡检脚本
 ├── src/
-│   ├── components/                # Vue 核心组件（11个）
+│   ├── components/                # Vue 核心组件（10个）
 │   │   ├── TypeEngine.vue         # 核心打字练习引擎（单字/字根/词组）
 │   │   ├── RpgAdventure.vue       # 修仙打怪闯关 RPG（十三关卡/ATB战斗/大招/秘宝）
 │   │   ├── ArticlePractice.vue    # 长文篇章练习（全文阅读/导入/自动滚动）
@@ -101,8 +101,7 @@ wubi-master/
 │   │   ├── RuleTutorial.vue       # 拆字规则互动教学
 │   │   ├── MistakeNotebook.vue    # 错题生字本
 │   │   ├── MiZiGe.vue             # 矢量书法米字格展示
-│   │   ├── Navbar.vue             # 顶部导航与设置面板
-│   │   └── HelloWorld.vue         # 欢迎页（预留）
+│   │   └── Navbar.vue             # 顶部导航与设置面板
 │   ├── data/                      # 数据层（字典/题库/键盘）
 │   │   ├── wubiDict.ts            # 字典查询API、词组取码算法
 │   │   ├── wubiDb.ts              # IndexedDB 数据库封装（Dexie.js）

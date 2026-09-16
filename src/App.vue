@@ -69,23 +69,34 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 import { useWubiStore } from './stores/useWubiStore';
 import Navbar from './components/Navbar.vue';
 import TypeEngine from './components/TypeEngine.vue';
-import RpgAdventure from './components/RpgAdventure.vue';
-import ArticlePractice from './components/ArticlePractice.vue';
-import TypingChaseGame from './components/TypingChaseGame.vue';
 import VirtualKeyboard from './components/VirtualKeyboard.vue';
-import RuleTutorial from './components/RuleTutorial.vue';
-import WubiLookup from './components/WubiLookup.vue';
-import MistakeNotebook from './components/MistakeNotebook.vue';
+
+// 大型功能模块异步按需懒加载，大幅削减首屏主包体积
+const RpgAdventure = defineAsyncComponent(() => import('./components/RpgAdventure.vue'));
+const ArticlePractice = defineAsyncComponent(() => import('./components/ArticlePractice.vue'));
+const TypingChaseGame = defineAsyncComponent(() => import('./components/TypingChaseGame.vue'));
+const RuleTutorial = defineAsyncComponent(() => import('./components/RuleTutorial.vue'));
+const WubiLookup = defineAsyncComponent(() => import('./components/WubiLookup.vue'));
+const MistakeNotebook = defineAsyncComponent(() => import('./components/MistakeNotebook.vue'));
 
 const store = useWubiStore();
+
+const handleHashChange = () => {
+  store.syncTabFromLocation();
+};
 
 onMounted(() => {
   // 设置初始主题
   document.documentElement.setAttribute('data-theme', store.theme.value);
+
+  // 监听浏览器前进/后退/外链 hash 变更，双向联动 activeTab
+  if (typeof window !== 'undefined') {
+    window.addEventListener('hashchange', handleHashChange);
+  }
 
   // 后台闲时异步初始化 IndexedDB 全量五笔字库（零阻塞首屏渲染与交互）
   if (typeof window !== 'undefined') {
@@ -105,6 +116,12 @@ onMounted(() => {
     } else {
       setTimeout(startPopulate, 1000);
     }
+  }
+});
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('hashchange', handleHashChange);
   }
 });
 </script>

@@ -192,8 +192,8 @@
                 <div class="hint-pinyin">{{ item.pinyin || '—' }}</div>
                 <div class="hint-code-row">
                   全码: <span class="hint-full-code">{{ getCharTargetCode(item) }}</span>
-                  <span class="hint-short-badge" v-if="getCharShortCode(item) && getCharShortCode(item) !== getCharTargetCode(item)">
-                    简码: {{ getCharShortCode(item) }}
+                  <span class="hint-short-badge" v-if="getCharShortCodes(item).length > 0">
+                    简码: {{ getCharShortCodes(item).join(' / ') }}
                   </span>
                 </div>
                 <div class="hint-roots">
@@ -369,6 +369,7 @@ import {
   KEY_NAME_CHARS,
   getFullCode,
   getShortCode,
+  getAllValidCodes,
   getRoots,
   loadFullParsedChars,
   type WubiCharData
@@ -558,22 +559,35 @@ const getCharTargetCode = (item: WubiCharData) => {
   return getFullCode(item, store.version.value).toUpperCase();
 };
 
+const getCharShortCodes = (item: WubiCharData): string[] => {
+  return getAllValidCodes(item.char, store.version.value).shorts;
+};
+
 const getCharShortCode = (item: WubiCharData) => {
-  return getShortCode(item, store.version.value)?.toUpperCase();
+  return getAllValidCodes(item.char, store.version.value).shorts[0] || getShortCode(item, store.version.value)?.toUpperCase();
 };
 
 const getCharTargetRoots = (item: WubiCharData) => {
   return getRoots(item, store.version.value);
 };
 
+let autoCommitTimer: ReturnType<typeof setTimeout> | null = null;
+
+const clearAutoCommitTimer = () => {
+  if (autoCommitTimer) {
+    clearTimeout(autoCommitTimer);
+    autoCommitTimer = null;
+  }
+};
+
 const nextExpectedKey = computed(() => {
   const currentItem = targetChars.value[playerIndex.value];
   if (!currentItem) return null;
 
-  const shortC = getCharShortCode(currentItem);
-  const targetCode = (store.inputMode.value === 'quick' && shortC)
-    ? shortC
-    : getCharTargetCode(currentItem);
+  const valid = getAllValidCodes(currentItem.char, store.version.value);
+  const targetCode = (store.inputMode.value === 'quick' && valid.shorts[0])
+    ? valid.shorts[0]
+    : valid.full;
   if (!targetCode) return null;
 
   const currentLen = (inputBuffer.value || composingText.value).length;
@@ -813,9 +827,9 @@ const handleNativeInput = (e: Event) => {
     // B. 即时判定英文字母编码：敲出全码或自动模式下的简码，立即推进出字！
     const currentItem = targetChars.value[playerIndex.value];
     if (currentItem) {
-      const full = getCharTargetCode(currentItem);
-      const short = getCharShortCode(currentItem);
-      if (comp === full || (store.commitMode.value === 'auto' && short && comp === short)) {
+      const valid = getAllValidCodes(currentItem.char, store.version.value);
+      if (comp === valid.full || (store.commitMode.value === 'auto' && valid.shorts.includes(comp))) {
+        clearAutoCommitTimer();
         onCharSuccess(1);
         target.value = '';
         composingText.value = '';
@@ -862,6 +876,7 @@ const handleNativeInput = (e: Event) => {
 
 // 验证输入是否与当前字匹配（支持全码与简码任意输入，拒绝偏废）
 const verifyCurrentInput = (forceSpace: boolean) => {
+  clearAutoCommitTimer();
   const currentItem = targetChars.value[playerIndex.value];
   if (!currentItem) return;
 
@@ -877,21 +892,32 @@ const verifyCurrentInput = (forceSpace: boolean) => {
     return;
   }
 
-  const fullCode = getCharTargetCode(currentItem);
-  const shortCode = getCharShortCode(currentItem);
+  const validCodes = getAllValidCodes(currentItem.char, store.version.value);
+  const fullCode = validCodes.full || getCharTargetCode(currentItem);
+  const shortCodes = validCodes.shorts;
 
-  // 2. 简码命中（按空格出字，或在 auto 自动出字模式下敲完即出）
-  if (shortCode && currentBuf === shortCode) {
-    if (store.commitMode.value === 'auto' || forceSpace) {
+  // 2. 全码命中（打出4位全码，或敲空格出字，立即成功）
+  if (currentBuf === fullCode) {
+    if (store.commitMode.value === 'auto' || forceSpace || currentBuf.length >= 4) {
       onCharSuccess(1);
       return;
     }
   }
 
-  // 3. 全码命中（打出全码无论满4码还是敲空格，一律合法成功出字！）
-  if (currentBuf === fullCode) {
-    if (store.commitMode.value === 'auto' || forceSpace || currentBuf.length >= 4) {
+  // 3. 简码命中（支持一简、二简如“木”打 SS、三简）
+  if (shortCodes.includes(currentBuf)) {
+    if (forceSpace) {
       onCharSuccess(1);
+      return;
+    } else if (store.commitMode.value === 'auto') {
+      // 自动出字模式：启动 120ms 防抖跳字
+      autoCommitTimer = setTimeout(() => {
+        const checkBuf = (inputBuffer.value || composingText.value).trim().toUpperCase();
+        if (checkBuf === currentBuf && playerIndex.value < TARGET_COUNT) {
+          onCharSuccess(1);
+        }
+      }, 120);
+      hasInputError.value = false;
       return;
     }
   }
@@ -902,11 +928,12 @@ const verifyCurrentInput = (forceSpace: boolean) => {
   }
 
   // 4. 前缀合法性（只要是全码或简码的前缀，均不报红）
-  const isPrefix = fullCode.startsWith(currentBuf) || (shortCode ? shortCode.startsWith(currentBuf) : false);
+  const isPrefix = validCodes.all.some(code => code.startsWith(currentBuf));
   hasInputError.value = !isPrefix;
 };
 
 const onCharSuccess = (step = 1) => {
+  clearAutoCommitTimer();
   correctKeystrokes.value += Math.max(step, inputBuffer.value.length);
   comboCount.value += step;
   if (comboCount.value > maxCombo.value) {
@@ -928,6 +955,7 @@ const onCharSuccess = (step = 1) => {
 };
 
 const onCharError = () => {
+  clearAutoCommitTimer();
   comboCount.value = 0;
   hasInputError.value = true;
   soundPlayer.playKey(store.audio.value, false, true);
@@ -949,6 +977,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearAutoCommitTimer();
   if (gameTimer) {
     clearInterval(gameTimer);
     gameTimer = null;
@@ -1342,6 +1371,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   opacity: 0;
+  font-size: 16px; /* 声明 16px 彻底杜绝 iOS Safari 唤起软键盘时的视口自动缩放变形 */
   cursor: text;
   z-index: 1;
 }

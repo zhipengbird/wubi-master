@@ -1562,9 +1562,18 @@ onUnmounted(() => {
 }
 
 .rpg-hidden-input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+  font-size: 16px; /* 声明 16px 彻底杜绝 iOS Safari 唤起软键盘时的视口自动缩放变形 */
+  border: none;
+  outline: none;
+  background: transparent;
+  pointer-events: auto;
+  z-index: -1;
 }
 
 /* 漂浮伤害数字 */

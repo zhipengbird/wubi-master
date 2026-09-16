@@ -1,4 +1,4 @@
-import { calculatePhraseCode, lookupWubiChar, getFullCode, getShortCode } from '../data/wubiDict';
+import { calculatePhraseCode, lookupWubiChar, getFullCode, getShortCode, getAllValidCodes } from '../data/wubiDict';
 import type { WubiVersion } from '../types/wubi';
 
 export interface MatchCandidate {
@@ -6,7 +6,8 @@ export interface MatchCandidate {
   length: number;    // 覆盖的字符数 (1: 单字, 2: 二字词, 3: 三字词, 4: 四字词)
   text: string;      // 对应的汉字内容 (如 "中", "中国", "计算机", "一心一意")
   fullCode: string;  // 标准四位或全码 (如 "KHK", "KHLG", "YTSM", "GNGU")
-  shortCode?: string; // 简码 (单字可用)
+  shortCode?: string; // 主推荐简码
+  shortCodes?: string[]; // 全部合法简码（一简、二简、三简）
 }
 
 export interface CandidateMatchResult {
@@ -30,12 +31,14 @@ export const getUpcomingCandidates = (
   const firstChar = chars[startIndex];
   const firstItem = lookupWubiChar(firstChar);
   if (firstItem) {
+    const validCodes = getAllValidCodes(firstChar, version);
     candidates.push({
       type: 'single',
       length: 1,
       text: firstChar,
-      fullCode: getFullCode(firstItem, version).toUpperCase(),
-      shortCode: getShortCode(firstItem, version)?.toUpperCase()
+      fullCode: validCodes.full || getFullCode(firstItem, version).toUpperCase(),
+      shortCode: validCodes.shorts[0] || getShortCode(firstItem, version)?.toUpperCase(),
+      shortCodes: validCodes.shorts
     });
   }
 
@@ -79,7 +82,7 @@ export const evaluateCandidates = (
   // 1. 精确匹配检查 (优先更长的词组)
   const exactMatches = candidates.filter(c => {
     // 简码命中（仅单字支持空格出字或自动上屏）
-    if (c.shortCode && c.shortCode === clean) {
+    if ((c.shortCode && c.shortCode === clean) || (c.shortCodes && c.shortCodes.includes(clean))) {
       if (commitMode === 'auto' || hasPressedSpace) return true;
     }
     // 全码/词组码命中
@@ -104,6 +107,7 @@ export const evaluateCandidates = (
   const hasPrefix = candidates.some(c => {
     if (c.fullCode.startsWith(clean)) return true;
     if (c.shortCode && c.shortCode.startsWith(clean)) return true;
+    if (c.shortCodes && c.shortCodes.some(sc => sc.startsWith(clean))) return true;
     return false;
   });
 

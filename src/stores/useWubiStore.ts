@@ -19,17 +19,27 @@ const theme = ref<ThemeName>(getSavedTheme());
 const audio = ref<AudioEffect>(getSavedAudio());
 const inputMode = ref<InputMode>(getSavedInputMode());
 const commitMode = ref<CommitMode>((localStorage.getItem('wubi_commit_mode') as CommitMode) || 'auto');
+const VALID_TABS: MainTab[] = ['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'];
+
+export const normalizeTab = (raw: string | null | undefined): MainTab | null => {
+  if (!raw) return null;
+  const clean = raw.trim().toLowerCase().replace('#', '');
+  if (clean === 'type') return 'practice'; // 别名兼容
+  if (VALID_TABS.includes(clean as MainTab)) {
+    return clean as MainTab;
+  }
+  return null;
+};
+
 const getInitialTab = (): MainTab => {
   if (typeof window === 'undefined') return 'practice';
-  const hash = window.location.hash.replace('#', '');
-  if (['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(hash)) {
-    return hash as MainTab;
-  }
+  const fromHash = normalizeTab(window.location.hash);
+  if (fromHash) return fromHash;
+
   const params = new URLSearchParams(window.location.search);
-  const tab = params.get('tab');
-  if (tab && ['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(tab)) {
-    return tab as MainTab;
-  }
+  const fromQuery = normalizeTab(params.get('tab'));
+  if (fromQuery) return fromQuery;
+
   if (params.get('char') || params.get('q')) {
     return 'lookup';
   }
@@ -84,8 +94,22 @@ export function useWubiStore() {
     localStorage.setItem('wubi_commit_mode', cm);
   };
 
-  const setActiveTab = (tab: MainTab) => {
+  const setActiveTab = (tab: MainTab, updateHash = true) => {
     activeTab.value = tab;
+    if (updateHash && typeof window !== 'undefined') {
+      const currentHash = window.location.hash.replace('#', '');
+      if (currentHash !== tab) {
+        window.location.hash = tab;
+      }
+    }
+  };
+
+  const syncTabFromLocation = () => {
+    if (typeof window === 'undefined') return;
+    const fromHash = normalizeTab(window.location.hash);
+    if (fromHash && fromHash !== activeTab.value) {
+      activeTab.value = fromHash;
+    }
   };
 
   const setPracticeCategory = (cat: PracticeCategory) => {
@@ -167,6 +191,7 @@ export function useWubiStore() {
     setPracticeCategory,
     recordMistake,
     deleteMistake,
-    resetAllMistakes
+    resetAllMistakes,
+    syncTabFromLocation
   };
 }
