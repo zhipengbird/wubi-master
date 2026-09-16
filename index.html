@@ -3,12 +3,211 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>五笔打字学堂 · Wubi Master | 86/98/新世纪三版五笔学习与实战练习</title>
+    <title>五笔打字学堂 · Wubi Master | 86/98/新世纪三版五笔学习与实战打字平台</title>
+
+    <!-- 规范链接与基础元数据 -->
+    <link rel="canonical" href="https://wubi.pinme.dev/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="description" content="现代化网页版五笔输入法学习与打字实战应用，支持86版、98版、新世纪版三版词库，包含看字打全码、简码专练、简码优先、长文题库练习、五笔反查字典及多套主题配色。" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <meta name="description" content="五笔打字学堂（Wubi Master）是现代化的网页版五笔输入法全套学习与打字实战应用。支持86版、98版、新世纪版三版主流五笔规范，涵盖看字打全码、一级简码、二级简码、高频现代词组库打字特训、五笔拆字口诀图解、五笔反查大字典（支持拼音倒排索引）、长文题库跟打、智能错题本及竞速对决，纯前端本地秒级响应与多主题适配。" />
+    <meta name="keywords" content="五笔,五笔打字,五笔打字学堂,五笔字根表,五笔字根口诀,五笔打字练习,五笔打字软件,86版五笔,98版五笔,新世纪五笔,五笔反查,五笔查字,五笔拆字,拼音查五笔,一级简码,二级简码,末笔识别码,Wubi Master" />
+    <meta name="author" content="Wubi Master Team" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- 移动端与 PWA 适配 -->
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="五笔打字学堂" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Open Graph 社交媒体与即时通讯分享协议 (WeChat, Facebook, Telegram, Slack 等) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wubi.pinme.dev/" />
+    <meta property="og:site_name" content="五笔打字学堂" />
+    <meta property="og:title" content="五笔打字学堂 · Wubi Master | 86/98/新世纪三版五笔学习与实战打字平台" />
+    <meta property="og:description" content="零依赖、现代化五笔学习练习神器！全面支持86版、98版与新世纪版，内置25区位字根图谱、四拆字原则教程、在线五笔反查字典、长文跟打题库与智能错题本。" />
+    <meta property="og:image" content="https://wubi.pinme.dev/favicon.svg" />
+    <meta property="og:locale" content="zh_CN" />
+
+    <!-- Twitter Card 元标签 -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="五笔打字学堂 · Wubi Master" />
+    <meta name="twitter:description" content="现代化网页版五笔学习与打字实战应用，支持86/98/新世纪三版五笔体系。" />
+    <meta name="twitter:image" content="https://wubi.pinme.dev/favicon.svg" />
+
+    <!-- Schema.org 结构化数据 (JSON-LD)：供 Google、Bing、Baidu 及 AI 模型构建知识图谱 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://wubi.pinme.dev/#webapp",
+          "name": "五笔打字学堂 · Wubi Master",
+          "url": "https://wubi.pinme.dev/",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "All (Web Browser)",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "inLanguage": "zh-CN",
+          "description": "现代化网页版五笔字型输入法在线学习、打字练习与拆字字典应用，全面支持 86版、98版与新世纪版三版五笔体系。",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CNY"
+          },
+          "featureList": [
+            "支持86版、98版、新世纪版三大五笔标准一键热切换",
+            "看字打全码、简码优先、一级简码与二级简码专项特训",
+            "3000条常用现代高频词组动态算码练习",
+            "五笔全套拆字教程、四大黄金拆解准则与末笔字型交叉识别码交互图解",
+            "万字五笔在线反查字典，支持汉字直查与拼音倒排索引联想",
+            "长文散文跟打实战题库与实时 WPM / 击键测速",
+            "基于浏览器 IndexedDB 的离线数据存储与智能错题本强化训练",
+            "内置 11 套深色与浅色高对比度主题系统"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://wubi.pinme.dev/#website",
+          "url": "https://wubi.pinme.dev/",
+          "name": "五笔打字学堂",
+          "inLanguage": "zh-CN",
+          "description": "86/98/新世纪三版五笔输入法在线学习与打字实战平台",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://wubi.pinme.dev/?tab=lookup&q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://wubi.pinme.dev/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "五笔打字学堂支持哪些版本的五笔输入法？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "五笔打字学堂完整支持 86版、98版以及新世纪版（第三代五笔）三大官方主流五笔体系。用户可以在界面顶部实时一键切换，练习题库、虚拟键盘区位和字根拆解将同步自动换算适配。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "五笔汉字拆解的四大基本原则是什么？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "五笔汉字拆解遵循四大黄金准则：1. 取大优先（再添一笔便不能成字根）；2. 能连不交（优先拆为笔画相连而非相交的字根）；3. 能散不连（无连接笔画的独立字根应当散开）；4. 兼顾直观（符合汉字原本构字规律与审美视觉）。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "什么是五笔末笔字型交叉识别码？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "当一个汉字不足4个字根且无法通过一级/二级简码直接出字时，必须在末尾追加末笔识别码。识别码由末笔代号（横1、竖2、撇3、捺4、折5）与汉字结构代号（左右型1、上下型2、杂合型3）交叉组合构成，对应键盘上的特定区位键。"
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "五笔打字学堂需要安装软件或登录账号吗？",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "完全不需要。五笔打字学堂是基于纯前端现代 Web 技术构建的单页应用，打开浏览器即开即用，所有词库、拼音字典及错题本练习记录均安全保存在本地浏览器 IndexedDB 数据库中，完全保护用户隐私并支持离线练习。"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
-    <div id="app"></div>
+    <!-- 
+      静态语义化预渲染内容（SEO Fallback）：
+      供搜狗、百度、Bing 等搜索引擎爬虫与各大 AI 抓取器（GPTBot、ClaudeBot、PerplexityBot 等）在未执行 JS 时直接抓取。
+      Vue 应用初始化后将自动接管并无缝挂载。
+    -->
+    <div id="app">
+      <main style="max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif; line-height: 1.6; color: #334155;">
+        <header style="border-bottom: 2px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 2rem;">
+          <h1 style="font-size: 2rem; color: #0f172a; margin-bottom: 0.5rem;">五笔打字学堂 · Wubi Master</h1>
+          <p style="font-size: 1.1rem; color: #64748b; margin: 0;">
+            现代化五笔字型输入法全套在线学习、实战打字练习与拆字反查系统（全面支持 86版 / 98版 / 新世纪版）
+          </p>
+        </header>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 0.75rem;">🌟 六大核心功能模块</h2>
+          <ul style="padding-left: 1.5rem; color: #475569;">
+            <li><strong>综合打字练习引擎</strong>：支持看字打全码、简码优先、一级简码（25字）、二级简码及3000条现代高频词组特训。</li>
+            <li><strong>五笔拆字规则教学</strong>：五大区位分布口诀（横竖撇捺折）、四大拆解黄金准则、末笔字型交叉识别码交互图解。</li>
+            <li><strong>五笔在线反查字典</strong>：支持任意单字五笔全码反查、动态字根拆分、拼音倒排索引联想与生僻字支持。</li>
+            <li><strong>长文跟打实战题库</strong>：内置精选古文、经典现代散文、诗歌库，实时统计 WPM（每分钟打字速度）、击键与准确率。</li>
+            <li><strong>智能错题本</strong>：基于浏览器本地 IndexedDB 存储，击错自动记录频次并提供一键专项突破特训。</li>
+            <li><strong>极限竞速打字追逐赛</strong>：融入天梯竞速机制的趣味打字游戏，助你快速突破打字速度瓶颈。</li>
+          </ul>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 0.75rem;">⌨️ 五笔字根五区二十五键速记口诀</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #0284c7; margin-bottom: 0.5rem;">1区 · 横起笔 (G - A)</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">G王旁青头兼五一，F土士二干十寸雨，D大犬三羊古石厂，S木丁西，A工戈草头右框七</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #059669; margin-bottom: 0.5rem;">2区 · 竖起笔 (H - M)</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">H目具上止卜虎皮，J日早两竖与虫依，K口与川字根稀，L田甲方框四车力，M山由贝下峰躯</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #d97706; margin-bottom: 0.5rem;">3区 · 撇起笔 (T - Q)</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">T禾竹一撇斤字当，R白手看头三二斤，E月彡乃用家衣底，W人和八登祭头，Q金勺缺点无尾鱼</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #e11d48; margin-bottom: 0.5rem;">4区 · 捺起笔 (Y - P)</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">Y言文方广在四一，U立辛两点六门疒，I水旁三点水，O火业四点米，P之字军盖建道底</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #9333ea; margin-bottom: 0.5rem;">5区 · 折起笔 (N - X)</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">N已半巳满不出己，B子耳了也框向上，V女刀九臼山朝西，C又巴马经有扯，X慈母衣示弓匕</p>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+              <h3 style="font-size: 1.1rem; color: #475569; margin-bottom: 0.5rem;">Z 键 · 通配与学习</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0;">Z键为五笔特有的通用万能通配符，在输入中遇到未知字根时替代该键，即可辅助查询与反查编码。</p>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 0.75rem;">📚 汉字拆分四大黄金准则</h2>
+          <ol style="padding-left: 1.5rem; color: #475569;">
+            <li><strong>取大优先</strong>：再按书写顺序拆分时，以“再添一笔便不能成字根”的最大字根为优先。</li>
+            <li><strong>能连不交</strong>：一个字既可拆成相连字根，也可拆成相交字根时，优先拆为相连字根。</li>
+            <li><strong>能散不连</strong>：字根笔画之间互不相连时，应当散开独立视作单独字根。</li>
+            <li><strong>兼顾直观</strong>：拆出的字根应当符合汉字原本的字源形体，直观明了。</li>
+          </ol>
+        </section>
+
+        <footer style="margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; color: #94a3b8; font-size: 0.9rem; text-align: center;">
+          <p>© 2026 五笔打字学堂 (Wubi Master) · 纯前端离线可用 · 遵循五笔字型国家规范</p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- 无 JavaScript 环境优雅降级提示 -->
+    <noscript>
+      <div style="text-align: center; padding: 2rem; background: #fff3cd; color: #856404; font-family: sans-serif;">
+        <strong>注意：</strong> 本站提供完整交互式五笔键盘、拼音倒排索引反查及动态练习功能，请在浏览器中启用 JavaScript 以获得完整学习体验。
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

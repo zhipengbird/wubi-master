@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <!-- 首页与核心五笔打字练习引擎 -->
+  <url>
+    <loc>https://wubi.pinme.dev/</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 五笔打字特训（一级简码、二级简码、高频词组、键名字练习） -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=type</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- 五笔拆解规则教学、口诀助记与汉字结构拆解指南 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=rules</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- 五笔字典在线反查、拼音查五笔、字根动态拆分图解 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=lookup</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- 五笔长文实战练习题库与精选散文古诗文库 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=article</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 五笔错题本、易错字根记录与个性化专项强化训练 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=mistakes</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 五笔打字竞速追逐赛、WPM实战测速与段位天梯 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=game</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

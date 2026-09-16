@@ -1,0 +1,44 @@
+# robots.txt for Wubi Master (https://wubi.pinme.dev)
+
+# 允许全网常规搜索引擎抓取
+User-agent: *
+Allow: /
+
+# 重点支持与优化 AI 搜索引擎及大模型知识库抓取器
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: DeepSeekBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# 站点地图与 LLM 知识库入口
+Sitemap: https://wubi.pinme.dev/sitemap.xml
+# AI Agents & LLM 结构化认知规范
+# See: https://wubi.pinme.dev/llms.txt

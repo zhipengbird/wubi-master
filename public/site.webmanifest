@@ -1,0 +1,22 @@
+{
+  "name": "五笔打字学堂 · Wubi Master",
+  "short_name": "五笔学堂",
+  "description": "86/98/新世纪三版五笔输入法全套在线学习、打字练习与拆字反查字典",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "productivity", "utilities"]
+}
