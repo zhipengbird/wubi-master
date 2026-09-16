@@ -432,6 +432,7 @@ const inputBuffer = ref<string>('');
 const isComposingRef = ref(false);
 const composingText = ref('');
 let lastImeCommitTime = 0;
+let lastCommittedText = '';
 const hasInputError = ref<boolean>(false);
 
 const displayInput = computed(() => {
@@ -719,10 +720,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
 const handleCompositionStart = () => {
   isComposingRef.value = true;
   composingText.value = '';
+  hasInputError.value = false;
 };
 
 const handleCompositionUpdate = (e: CompositionEvent) => {
   isComposingRef.value = true;
+  hasInputError.value = false;
   composingText.value = (e.data || (hiddenInputRef.value?.value || '')).toUpperCase().slice(0, 4);
 };
 
@@ -739,6 +742,7 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 // 统一汉字上屏提交处理逻辑（完美支持单个汉字及多字词组流式上屏）
 const processChineseCommit = (text: string) => {
   lastImeCommitTime = Date.now();
+  lastCommittedText = text;
   inputBuffer.value = '';
   composingText.value = '';
   if (hiddenInputRef.value) {
@@ -767,17 +771,18 @@ const handleNativeInput = (e: Event) => {
 
   // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面槽位中显示
   if (isComposingRef.value || (e as InputEvent).isComposing) {
+    hasInputError.value = false;
     composingText.value = target.value.toUpperCase().slice(0, 4);
     return;
   }
 
+  const raw = target.value.trim();
+
   // 2. 避免在 compositionend 刚处理完后紧随的 input 事件重复触发二次提交判错
-  if (Date.now() - lastImeCommitTime < 80) {
+  if (Date.now() - lastImeCommitTime < 300 || (lastCommittedText && raw === lastCommittedText)) {
     target.value = '';
     return;
   }
-
-  const raw = target.value.trim();
 
   if (!raw) {
     inputBuffer.value = '';

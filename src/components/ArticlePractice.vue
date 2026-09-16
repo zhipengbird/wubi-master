@@ -414,6 +414,7 @@ const inputBuffer = ref('');
 const isComposingRef = ref(false);
 const composingText = ref('');
 let lastImeCommitTime = 0;
+let lastCommittedText = '';
 const isFocused = ref(true);
 const charIndex = ref(0);
 const hasError = ref(false);
@@ -629,10 +630,12 @@ const nextArticle = () => {
 const handleCompositionStart = () => {
   isComposingRef.value = true;
   composingText.value = '';
+  hasError.value = false;
 };
 
 const handleCompositionUpdate = (e: CompositionEvent) => {
   isComposingRef.value = true;
+  hasError.value = false;
   composingText.value = (e.data || (inputRef.value?.value || '')).toUpperCase();
 };
 
@@ -648,6 +651,7 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 // 核心流式汉字/标点核销：支持输入法直接上屏单字、两字词、四字成语乃至整句长句与标点
 const processCommit = (text: string) => {
   lastImeCommitTime = Date.now();
+  lastCommittedText = text;
   inputBuffer.value = '';
   composingText.value = '';
   if (inputRef.value) inputRef.value.value = '';
@@ -688,17 +692,18 @@ const handleInput = (e: Event) => {
 
   // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面胶囊中显示
   if (isComposingRef.value || (e as InputEvent).isComposing) {
+    hasError.value = false;
     composingText.value = target.value.toUpperCase();
     return;
   }
 
+  const raw = target.value.trim();
+
   // 2. 避免在 compositionend 刚处理完后，后续紧跟的 input 事件导致重复核销
-  if (Date.now() - lastImeCommitTime < 80) {
+  if (Date.now() - lastImeCommitTime < 300 || (lastCommittedText && raw === lastCommittedText)) {
     target.value = '';
     return;
   }
-
-  const raw = target.value.trim();
 
   // 3. 若为汉字输入法直接上屏（包含汉字或标点），调用流式核销流水线
   if (/[\u4e00-\u9fa5，。！？；：“”‘’（）《》、\.,!?;:()"]/.test(raw)) {
