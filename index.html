@@ -17,6 +17,14 @@
     <meta name="author" content="Wubi Master Team" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
+    <!-- 搜索引擎极速渲染与国内搜索引擎验证支持 (Baidu, 360, Sogou, Bing, Google) -->
+    <meta name="renderer" content="webkit" />
+    <meta name="force-rendering" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="baidu-site-verification" content="codeva-wubimaster" />
+    <meta name="360-site-verification" content="wubimaster" />
+    <meta name="sogou_site_verification" content="wubimaster" />
+
     <!-- 移动端与 PWA 适配 -->
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -124,6 +132,54 @@
               }
             }
           ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://wubi.pinme.dev/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "五笔首页",
+              "item": "https://wubi.pinme.dev/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "打字练习",
+              "item": "https://wubi.pinme.dev/?tab=type"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "五笔字根键盘",
+              "item": "https://wubi.pinme.dev/?tab=keyboard"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "五笔拆字教程",
+              "item": "https://wubi.pinme.dev/?tab=rules"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "五笔反查字典",
+              "item": "https://wubi.pinme.dev/?tab=lookup"
+            },
+            {
+              "@type": "ListItem",
+              "position": 6,
+              "name": "长文跟打题库",
+              "item": "https://wubi.pinme.dev/?tab=article"
+            },
+            {
+              "@type": "ListItem",
+              "position": 7,
+              "name": "打字追逐赛",
+              "item": "https://wubi.pinme.dev/?tab=game"
+            }
+          ]
         }
       ]
     }
@@ -132,16 +188,25 @@
   <body>
     <!-- 
       静态语义化预渲染内容（SEO Fallback）：
-      供搜狗、百度、Bing 等搜索引擎爬虫与各大 AI 抓取器（GPTBot、ClaudeBot、PerplexityBot 等）在未执行 JS 时直接抓取。
+      供百度(Baiduspider)、搜狗、Bing、Google 等搜索引擎爬虫直接抓取超链接与全文。
       Vue 应用初始化后将自动接管并无缝挂载。
     -->
     <div id="app">
       <main style="max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif; line-height: 1.6; color: #334155;">
         <header style="border-bottom: 2px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 2rem;">
           <h1 style="font-size: 2rem; color: #0f172a; margin-bottom: 0.5rem;">五笔打字学堂 · Wubi Master</h1>
-          <p style="font-size: 1.1rem; color: #64748b; margin: 0;">
+          <p style="font-size: 1.1rem; color: #64748b; margin-bottom: 1rem;">
             现代化五笔字型输入法全套在线学习、实战打字练习与拆字反查系统（全面支持 86版 / 98版 / 新世纪版）
           </p>
+          <nav style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+            <a href="/?tab=type" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">⌨️ 五笔打字练习</a>
+            <a href="/?tab=keyboard" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">🗺️ 字根大键盘</a>
+            <a href="/?tab=rules" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">📖 拆字口诀与准则</a>
+            <a href="/?tab=lookup" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">🔍 在线反查字典</a>
+            <a href="/?tab=article" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">📜 长文跟打题库</a>
+            <a href="/?tab=game" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">🏁 竞速打字追逐赛</a>
+            <a href="/?tab=mistakes" style="display: inline-block; padding: 4px 10px; background: #f1f5f9; border-radius: 6px; color: #0284c7; text-decoration: none; font-weight: 600; font-size: 0.9rem;">📝 错题生字本</a>
+          </nav>
         </header>
 
         <section style="margin-bottom: 2rem;">
@@ -197,6 +262,11 @@
         </section>
 
         <footer style="margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; color: #94a3b8; font-size: 0.9rem; text-align: center;">
+          <p style="margin-bottom: 0.5rem;">
+            <a href="/sitemap.xml" style="color: #64748b; text-decoration: none; margin: 0 0.5rem;">站点地图 (Sitemap)</a> ·
+            <a href="/robots.txt" style="color: #64748b; text-decoration: none; margin: 0 0.5rem;">Robots 协议</a> ·
+            <a href="/llms.txt" style="color: #64748b; text-decoration: none; margin: 0 0.5rem;">LLM 知识索引</a>
+          </p>
           <p>© 2026 五笔打字学堂 (Wubi Master) · 纯前端离线可用 · 遵循五笔字型国家规范</p>
         </footer>
       </main>

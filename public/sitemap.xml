@@ -19,6 +19,14 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- 五笔字根大键盘与口诀助记 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=keyboard</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- 五笔拆解规则教学、口诀助记与汉字结构拆解指南 -->
   <url>
     <loc>https://wubi.pinme.dev/?tab=rules</loc>
