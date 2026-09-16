@@ -13,14 +13,6 @@ export class WubiDatabase extends Dexie {
 
   constructor() {
     super('WubiMasterDB');
-    this.version(1).stores({
-      chars: 'char, code86, code98, codeNew, pinyin, strokes, radical',
-      meta: 'key'
-    });
-    this.version(2).stores({
-      chars: 'char, code86, code98, codeNew, pinyin, pinyinPlain, strokes, radical',
-      meta: 'key'
-    });
     this.version(3).stores({
       chars: 'char, code86, code98, codeNew, pinyin, pinyinPlain, strokes, radical',
       meta: 'key',
