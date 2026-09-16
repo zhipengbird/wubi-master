@@ -125,7 +125,8 @@ wubi-master/
 │   ├── styles/                    # 全局样式
 │   │   └── theme.css              # 主题变量与暗黑模式
 │   ├── App.vue                    # 应用根组件（路由切换）
-│   └── main.ts                    # 入口主文件
+├── scripts/                       # 自动化测试与工程化脚本
+│   └── e2eHarness.ts              # 统一端到端 E2E 自动化测试 Harness (UI 8大模块 + RPG 13关)
 ├── tests/                         # Vitest 自动化单元测试套件
 ├── vite.config.ts                 # Vite 构建配置
 └── package.json                   # 项目依赖与脚本
