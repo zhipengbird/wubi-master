@@ -19,6 +19,14 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- 五笔修仙打怪闯关 RPG 冒险 -->
+  <url>
+    <loc>https://wubi.pinme.dev/?tab=rpg</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
   <!-- 五笔字根大键盘与口诀助记 -->
   <url>
     <loc>https://wubi.pinme.dev/?tab=keyboard</loc>

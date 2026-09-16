@@ -2,6 +2,7 @@
 const urls = [
   'https://wubi.pinme.dev/',
   'https://wubi.pinme.dev/?tab=type',
+  'https://wubi.pinme.dev/?tab=rpg',
   'https://wubi.pinme.dev/?tab=keyboard',
   'https://wubi.pinme.dev/?tab=rules',
   'https://wubi.pinme.dev/?tab=lookup',

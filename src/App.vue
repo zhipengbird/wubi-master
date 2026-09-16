@@ -7,16 +7,22 @@
     <main class="main-content">
       <transition name="fade" mode="out-in">
         <!-- 1. 打字特训模式 -->
+        <!-- 1. 打字特训模式 -->
         <section v-if="store.activeTab.value === 'practice'" key="practice">
           <TypeEngine />
         </section>
 
-        <!-- 2. 完整文章长文实战 -->
+        <!-- 2. 五笔修仙打怪闯关 RPG -->
+        <section v-else-if="store.activeTab.value === 'rpg'" key="rpg">
+          <RpgAdventure />
+        </section>
+
+        <!-- 3. 完整文章长文实战 -->
         <section v-else-if="store.activeTab.value === 'article'" key="article">
           <ArticlePractice />
         </section>
 
-        <!-- 3. 极速打字追逐赛 -->
+        <!-- 4. 极速打字追逐赛 -->
         <section v-else-if="store.activeTab.value === 'game'" key="game">
           <TypingChaseGame />
         </section>
@@ -67,6 +73,7 @@ import { onMounted } from 'vue';
 import { useWubiStore } from './stores/useWubiStore';
 import Navbar from './components/Navbar.vue';
 import TypeEngine from './components/TypeEngine.vue';
+import RpgAdventure from './components/RpgAdventure.vue';
 import ArticlePractice from './components/ArticlePractice.vue';
 import TypingChaseGame from './components/TypingChaseGame.vue';
 import VirtualKeyboard from './components/VirtualKeyboard.vue';

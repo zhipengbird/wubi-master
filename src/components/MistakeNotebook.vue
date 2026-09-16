@@ -7,6 +7,9 @@
       </div>
 
       <div class="actions" v-if="store.mistakeList.value.length > 0">
+        <button class="action-btn rpg-battle-btn" @click="enterNightmareDungeon" title="将所有错题化为心魔怪兽展开 RPG 决战">
+          <span>⚔️ 心魔秘境复仇战</span>
+        </button>
         <button class="action-btn primary" @click="drillMistakes">
           <Zap :size="16" />
           <span>错字专项消灭战</span>
@@ -93,9 +96,25 @@ const drillMistakes = () => {
   store.setPracticeCategory('mistakes');
   store.setActiveTab('practice');
 };
+
+const enterNightmareDungeon = () => {
+  // 切换至 RPG 闯关模式的心魔秘境副本
+  store.setActiveTab('rpg');
+};
 </script>
 
 <style scoped>
+.rpg-battle-btn {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: #ffffff !important;
+  border: 1px solid #a78bfa !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.rpg-battle-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
 .mistakes-wrapper {
   max-width: 960px;
   margin: 0 auto;

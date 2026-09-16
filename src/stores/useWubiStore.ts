@@ -11,7 +11,7 @@ import {
   getDbMistakes, saveDbMistake, removeDbMistake, clearDbMistakes, migrateMistakesFromLocalStorage
 } from '../data/wubiDb';
 
-export type MainTab = 'practice' | 'article' | 'game' | 'keyboard' | 'rules' | 'lookup' | 'mistakes';
+export type MainTab = 'practice' | 'article' | 'rpg' | 'game' | 'keyboard' | 'rules' | 'lookup' | 'mistakes';
 
 // 全局响应式状态
 const version = ref<WubiVersion>(getSavedVersion());
@@ -22,12 +22,12 @@ const commitMode = ref<CommitMode>((localStorage.getItem('wubi_commit_mode') as 
 const getInitialTab = (): MainTab => {
   if (typeof window === 'undefined') return 'practice';
   const hash = window.location.hash.replace('#', '');
-  if (['practice', 'article', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(hash)) {
+  if (['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(hash)) {
     return hash as MainTab;
   }
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab');
-  if (tab && ['practice', 'article', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(tab)) {
+  if (tab && ['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'].includes(tab)) {
     return tab as MainTab;
   }
   if (params.get('char') || params.get('q')) {
