@@ -761,6 +761,10 @@ export const normalizeRoots = (char: string, code: string, roots: string[]): str
       newRes.push('王');
     } else if (r === '𦥑') {
       newRes.push('臼');
+    } else if (r === '𠃜' || r === '\u{200DC}') {
+      newRes.push('尸');
+    } else if (r === '𠘧' || r === '\u{20627}') {
+      newRes.push('几');
     } else {
       newRes.push(r);
     }
@@ -940,7 +944,9 @@ export const ROOT_GLYPH_NORMALIZE: Record<string, string> = {
   '蒐中': '甶',
   '无尾鱼': '⺈田',
   '祭字头': '祭头',
-  '业头': '业'
+  '业头': '业',
+  '𠃜': '尸',
+  '𠘧': '几'
 };
 
 // 特殊/易混淆字根直观中文注释映射

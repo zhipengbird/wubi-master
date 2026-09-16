@@ -120,4 +120,64 @@ describe('四、Ext-B 生僻字与乱码过滤回归测试', () => {
       expect(r).not.toBe('𭕄');
     }
   });
+
+  it('汉字【馨】（FNMJ）字根拆解必须规范为【士 + 尸 + 几 + 日】，绝不能出现豆腐块乱码（𠃜、𠘧）', () => {
+    const xin = getChar('馨');
+    expect(xin).toBeDefined();
+    if (!xin) return;
+
+    expect(xin.code86).toBe('FNMJ');
+    const bd = getCharBreakdown(xin, '86');
+    expect(bd.roots).toEqual(['士', '尸', '几', '日']);
+    expect(bd.rootSteps).toEqual([
+      { root: '士', key: 'F' },
+      { root: '尸', key: 'N' },
+      { root: '几', key: 'M' },
+      { root: '日', key: 'J' }
+    ]);
+    for (const r of bd.roots) {
+      expect(r).not.toContain('𠃜');
+      expect(r).not.toContain('𠘧');
+    }
+  });
+
+  it('原含 𠃜 字符（声、眉）必须规范化为标准字根【尸】', () => {
+    const sheng = getChar('声');
+    expect(sheng).toBeDefined();
+    if (sheng) {
+      const bd = getCharBreakdown(sheng, '86');
+      expect(bd.roots).toEqual(['士', '尸']);
+    }
+
+    const mei = getChar('眉');
+    expect(mei).toBeDefined();
+    if (mei) {
+      const bd = getCharBreakdown(mei, '86');
+      expect(bd.roots).toEqual(['尸', '目']);
+    }
+  });
+
+  it('原含 𠘧 字符（设、投、船）必须规范化为标准字根【几】', () => {
+    const she = getChar('设');
+    expect(she).toBeDefined();
+    if (she) {
+      const bd = getCharBreakdown(she, '86');
+      expect(bd.roots).toEqual(['讠', '几', '又']);
+    }
+
+    const tou = getChar('投');
+    expect(tou).toBeDefined();
+    if (tou) {
+      const bd = getCharBreakdown(tou, '86');
+      expect(bd.roots).toEqual(['扌', '几', '又']);
+    }
+
+    const chuan = getChar('船');
+    expect(chuan).toBeDefined();
+    if (chuan) {
+      const bd = getCharBreakdown(chuan, '86');
+      expect(bd.roots).toContain('几');
+      expect(bd.roots).not.toContain('𠘧');
+    }
+  });
 });
