@@ -14,9 +14,10 @@
 
 ## 🌟 核心特性
 
-### 📚 六大功能模块
+### 📚 八大功能模块
 
 - 🎯 **打字特训**：单字/字根/词组分级练习，实时 WPM/KPM 统计与准确率分析
+- 🗡️ **修仙打怪闯关 (RPG)**：十三大修仙境界沉浸式打怪，ATB 时间条机制、飞剑连击蓄力、万剑归宗大招、战利品宝箱与乱序破阵复习
 - 📖 **长文实战**：收录经典名篇（出师表、赤壁赋等）+ 自定义导入（.txt/.md 文件或粘贴文本）
 - 🎮 **极速追逐赛**：与 AI 赛车竞速的打字游戏，实时可视化进度对比
 - 🔍 **汉字反查**：28,058 全量字库，支持汉字/编码/拼音多模态检索，智能推导词组编码
@@ -87,9 +88,12 @@ wubi-master/
 │   └── DATA_MAINTENANCE.md        # 字根数据维护操作手册
 ├── public/                        # 静态资源与音频音效
 ├── raw_dicts/                     # 官方正统 86/98/新世纪 权威原始字根数据库
+├── scripts/                       # 自动化测试与辅助脚本
+│   └── e2eAllStagesHarness.ts     # Puppeteer 13关端到端自动化测试巡检脚本
 ├── src/
-│   ├── components/                # Vue 核心组件（10个）
+│   ├── components/                # Vue 核心组件（11个）
 │   │   ├── TypeEngine.vue         # 核心打字练习引擎（单字/字根/词组）
+│   │   ├── RpgAdventure.vue       # 修仙打怪闯关 RPG（十三关卡/ATB战斗/大招/秘宝）
 │   │   ├── ArticlePractice.vue    # 长文篇章练习（全文阅读/导入/自动滚动）
 │   │   ├── TypingChaseGame.vue    # 极速打字追逐赛游戏
 │   │   ├── WubiLookup.vue         # 全量汉字反查（三版对比/词组推导）
@@ -104,13 +108,15 @@ wubi-master/
 │   │   ├── wubiDb.ts              # IndexedDB 数据库封装（Dexie.js）
 │   │   ├── wubiCommonDictData.ts  # 3,500 常用字内存字典
 │   │   ├── wubiFullDictData.ts    # 28,058 全量字典（异步加载）
+│   │   ├── rpgStages.ts           # RPG 修仙十三关卡与 400+ 字符词组题库配置
 │   │   ├── charMetaData.ts        # 汉字元数据（笔画/部首/频率）
 │   │   ├── articles.ts            # 全文无删减经典长文题库
 │   │   ├── keyboards.ts           # 三版五笔键盘布局定义
 │   │   ├── rules.ts               # 五笔编码规则与教学数据
 │   │   └── wordsDict.ts           # 常用词组字典
 │   ├── stores/                    # 响应式状态管理 (Vue 3 Store)
-│   │   └── useWubiStore.ts        # 全局状态（版本/模式/错题本）
+│   │   ├── useWubiStore.ts        # 全局状态（版本/模式/错题本）
+│   │   └── useRpgStore.ts         # RPG 修仙状态（关卡/战利品/背包/连击）
 │   ├── types/                     # TypeScript 类型定义
 │   │   └── wubi.ts                # 核心类型接口
 │   ├── utils/                     # 工具函数
@@ -121,6 +127,7 @@ wubi-master/
 │   │   └── theme.css              # 主题变量与暗黑模式
 │   ├── App.vue                    # 应用根组件（路由切换）
 │   └── main.ts                    # 入口主文件
+├── tests/                         # Vitest 自动化单元测试套件
 ├── vite.config.ts                 # Vite 构建配置
 └── package.json                   # 项目依赖与脚本
 ```

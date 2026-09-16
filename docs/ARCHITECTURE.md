@@ -1,7 +1,7 @@
 # 🛠️ 五笔学堂 (Wubi Master) 技术架构与核心算法文档
 
-> 最后更新：2026-09-15 v1.5.0  
-> 文档版本：v1.5.0 (词库扩容与 Vitest 自动化防回退体系)
+> 最后更新：2026-09-16 v1.6.0  
+> 文档版本：v1.6.0 (RPG 修仙闯关系统、智能简码防抖与 E2E 自动化测试体系)
 
 ## 一、技术栈选型
 
@@ -10,8 +10,8 @@
 | 核心框架 | [Vue 3.5.42](https://vuejs.org/) | SFC + `<script setup>` + Composition API |
 | 开发语言 | [TypeScript 6.0.2](https://www.typescriptlang.org/) | 全链路严格类型检查 |
 | 构建工具 | [Vite 8.3.0](https://vitejs.dev/) + [Bun](https://bun.sh/) | 毫秒级编译与极速 HMR，构建仅需 ~300ms |
-| 测试框架 | [Vitest 5.0.0](https://vitest.dev/) | 自动化单元测试与业务规则防回退校验（72 测试用例 100% 通过） |
-| 状态管理 | [Vue 3 Composition Store](https://vuejs.org/) | 原生响应式单例（`ref` + `reactive`），集中管理五笔版本、输入模式、出字模式、错题本，零第三方依赖轻量化设计 |
+| 测试框架 | [Vitest 5.0.0](https://vitest.dev/) + [Puppeteer 24.40](https://pptr.dev/) | 自动化单元测试（98 tests / 26k assertions）+ 13 关全量 E2E 真实浏览器打字自动化巡检 |
+| 状态管理 | [Vue 3 Composition Store](https://vuejs.org/) | 原生响应式单例（`ref` + `reactive`），集中管理五笔版本、输入模式、出字模式、错题本及 RPG 修仙系统（`useRpgStore`） |
 | 本地数据库 | [Dexie.js 4.4.6](https://dexie.org/) | 封装 IndexedDB，28,058 汉字持久化 + 7 重多维索引 |
 | 图标库 | [lucide-vue-next 1.0.0](https://lucide.dev/) | 现代矢量线性图标 |
 | 动画特效 | [canvas-confetti 1.9.4](https://www.npmjs.com/package/canvas-confetti) | 通关庆祝礼花动效 |
@@ -27,6 +27,7 @@
 │                        用户交互层                                 │
 │  Navbar.vue (导航切换) + 核心功能组件                            │
 │  ├─ TypeEngine.vue          (单字/字根/词组打字练习主引擎)        │
+│  ├─ RpgAdventure.vue        (五笔修仙打怪RPG/ATB时序/大招/秘宝)   │
 │  ├─ ArticlePractice.vue     (长文篇章实战+自定义导入+平滑跟滚动) │
 │  ├─ TypingChaseGame.vue     (极速追逐赛 2.5D 竞技游戏)            │
 │  ├─ VirtualKeyboard.vue     (交互式五笔大键盘与按键高亮)          │
@@ -488,12 +489,92 @@ currentEl.scrollIntoView({
 
 ---
 
-## 十一、构建性能与打包指标
+## 十一、RPG 修仙打怪闯关引擎与状态机架构
+
+### 11.1 模块结构与状态设计 (`useRpgStore.ts` + `RpgAdventure.vue`)
+
+修仙闯关模块采用 Pinia / Vue Composition Store 进行全局跨会话持久化（LocalStorage 保存境界等级、关卡星级、金币与背包法宝），`RpgAdventure.vue` 维护当前战场高频微观状态机：
+
+```typescript
+// 核心战场状态机
+interface RpgBattleState {
+  currentStageId: number;         // 1 ~ 13
+  stageTargets: string[];         // 原始关卡词库 (400+ 字符)
+  activeStageTargets: string[];   // 当前作战目标队列 (支持乱序洗牌)
+  currentTargetIndex: number;     // 当前需敲击字下标
+  playerHp: number;               // 玩家当前生命值 (0 ~ 100)
+  playerMaxHp: number;
+  monsterHp: number;              // Boss 动态血量
+  monsterMaxHp: number;
+  monsterAtb: number;             // ATB 攻击充能条 (0 ~ 100%)
+  swordEnergy: number;            // 飞剑灵气值 (0 ~ 100%)
+  comboCount: number;             // 连续连击击键计数
+  isBossFrozen: boolean;          // 是否处于万剑归宗冰冻状态
+  isBossEnraged: boolean;         // 残血狂暴状态 (Hp <= 35%)
+  battleState: 'idle' | 'fighting' | 'victory' | 'defeat';
+}
+```
+
+### 11.2 智能 120ms 防抖自动跳字算法 (`checkAutoCommit`)
+
+为同时兼顾**多级简码（一/二/三级）即停即跳**与**全码快速盲打不吞键**，构建了基于动态定时器的智能判定管道：
+
+```
+用户击键输入
+    │
+    ├─ 1. 比对是否命中有效编码集 (有效包含所有一级/二级/三级简码与全码)
+    │
+    ├─ 2. 若命中四码全码：
+    │      └── 立即触发 commitAndAdvance()，清除任何挂起的定时器
+    │
+    └─ 3. 若命中合法简码 (如 "木" 打 "SS")：
+           ├── 先行记录候选成功态
+           ├── 启动 120ms 防抖计时器: autoCommitTimer = setTimeout(..., 120)
+           │
+           ├── 若用户 120ms 内停顿：
+           │      └── 定时器触发，自动判定该字完成并平滑跳至下一目标字
+           │
+           └── 若用户 120ms 内继续输入第 3、第 4 码（全码击键）：
+                  └── 快速下一次击键立即 clearTimeout(autoCommitTimer)，
+                      继续按全码判定，彻底杜绝任何按键漏判与吞字！
+```
+
+### 11.3 Fisher-Yates 动态内存洗牌（乱序破阵）
+
+针对用户二次通关或温习时容易产生“位置记忆/死记硬背”的问题，设计了完全解耦的动态洗牌算法：
+
+```typescript
+function shuffleArray<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+```
+已通关的关卡在胜利结算时提供「🎲 乱序破阵」与「📖 循序复习」双入口，每次重玩生成全新输入序列，极大强化五笔即时反应能力。
+
+### 11.4 Puppeteer 13 关端到端自动化测试巡检体系
+
+在 `scripts/e2eAllStagesHarness.ts` 中封装了基于真实 Chromium 浏览器的 E2E 自动化测试 Harness：
+1. **真实 DOM 挂载**：启动 `localhost:5173` 本地 Vite 服务，由 Puppeteer 打开无头浏览器并导航至 `/#rpg`；
+2. **全流程拟真打字**：遍历 1 到 13 关，调用字典引擎实时获取当前字五笔编码，向页面输入框注入真实键盘击键；
+3. **关键边界与异常注入验证**：
+   - 故意输入错误键（如输入 `Z`），断言触发屏幕震颤与玩家扣血；
+   - 测试二级简码（如针对 `木` 输入 `SS`），断言 120ms 自动前进；
+   - 蓄力完成后触发 `Tab` 键释放「万剑归宗」，断言粒子特效生成与 Boss 冰冻；
+   - 击败首领后断言胜利弹窗与秘宝箱点击掉落道具逻辑；
+4. **全自动快照归档**：每关通关自动截取 1080P 高清页面渲染快照至 `e2e_screenshots/`。
+
+---
+
+## 十二、构建性能与打包指标
 
 | 指标 | 数值 | 说明 |
 |------|------|------|
-| **首屏主包 JS (gzip)** | **379KB** | 较 v1.1 降低 50%（原体积 767KB） |
-| **首屏主包 CSS (gzip)** | **14.5KB** | 紧凑原子样式 |
+| **首屏主包 JS (gzip)** | **386KB** | 新增 RPG 引擎与题库后依然保持极致轻量 |
+| **首屏主包 CSS (gzip)** | **15.2KB** | 紧凑原子样式与 RPG 特效动画 |
 | **全量字典独立分块 (gzip)** | **512KB** | `wubiFullDictData` 独立异步加载 |
 | **Vite 生产构建耗时** | **~300ms** | Bun + Vite 原生速度 |
 | **内存 Map 命中耗时** | **<0.01ms** | `WUBI_CHAR_MAP` 同步哈希查找 |
@@ -501,7 +582,7 @@ currentEl.scrollIntoView({
 
 ---
 
-## 十二、核心组件规模与职责划分
+## 十三、核心组件规模与职责划分
 
 | 组件 | 代码行数 | 核心职责 | 关键交互 |
 |------|---------|---------|---------|
@@ -509,9 +590,10 @@ currentEl.scrollIntoView({
 | **TypingChaseGame.vue** | 1,700 行 | 极速追逐赛游戏 | 2.5D 双车道赛车、30~120 WPM 四档 AI 速度梯队、终点礼花战报 |
 | **ArticlePractice.vue** | 1,606 行 | 长文篇章实战练习 | 传世名篇无删减全文、视口自动平滑居中跟随、.txt/.md 自定义导入 |
 | **TypeEngine.vue** | 1,311 行 | 核心打字练习引擎 | 一级简码/键名/常用字分级特训、实时 WPM/KPM、动态米字格印章 |
+| **RpgAdventure.vue** | 1,230 行 | 修仙打怪闯关 RPG | 十三修仙关卡、ATB 即时战斗时序、飞剑蓄力/万剑归宗大招、战利品宝箱、乱序重玩 |
 | **WubiLookup.vue** | 1,129 行 | 全量汉字反查与推导 | 汉字/编码/拼音三合一多模态检索、三代编码同屏对比、候选字联想网格 |
 | **VirtualKeyboard.vue** | 484 行 | 交互式五笔大键盘 | 5 大区位色谱映射、字根表悬停提示、敲击实时键帽下沉动画 |
-| **Navbar.vue** | 315 行 | 顶部导航与全局设置 | 7 大功能 Tab 切换、三版五笔无感切换、出字模式与音效控制面板 |
+| **Navbar.vue** | 320 行 | 顶部导航与全局设置 | 8 大功能 Tab 切换、三版五笔无感切换、出字模式与音效控制面板 |
 | **MistakeNotebook.vue** | 315 行 | 错题生字本管理 | 打错字自动收录、三代编码与字根回溯、一键针对性重练 |
 | **MiZiGe.vue** | 228 行 | 传统书法米字格组件 | SVG 矢量十字与对角线、特殊复合字根（⺈田/祭头）专用渲染 |
 
