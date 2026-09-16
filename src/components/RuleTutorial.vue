@@ -1006,7 +1006,7 @@ const simPhraseBreakdown = computed(() => {
 
 .step-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-text, #ffffff);
   font-weight: 600;
   border-color: var(--accent);
 }

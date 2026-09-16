@@ -133,8 +133,9 @@
     <!-- 底部或选定键位的字根深度卡片 -->
     <div class="detail-card" v-if="currentKeyData">
       <div class="detail-header">
-        <div class="detail-badge" :style="{ background: currentZoneColor }">
-          {{ currentKeyData.key }} 键 (区位 {{ currentKeyData.code }})
+        <div class="detail-badge" :style="{ borderColor: currentZoneColor }">
+          <span class="detail-badge-dot" :style="{ background: currentZoneColor }"></span>
+          <span>{{ currentKeyData.key }} 键 (区位 {{ currentKeyData.code }})</span>
         </div>
         <div class="detail-name">键名汉字：<strong>{{ currentKeyData.keyName }}</strong></div>
         <div class="detail-version">当前版本：{{ versionName }}</div>
@@ -254,7 +255,7 @@ const currentKeyData = computed(() => {
 
 const currentZoneColor = computed(() => {
   if (!currentKeyData.value) return 'var(--accent)';
-  if (currentKeyData.value.zone === 0) return 'var(--text-muted)';
+  if (currentKeyData.value.zone === 0) return 'var(--accent)';
   return `var(--zone-${currentKeyData.value.zone})`;
 });
 </script>
@@ -477,11 +478,24 @@ const currentZoneColor = computed(() => {
 }
 
 .detail-badge {
-  color: #fff;
-  padding: 4px 12px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-main);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.detail-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .detail-name {

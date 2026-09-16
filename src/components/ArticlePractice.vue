@@ -978,7 +978,7 @@ watch(() => charIndex.value, () => {
 
 .lib-tab-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-text, #ffffff);
   border-color: var(--accent);
 }
 

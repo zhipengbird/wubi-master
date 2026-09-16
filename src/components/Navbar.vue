@@ -256,7 +256,7 @@ const handleThemeChange = (e: Event) => {
 
 .tab-btn.active {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--accent-text, #ffffff);
   font-weight: 600;
 }
 

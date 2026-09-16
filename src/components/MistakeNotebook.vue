@@ -148,7 +148,7 @@ const drillMistakes = () => {
 
 .action-btn.primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-text, #ffffff);
 }
 
 .action-btn.danger {

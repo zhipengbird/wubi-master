@@ -10,6 +10,7 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --accent: #38bdf8;
+  --accent-text: #0f172a;
   --accent-hover: #0ea5e9;
   --accent-subtle: rgba(56, 189, 248, 0.15);
   --error: #f43f5e;
@@ -48,6 +49,7 @@
   --text-main: #2d2b28;
   --text-muted: #736d63;
   --accent: #d9480f;
+  --accent-text: #ffffff;
   --accent-hover: #bf3a07;
   --accent-subtle: rgba(217, 72, 15, 0.12);
   --error: #c92a2a;
@@ -78,8 +80,9 @@
   --card-bg: rgba(46, 52, 64, 0.8);
   --border-color: #434c5e;
   --text-main: #eceff4;
-  --text-muted: #d8dee9;
+  --text-muted: #94a3b8;
   --accent: #88c0d0;
+  --accent-text: #242933;
   --accent-hover: #81a1c1;
   --accent-subtle: rgba(136, 192, 208, 0.15);
   --error: #bf616a;
@@ -112,6 +115,7 @@
   --text-main: #1f1f1f;
   --text-muted: #666666;
   --accent: #b91c1c; /* 丹红印泥色 */
+  --accent-text: #ffffff;
   --accent-hover: #991b1b;
   --accent-subtle: rgba(185, 28, 28, 0.1);
   --error: #b91c1c;
@@ -142,8 +146,9 @@
   --card-bg: rgba(12, 24, 14, 0.85);
   --border-color: #1a381e;
   --text-main: #22c55e;
-  --text-muted: #15803d;
+  --text-muted: #4ade80;
   --accent: #22c55e;
+  --accent-text: #050a06;
   --accent-hover: #4ade80;
   --accent-subtle: rgba(34, 197, 94, 0.15);
   --error: #ef4444;
@@ -177,6 +182,7 @@
   --text-main: #fdf4ff;
   --text-muted: #c084fc;
   --accent: #f43f5e; /* 电光霓虹粉 */
+  --accent-text: #ffffff;
   --accent-hover: #fb7185;
   --accent-subtle: rgba(244, 63, 94, 0.2);
   --error: #ff0055;
@@ -210,6 +216,7 @@
   --text-main: #f8f8f2;
   --text-muted: #6272a4;
   --accent: #bd93f9; /* 德古拉紫罗兰 */
+  --accent-text: #282a36;
   --accent-hover: #d6acff;
   --accent-subtle: rgba(189, 147, 249, 0.18);
   --error: #ff5555;
@@ -243,6 +250,7 @@
   --text-main: #f1f5f9;
   --text-muted: #798da8;
   --accent: #6366f1; /* 星际靛蓝 */
+  --accent-text: #ffffff;
   --accent-hover: #818cf8;
   --accent-subtle: rgba(99, 102, 241, 0.2);
   --error: #f43f5e;
@@ -276,6 +284,7 @@
   --text-main: #1d1d1f;
   --text-muted: #86868b;
   --accent: #0071e3; /* Apple 经典科技蓝 */
+  --accent-text: #ffffff;
   --accent-hover: #0077ed;
   --accent-subtle: rgba(0, 113, 227, 0.1);
   --error: #ff3b30;
@@ -309,6 +318,7 @@
   --text-main: #233829;
   --text-muted: #587560;
   --accent: #2d6a4f; /* 纯正抹茶深绿 */
+  --accent-text: #ffffff;
   --accent-hover: #1b4332;
   --accent-subtle: rgba(45, 106, 79, 0.12);
   --error: #d64045;
@@ -342,6 +352,7 @@
   --text-main: #382e2b;
   --text-muted: #7d6e67;
   --accent: #8d5b4c; /* 焦糖暖褐 */
+  --accent-text: #ffffff;
   --accent-hover: #724538;
   --accent-subtle: rgba(141, 91, 76, 0.12);
   --error: #c84b31;

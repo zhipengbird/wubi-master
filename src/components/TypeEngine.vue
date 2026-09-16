@@ -970,7 +970,7 @@ watch(() => store.practiceCategory.value, () => {
 
 .mode-btn.active, .cat-btn.active, .batch-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-text, #ffffff);
   font-weight: 600;
 }
 

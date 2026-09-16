@@ -942,7 +942,7 @@ onUnmounted(() => {
 
 .dash-pill-btn.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-text, #ffffff);
 }
 
 /* 赛道实况赛场 */
