@@ -21,11 +21,17 @@ export type InputMode =
 export type CommitMode = 'auto' | 'space'; // 'auto': 打对即走(无需空格) | 'space': 空格出字
 
 export type ThemeName = 
-  | 'tokyo-night' // 暗夜赛博
-  | 'retro-beige' // 复古机械
-  | 'nord-frost'  // 北欧极光
-  | 'paper-ink'   // 纸墨素雅
-  | 'matrix-green'; // 黑客终端
+  | 'tokyo-night'       // 暗夜赛博
+  | 'cyber-neon'        // 霓虹幻境
+  | 'dracula-vampire'   // 德古拉之夜
+  | 'deep-space'        // 深空星际
+  | 'matrix-green'      // 黑客终端
+  | 'nord-frost'        // 北欧极光
+  | 'pure-white'        // 极简纯白
+  | 'paper-ink'         // 纸墨素雅
+  | 'retro-beige'       // 复古机械
+  | 'matcha-zen'        // 抹茶禅意
+  | 'warm-latte';       // 暖阳浅咖
 
 export type AudioEffect = 'blue-switch' | 'red-switch' | 'typewriter' | 'none';
 

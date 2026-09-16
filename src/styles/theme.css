@@ -167,6 +167,205 @@
   --mizige-bg: rgba(5, 10, 6, 0.85);
 }
 
+/* 6. 霓虹幻境 (Cyber Neon / 80s Synthwave) */
+[data-theme='cyber-neon'] {
+  --bg-primary: #0d0221;
+  --bg-secondary: #1b0a38;
+  --bg-tertiary: #2a1052;
+  --card-bg: rgba(27, 10, 56, 0.85);
+  --border-color: #3d1b70;
+  --text-main: #fdf4ff;
+  --text-muted: #c084fc;
+  --accent: #f43f5e; /* 电光霓虹粉 */
+  --accent-hover: #fb7185;
+  --accent-subtle: rgba(244, 63, 94, 0.2);
+  --error: #ff0055;
+  --success: #00f5d4;
+  --warning: #fee440;
+
+  --key-bg: #16082f;
+  --key-border: #431d7e;
+  --key-shadow: 0 4px 0 #070112;
+  --key-text: #fdf4ff;
+  --key-active: #f43f5e;
+
+  --zone-1: #06b6d4; /* 横区 - 电光青 */
+  --zone-2: #00f5d4; /* 竖区 - 荧光薄荷 */
+  --zone-3: #fee440; /* 撇区 - 激光黄 */
+  --zone-4: #f43f5e; /* 捺区 - 霓虹粉 */
+  --zone-5: #d946ef; /* 折区 - 幻境紫 */
+
+  --mizige-border: rgba(244, 63, 94, 0.5);
+  --mizige-line: rgba(244, 63, 94, 0.25);
+  --mizige-bg: rgba(13, 2, 33, 0.8);
+}
+
+/* 7. 德古拉之夜 (Dracula Vampire Dark) */
+[data-theme='dracula-vampire'] {
+  --bg-primary: #282a36;
+  --bg-secondary: #21222c;
+  --bg-tertiary: #44475a;
+  --card-bg: rgba(33, 34, 44, 0.88);
+  --border-color: #44475a;
+  --text-main: #f8f8f2;
+  --text-muted: #6272a4;
+  --accent: #bd93f9; /* 德古拉紫罗兰 */
+  --accent-hover: #d6acff;
+  --accent-subtle: rgba(189, 147, 249, 0.18);
+  --error: #ff5555;
+  --success: #50fa7b;
+  --warning: #ffb86c;
+
+  --key-bg: #21222c;
+  --key-border: #44475a;
+  --key-shadow: 0 4px 0 #16171e;
+  --key-text: #f8f8f2;
+  --key-active: #bd93f9;
+
+  --zone-1: #8be9fd; /* 横区 - 青天蓝 */
+  --zone-2: #50fa7b; /* 竖区 - 极客绿 */
+  --zone-3: #f1fa8c; /* 撇区 - 亮柠黄 */
+  --zone-4: #ff79c6; /* 捺区 - 芭比粉 */
+  --zone-5: #bd93f9; /* 折区 - 紫罗兰 */
+
+  --mizige-border: rgba(189, 147, 249, 0.45);
+  --mizige-line: rgba(189, 147, 249, 0.2);
+  --mizige-bg: rgba(33, 34, 44, 0.75);
+}
+
+/* 8. 深空星际 (Deep Space Cosmic) */
+[data-theme='deep-space'] {
+  --bg-primary: #090d16;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f293d;
+  --card-bg: rgba(17, 24, 39, 0.88);
+  --border-color: #27354f;
+  --text-main: #f1f5f9;
+  --text-muted: #798da8;
+  --accent: #6366f1; /* 星际靛蓝 */
+  --accent-hover: #818cf8;
+  --accent-subtle: rgba(99, 102, 241, 0.2);
+  --error: #f43f5e;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  --key-bg: #131c2e;
+  --key-border: #27354f;
+  --key-shadow: 0 4px 0 #06090e;
+  --key-text: #e2e8f0;
+  --key-active: #818cf8;
+
+  --zone-1: #38bdf8; /* 横区 - 深空蓝 */
+  --zone-2: #34d399; /* 竖区 - 翠绿 */
+  --zone-3: #fbbf24; /* 撇区 - 恒星金 */
+  --zone-4: #fb7185; /* 捺区 - 珊瑚红 */
+  --zone-5: #a855f7; /* 折区 - 星云紫 */
+
+  --mizige-border: rgba(99, 102, 241, 0.45);
+  --mizige-line: rgba(99, 102, 241, 0.2);
+  --mizige-bg: rgba(9, 13, 22, 0.8);
+}
+
+/* 9. 极简纯白 (Pure Minimalist / Apple Light) */
+[data-theme='pure-white'] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f7;
+  --bg-tertiary: #e5e5ea;
+  --card-bg: #ffffff;
+  --border-color: #e5e5ea;
+  --text-main: #1d1d1f;
+  --text-muted: #86868b;
+  --accent: #0071e3; /* Apple 经典科技蓝 */
+  --accent-hover: #0077ed;
+  --accent-subtle: rgba(0, 113, 227, 0.1);
+  --error: #ff3b30;
+  --success: #34c759;
+  --warning: #ff9500;
+
+  --key-bg: #fbfbfd;
+  --key-border: #d2d2d7;
+  --key-shadow: 0 3px 0 #c7c7cc;
+  --key-text: #1d1d1f;
+  --key-active: #0071e3;
+
+  --zone-1: #0071e3; /* 横区 - 经典蓝 */
+  --zone-2: #28cd41; /* 竖区 - 活力绿 */
+  --zone-3: #ff9500; /* 撇区 - 活力橙 */
+  --zone-4: #ff2d55; /* 捺区 - 玫瑰红 */
+  --zone-5: #af52de; /* 折区 - 典雅紫 */
+
+  --mizige-border: rgba(0, 113, 227, 0.45);
+  --mizige-line: rgba(0, 113, 227, 0.18);
+  --mizige-bg: #fafafc;
+}
+
+/* 10. 抹茶禅意 (Matcha Zen Light) */
+[data-theme='matcha-zen'] {
+  --bg-primary: #f3f6f3;
+  --bg-secondary: #e5ede5;
+  --bg-tertiary: #d3e0d3;
+  --card-bg: #ffffff;
+  --border-color: #c8d8c8;
+  --text-main: #233829;
+  --text-muted: #587560;
+  --accent: #2d6a4f; /* 纯正抹茶深绿 */
+  --accent-hover: #1b4332;
+  --accent-subtle: rgba(45, 106, 79, 0.12);
+  --error: #d64045;
+  --success: #2d6a4f;
+  --warning: #d48b28;
+
+  --key-bg: #fafdfa;
+  --key-border: #c2d4c2;
+  --key-shadow: 0 3px 0 #abbfab;
+  --key-text: #233829;
+  --key-active: #2d6a4f;
+
+  --zone-1: #2b7a78; /* 横区 - 湖青 */
+  --zone-2: #2d6a4f; /* 竖区 - 抹茶 */
+  --zone-3: #bb8537; /* 撇区 - 竹褐 */
+  --zone-4: #b85042; /* 捺区 - 枯红 */
+  --zone-5: #695958; /* 折区 - 檀木 */
+
+  --mizige-border: rgba(45, 106, 79, 0.45);
+  --mizige-line: rgba(45, 106, 79, 0.2);
+  --mizige-bg: #f9fcf9;
+}
+
+/* 11. 暖阳浅咖 (Warm Latte / Macchiato Light) */
+[data-theme='warm-latte'] {
+  --bg-primary: #f9f6f0;
+  --bg-secondary: #efe8db;
+  --bg-tertiary: #dfd4c2;
+  --card-bg: #ffffff;
+  --border-color: #d9cca8;
+  --text-main: #382e2b;
+  --text-muted: #7d6e67;
+  --accent: #8d5b4c; /* 焦糖暖褐 */
+  --accent-hover: #724538;
+  --accent-subtle: rgba(141, 91, 76, 0.12);
+  --error: #c84b31;
+  --success: #4b7f52;
+  --warning: #d97d3e;
+
+  --key-bg: #fdfbf7;
+  --key-border: #d9cca8;
+  --key-shadow: 0 3px 0 #c2b28c;
+  --key-text: #382e2b;
+  --key-active: #8d5b4c;
+
+  --zone-1: #3d6b82; /* 横区 - 海盐蓝 */
+  --zone-2: #4b7f52; /* 竖区 - 青茶绿 */
+  --zone-3: #c97d36; /* 撇区 - 焦糖黄 */
+  --zone-4: #ba4e3f; /* 捺区 - 肉桂红 */
+  --zone-5: #7d5a7d; /* 折区 - 芋泥紫 */
+
+  --mizige-border: rgba(141, 91, 76, 0.45);
+  --mizige-line: rgba(141, 91, 76, 0.2);
+  --mizige-bg: #fefdfa;
+}
+
+
 /* 全局布局重置与平滑过渡 */
 * {
   box-sizing: border-box;

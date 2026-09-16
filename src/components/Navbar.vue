@@ -65,11 +65,21 @@
               @change="handleThemeChange"
               class="theme-select"
             >
-              <option value="tokyo-night">🌙 暗夜赛博</option>
-              <option value="retro-beige">⌨️ 复古机械</option>
-              <option value="nord-frost">❄️ 北欧极光</option>
-              <option value="paper-ink">📜 纸墨素雅</option>
-              <option value="matrix-green">💻 黑客终端</option>
+              <optgroup label="✨ 酷炫暗色">
+                <option value="tokyo-night">🌙 暗夜赛博</option>
+                <option value="cyber-neon">⚡ 霓虹幻境</option>
+                <option value="dracula-vampire">🧛 德古拉之夜</option>
+                <option value="deep-space">🌌 深空星际</option>
+                <option value="matrix-green">💻 黑客终端</option>
+                <option value="nord-frost">❄️ 北欧极光</option>
+              </optgroup>
+              <optgroup label="🍃 简洁明亮">
+                <option value="pure-white">⚪ 极简纯白</option>
+                <option value="paper-ink">📜 纸墨素雅</option>
+                <option value="retro-beige">⌨️ 复古机械</option>
+                <option value="matcha-zen">🍵 抹茶禅意</option>
+                <option value="warm-latte">☕ 暖阳浅咖</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -336,6 +346,19 @@ const handleThemeChange = (e: Event) => {
 
 .theme-select:focus {
   border-color: var(--accent);
+}
+
+.theme-select optgroup {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.theme-select option {
+  background: var(--bg-primary);
+  color: var(--text-main);
+  font-size: 0.78rem;
 }
 
 @media (max-width: 992px) {
