@@ -9,6 +9,8 @@
     "preview": "bun ./node_modules/vite/bin/vite.js preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ui": "bun ./scripts/e2eUiInteractionsHarness.ts",
+    "test:rpg": "bun ./scripts/e2eAllStagesHarness.ts",
     "push:baidu": "bun ./scripts/pushBaidu.ts"
   },
   "dependencies": {
