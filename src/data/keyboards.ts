@@ -268,9 +268,9 @@ export const getKeyboardByVersion = (version: WubiVersion): Record<string, KeyRo
 
 // 区位名称及主笔画
 export const ZONE_CONFIG = {
-  1: { name: '横起区 (1区)', stroke: '一 (提)', keys: ['G', 'F', 'D', 'S', 'A'], color: 'var(--zone-1)' },
-  2: { name: '竖起区 (2区)', stroke: '丨 (竖钩)', keys: ['H', 'J', 'K', 'L', 'M'], color: 'var(--zone-2)' },
-  3: { name: '撇起区 (3区)', stroke: '丿', keys: ['T', 'R', 'E', 'W', 'Q'], color: 'var(--zone-3)' },
-  4: { name: '捺起区 (4区)', stroke: '丶 (捺/点)', keys: ['Y', 'U', 'I', 'O', 'P'], color: 'var(--zone-4)' },
-  5: { name: '折起区 (5区)', stroke: '𠃍 (各种折)', keys: ['N', 'B', 'V', 'C', 'X'], color: 'var(--zone-5)' }
+  1: { id: 1, name: '1区·横', stroke: '一 (提)', keys: ['G', 'F', 'D', 'S', 'A'], color: 'var(--zone-1)' },
+  2: { id: 2, name: '2区·竖', stroke: '丨 (竖钩)', keys: ['H', 'J', 'K', 'L', 'M'], color: 'var(--zone-2)' },
+  3: { id: 3, name: '3区·撇', stroke: '丿', keys: ['T', 'R', 'E', 'W', 'Q'], color: 'var(--zone-3)' },
+  4: { id: 4, name: '4区·捺', stroke: '丶 (点)', keys: ['Y', 'U', 'I', 'O', 'P'], color: 'var(--zone-4)' },
+  5: { id: 5, name: '5区·折', stroke: '乛 (折)', keys: ['N', 'B', 'V', 'C', 'X'], color: 'var(--zone-5)' }
 };

@@ -2,19 +2,29 @@
   <div class="keyboard-section">
     <!-- 区位说明图例 -->
     <div class="zones-legend">
-      <div
-        v-for="(zone, idx) in zoneList"
-        :key="idx"
-        class="zone-item"
-        :style="{ '--zone-color': zone.color }"
-      >
-        <span class="zone-badge"></span>
-        <span class="zone-name">{{ zone.name }}</span>
-        <span class="zone-stroke">起笔：{{ zone.stroke }}</span>
-      </div>
-      <div class="zone-item z-tip">
-        <span class="zone-badge z-badge"></span>
-        <span class="zone-name">Z 键（通配与学习键）</span>
+      <div class="legend-list">
+        <div
+          v-for="zone in zoneList"
+          :key="zone.id"
+          class="zone-capsule"
+          :class="{ 'is-active': activeZoneId === zone.id }"
+          :style="{ '--zone-color': zone.color }"
+        >
+          <span class="zone-badge"></span>
+          <span class="zone-name">{{ zone.name }}</span>
+          <span class="zone-stroke">起笔 {{ zone.stroke }}</span>
+        </div>
+
+        <div class="legend-divider"></div>
+
+        <div
+          class="zone-capsule z-capsule"
+          :class="{ 'is-active': activeZoneId === 0 }"
+        >
+          <span class="z-badge">Z</span>
+          <span class="zone-name">Z 键</span>
+          <span class="zone-stroke">通配与学习</span>
+        </div>
       </div>
     </div>
 
@@ -192,6 +202,15 @@ const getKeyInfo = (key: string): KeyRootInfo | undefined => {
   return currentKeyboard.value[key];
 };
 
+const activeZoneId = computed(() => {
+  const k = hoveredKey.value || props.activeKey || pressedKey.value;
+  if (!k) return null;
+  const upper = k.toUpperCase();
+  if (upper === 'Z') return 0;
+  const info = getKeyInfo(upper);
+  return info ? info.zone : null;
+});
+
 const getKeyZoneClass = (key: string): string => {
   const info = getKeyInfo(key);
   if (!info || info.zone === 0) return '';
@@ -251,31 +270,56 @@ const currentZoneColor = computed(() => {
 
 .zones-legend {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 1rem 1.5rem;
-  padding: 0.75rem 1.25rem;
+  width: 100%;
+  max-width: 960px;
+}
+
+.legend-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px 14px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.zone-item {
-  display: flex;
+.zone-capsule {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  padding: 5px 11px;
+  border-radius: 7px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  color: var(--text-main);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.zone-capsule:hover {
+  border-color: var(--zone-color);
+  background: var(--bg-secondary);
+}
+
+.zone-capsule.is-active {
+  border-color: var(--zone-color);
+  background: var(--accent-subtle);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .zone-badge {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background: var(--zone-color);
-}
-
-.z-badge {
-  background: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .zone-name {
@@ -285,7 +329,43 @@ const currentZoneColor = computed(() => {
 
 .zone-stroke {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+}
+
+.legend-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-color);
+  margin: 0 2px;
+}
+
+.z-capsule {
+  border-style: dashed;
+}
+
+.z-capsule:hover,
+.z-capsule.is-active {
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.z-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.z-capsule.is-active .z-badge {
+  background: var(--accent);
+  color: var(--bg-primary);
 }
 
 .keyboard-board {
@@ -465,6 +545,26 @@ const currentZoneColor = computed(() => {
   font-size: 0.9rem;
 }
 
+@media (max-width: 860px) {
+  .legend-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .legend-divider {
+    display: none;
+  }
+
+  .zone-capsule {
+    justify-content: center;
+    padding: 5px 6px;
+    font-size: 0.74rem;
+  }
+}
+
 @media (max-width: 768px) {
   .key-cap {
     width: 32px;
@@ -479,6 +579,12 @@ const currentZoneColor = computed(() => {
   }
   .space-cap {
     width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .legend-list {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
