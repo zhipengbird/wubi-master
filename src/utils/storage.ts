@@ -9,33 +9,43 @@ const STORAGE_KEYS = {
   ARTICLE_PROGRESS: 'wubi_article_progress',
 };
 
-export const getSavedVersion = (): WubiVersion => {
-  return (localStorage.getItem(STORAGE_KEYS.VERSION) as WubiVersion) || '86';
-};
+// 枚举白名单校验辅助函数
+function readEnum<T extends string>(key: string, validValues: readonly T[], defaultValue: T): T {
+  const raw = localStorage.getItem(key);
+  return (raw && (validValues as readonly string[]).includes(raw)) ? (raw as T) : defaultValue;
+}
+
+const VALID_VERSIONS: readonly WubiVersion[] = ['86', '98', 'newCentury'];
+const VALID_THEMES: readonly ThemeName[] = [
+  'tokyo-night', 'cyber-neon', 'dracula-vampire', 'deep-space', 'matrix-green',
+  'nord-frost', 'pure-white', 'paper-ink', 'retro-beige', 'matcha-zen', 'warm-latte'
+];
+const VALID_AUDIO: readonly AudioEffect[] = ['blue-switch', 'red-switch', 'typewriter', 'none'];
+const VALID_INPUT_MODES: readonly InputMode[] = ['full', 'quick', 'smart'];
+
+export const getSavedVersion = (): WubiVersion =>
+  readEnum(STORAGE_KEYS.VERSION, VALID_VERSIONS, '86');
 
 export const saveVersion = (ver: WubiVersion) => {
   localStorage.setItem(STORAGE_KEYS.VERSION, ver);
 };
 
-export const getSavedTheme = (): ThemeName => {
-  return (localStorage.getItem(STORAGE_KEYS.THEME) as ThemeName) || 'tokyo-night';
-};
+export const getSavedTheme = (): ThemeName =>
+  readEnum(STORAGE_KEYS.THEME, VALID_THEMES, 'tokyo-night');
 
 export const saveTheme = (theme: ThemeName) => {
   localStorage.setItem(STORAGE_KEYS.THEME, theme);
 };
 
-export const getSavedAudio = (): AudioEffect => {
-  return (localStorage.getItem(STORAGE_KEYS.AUDIO) as AudioEffect) || 'blue-switch';
-};
+export const getSavedAudio = (): AudioEffect =>
+  readEnum(STORAGE_KEYS.AUDIO, VALID_AUDIO, 'blue-switch');
 
 export const saveAudio = (effect: AudioEffect) => {
   localStorage.setItem(STORAGE_KEYS.AUDIO, effect);
 };
 
-export const getSavedInputMode = (): InputMode => {
-  return (localStorage.getItem(STORAGE_KEYS.INPUT_MODE) as InputMode) || 'smart';
-};
+export const getSavedInputMode = (): InputMode =>
+  readEnum(STORAGE_KEYS.INPUT_MODE, VALID_INPUT_MODES, 'smart');
 
 export const saveInputMode = (mode: InputMode) => {
   localStorage.setItem(STORAGE_KEYS.INPUT_MODE, mode);

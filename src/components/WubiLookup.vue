@@ -321,7 +321,7 @@ const phraseInfo = computed(() => {
 });
 
 // 执行多模态搜索
-let searchTimer: any = null;
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 const executeSearch = () => {
   const kw = searchKeyword.value.trim();
   if (!kw) {
