@@ -165,192 +165,31 @@
     <div class="linked-kb-area">
       <VirtualKeyboard :active-key="nextExpectedKey" />
     </div>
+    <!-- 题库大全大弹窗 -->
+    <ArticleLibraryModal
+      :show="showLibraryModal"
+      :article-list="articleList"
+      :current-article-id="currentArticle.id"
+      @close="showLibraryModal = false"
+      @select="selectArticleFromLibrary"
+    />
 
-    <!-- 题库大全大弹窗 (分类卡片与自由筛选) -->
-    <div class="modal-backdrop" v-if="showLibraryModal" @click.self="showLibraryModal = false">
-      <div class="modal-dialog library-modal-dialog">
-        <div class="library-header">
-          <div class="lib-title-wrap">
-            <h3 class="modal-heading">📚 五笔长文实战题库大全</h3>
-            <span class="lib-counter">共 {{ articleList.length }} 篇</span>
-          </div>
-          <button class="lib-close-btn" @click="showLibraryModal = false">
-            <X :size="20" />
-          </button>
-        </div>
-
-        <!-- 题材分类过滤器 -->
-        <div class="library-filter-tabs">
-          <button
-            class="lib-tab-btn"
-            :class="{ active: selectedCategoryTab === 'all' }"
-            @click="selectedCategoryTab = 'all'"
-          >
-            全部题材 ({{ articleList.length }})
-          </button>
-          <button
-            v-for="cat in availableCategories"
-            :key="cat"
-            class="lib-tab-btn"
-            :class="{ active: selectedCategoryTab === cat }"
-            @click="selectedCategoryTab = cat"
-          >
-            {{ cat }} ({{ articleList.filter(a => a.categoryName === cat).length }})
-          </button>
-        </div>
-
-        <!-- 文章卡片网格 -->
-        <div class="library-cards-scroll">
-          <div
-            v-for="art in filteredArticleList"
-            :key="art.id"
-            class="lib-card-item"
-            :class="{ active: art.id === currentArticle.id }"
-            @click="selectArticleFromLibrary(art)"
-          >
-            <div class="lib-card-top">
-              <span class="lib-card-badge">{{ art.categoryName }}</span>
-              <span class="lib-card-length">{{ art.charCount }} 字</span>
-            </div>
-            <h4 class="lib-card-title">{{ art.title }}</h4>
-            <div class="lib-card-author">作者：{{ art.author }}</div>
-            <p class="lib-card-desc">{{ art.description }}</p>
-            <div class="lib-card-footer">
-              <span class="lib-enter-hint" v-if="art.id === currentArticle.id">练习中...</span>
-              <span class="lib-enter-btn" v-else>立即练习 ➔</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 自定义文章导入弹窗 (支持选文件导入 / 手动复制粘贴) -->
-    <div class="modal-backdrop" v-if="showCustomModal" @click.self="showCustomModal = false">
-      <div class="modal-dialog import-modal-dialog">
-        <div class="import-modal-header">
-          <div class="import-header-title">
-            <h3 class="modal-heading">📝 导入文章练习题库</h3>
-            <span class="import-badge">支持两种导入方式</span>
-          </div>
-          <button class="lib-close-btn" @click="showCustomModal = false">
-            <X :size="20" />
-          </button>
-        </div>
-
-        <!-- 导入模式切换 Tab -->
-        <div class="import-tabs">
-          <button
-            class="import-tab-btn"
-            :class="{ active: customImportMode === 'file' }"
-            @click="customImportMode = 'file'"
-          >
-            <Upload :size="16" />
-            <span>本地选文件导入 (.txt / .md)</span>
-          </button>
-          <button
-            class="import-tab-btn"
-            :class="{ active: customImportMode === 'paste' }"
-            @click="customImportMode = 'paste'"
-          >
-            <Clipboard :size="16" />
-            <span>手动粘贴正文</span>
-          </button>
-        </div>
-
-        <!-- 方式一：文件拖拽/选取导入 -->
-        <div class="file-upload-zone" v-if="customImportMode === 'file'">
-          <input
-            ref="fileInputRef"
-            type="file"
-            accept=".txt,.md,.text"
-            class="hidden-file-input"
-            @change="handleFileUpload"
-          />
-          <div
-            class="drop-box"
-            :class="{ 'has-file': uploadedFileName }"
-            @click="triggerFileInput"
-            @dragover.prevent
-            @drop.prevent="handleFileDrop"
-          >
-            <div class="drop-icon-wrap">
-              <FileText :size="36" v-if="uploadedFileName" class="file-icon-ready" />
-              <Upload :size="36" v-else class="file-icon-idle" />
-            </div>
-            <div class="drop-texts">
-              <span class="drop-primary" v-if="uploadedFileName">已加载文件：{{ uploadedFileName }}</span>
-              <span class="drop-primary" v-else>点击选取电脑文件，或直接将文件拖拽至此</span>
-              <span class="drop-sub">支持 UTF-8 编码的 .txt 纯文本或 .md 格式文件</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 通用设置：标题与正文预览/手动粘贴 -->
-        <div class="import-fields">
-          <div class="field-item">
-            <label class="field-lbl">文章标题（选填，默认读取文件名或自拟）：</label>
-            <input
-              v-model="customTitle"
-              type="text"
-              placeholder="请输入或自定文章标题（如：公司公文通报、经典美文练习等）"
-              class="custom-input-title"
-            />
-          </div>
-
-          <div class="field-item">
-            <div class="field-lbl-row">
-              <label class="field-lbl">
-                {{ customImportMode === 'file' ? '导入文件正文预览（可微调修改）：' : '请粘贴文章正文：' }}
-              </label>
-              <span class="char-counter-tag" v-if="customText">共 {{ customText.length }} 字</span>
-            </div>
-            <textarea
-              v-model="customText"
-              rows="7"
-              :placeholder="customImportMode === 'file' ? '选择文件后此处将自动显示文本内容，亦可手动编辑...' : '请在此粘贴您想打字练习的任意中文篇章、新闻或小说段落...'"
-              class="custom-textarea"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="modal-btns">
-          <button class="btn-cancel" @click="showCustomModal = false">取消</button>
-          <button class="btn-submit" :disabled="!customText.trim()" @click="applyCustomArticle">
-            立即生成打字题
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- 自定义文章导入弹窗 -->
+    <ArticleCustomImportModal
+      :show="showCustomModal"
+      @close="showCustomModal = false"
+      @apply="onApplyCustomArticle"
+    />
 
     <!-- 篇章完成结算弹窗 -->
-    <div class="modal-backdrop" v-if="isFinished">
-      <div class="modal-dialog finish-card">
-        <h3 class="modal-heading">🏆 恭喜完成全篇文章！</h3>
-        <p class="modal-sub">《{{ currentArticle.title }}》篇章打字战报</p>
-        <div class="finish-stats-grid">
-          <div class="stat-box">
-            <div class="num">{{ stats.wpm }}</div>
-            <div class="name">每分钟字数 (WPM)</div>
-          </div>
-          <div class="stat-box">
-            <div class="num">{{ stats.kpm }}</div>
-            <div class="name">击键速率 (KPM)</div>
-          </div>
-          <div class="stat-box">
-            <div class="num">{{ stats.accuracy }}%</div>
-            <div class="name">最终正确率</div>
-          </div>
-          <div class="stat-box">
-            <div class="num">{{ formattedTime }}</div>
-            <div class="name">耗时</div>
-          </div>
-        </div>
-        <div class="modal-btns">
-          <button class="btn-submit" @click="restartArticle">重新练这篇</button>
-          <button class="btn-cancel" @click="nextArticle">换下一篇</button>
-        </div>
-      </div>
-    </div>
+    <ArticleFinishModal
+      :show="isFinished"
+      :article-title="currentArticle.title"
+      :stats="stats"
+      :formatted-time="formattedTime"
+      @restart="restartArticle"
+      @next="nextArticle"
+    />
   </div>
 </template>
 
@@ -371,7 +210,10 @@ import { evaluateInput, calculateStats } from '../utils/wubiEngine';
 import { soundPlayer } from '../utils/audio';
 import { getArticleProgress, saveArticleProgress } from '../utils/storage';
 import VirtualKeyboard from './VirtualKeyboard.vue';
-import { Plus, BookOpen, X, Upload, FileText, Clipboard } from 'lucide-vue-next';
+import ArticleLibraryModal from './article/ArticleLibraryModal.vue';
+import ArticleCustomImportModal from './article/ArticleCustomImportModal.vue';
+import ArticleFinishModal from './article/ArticleFinishModal.vue';
+import { Plus, BookOpen } from 'lucide-vue-next';
 import confetti from 'canvas-confetti';
 import {
   getUpcomingCandidates,
@@ -388,20 +230,6 @@ const currentArticle = ref<ArticleTopic>(articleList.value[0]);
 const dictReady = ref(false);
 
 const showLibraryModal = ref(false);
-const selectedCategoryTab = ref('all');
-
-const availableCategories = computed(() => {
-  const set = new Set<string>();
-  articleList.value.forEach(a => set.add(a.categoryName));
-  return Array.from(set);
-});
-
-const filteredArticleList = computed(() => {
-  if (selectedCategoryTab.value === 'all') {
-    return articleList.value;
-  }
-  return articleList.value.filter(a => a.categoryName === selectedCategoryTab.value);
-});
 
 const selectArticleFromLibrary = (art: ArticleTopic) => {
   currentArticle.value = art;
@@ -442,47 +270,6 @@ const isFinished = ref(false);
 
 // 自定义文章导入状态
 const showCustomModal = ref(false);
-const customImportMode = ref<'file' | 'paste'>('file');
-const customTitle = ref('');
-const customText = ref('');
-const uploadedFileName = ref('');
-const fileInputRef = ref<HTMLInputElement | null>(null);
-
-const triggerFileInput = () => {
-  fileInputRef.value?.click();
-};
-
-const readFileContent = (file: File) => {
-  if (!file) return;
-  uploadedFileName.value = file.name;
-  if (!customTitle.value.trim()) {
-    // 自动将文件名（去掉后缀）作为标题
-    customTitle.value = file.name.replace(/\.[^/.]+$/, '');
-  }
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const content = event.target?.result as string;
-    if (content) {
-      customText.value = content.trim();
-    }
-  };
-  reader.readAsText(file, 'UTF-8');
-};
-
-const handleFileUpload = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (file) {
-    readFileContent(file);
-  }
-};
-
-const handleFileDrop = (e: DragEvent) => {
-  const file = e.dataTransfer?.files?.[0];
-  if (file) {
-    readFileContent(file);
-  }
-};
 
 const articleChars = computed(() => {
   return currentArticle.value.content.split('');
@@ -893,26 +680,21 @@ const finishArticle = () => {
   });
 };
 
-const applyCustomArticle = () => {
-  if (!customText.value.trim()) return;
+const onApplyCustomArticle = (payload: { title: string; text: string }) => {
   const newArt: ArticleTopic = {
     id: 'custom-' + Date.now(),
-    title: customTitle.value.trim() || '自定义练习长文',
+    title: payload.title || '自定义练习长文',
     author: '用户导入',
     category: 'modern',
     categoryName: '自定义',
     description: '用户自定义导入的文章打字题库',
-    content: customText.value.trim().replace(/\r\n/g, '\n'),
-    charCount: customText.value.trim().length
+    content: payload.text.replace(/\r\n/g, '\n'),
+    charCount: payload.text.length
   };
   articleList.value.unshift(newArt);
   currentArticle.value = newArt;
   charIndex.value = 0;
   showCustomModal.value = false;
-  customText.value = '';
-  customTitle.value = '';
-  uploadedFileName.value = '';
-  if (fileInputRef.value) fileInputRef.value.value = '';
   restartSession();
 };
 
@@ -1070,182 +852,6 @@ watch(() => charIndex.value, () => {
   cursor: pointer;
 }
 
-/* 题库大全大模态框 */
-.library-modal-dialog {
-  max-width: 820px;
-  width: 95%;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.library-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
-}
-
-.lib-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.lib-counter {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent);
-  background: rgba(99, 102, 241, 0.12);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.lib-close-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lib-close-btn:hover {
-  color: var(--text-main);
-  background: var(--bg-primary);
-}
-
-.library-filter-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.lib-tab-btn {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.lib-tab-btn:hover {
-  color: var(--text-main);
-  border-color: var(--accent);
-}
-
-.lib-tab-btn.active {
-  background: var(--accent);
-  color: var(--accent-text, #ffffff);
-  border-color: var(--accent);
-}
-
-.library-cards-scroll {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-  overflow-y: auto;
-  max-height: 55vh;
-  padding: 4px 4px 12px 2px;
-}
-
-.lib-card-item {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.lib-card-item:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.lib-card-item.active {
-  border-color: var(--accent);
-  background: rgba(99, 102, 241, 0.06);
-}
-
-.lib-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.lib-card-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent);
-  background: rgba(99, 102, 241, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.lib-card-length {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-family: monospace;
-}
-
-.lib-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-}
-
-.lib-card-author {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-}
-
-.lib-card-desc {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin: 0;
-  flex: 1;
-}
-
-.lib-card-footer {
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.lib-enter-hint {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.lib-enter-btn {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: color 0.15s;
-}
-
-.lib-card-item:hover .lib-enter-btn {
-  color: var(--accent);
-}
 
 .article-stats-bar {
   display: grid;
@@ -1526,283 +1132,5 @@ watch(() => charIndex.value, () => {
 
 .char-unit.punctuation {
   opacity: 0.7;
-}
-
-/* 统一弹窗遮罩层（全屏浮层） */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1.5rem;
-  box-sizing: border-box;
-}
-
-.modal-dialog {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 520px;
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
-  animation: modalScaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalScaleUp {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.modal-heading {
-  font-size: 1.3rem;
-  color: var(--text-main);
-}
-
-.modal-sub {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.custom-input-title, .custom-textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  font-size: 0.9rem;
-  outline: none;
-}
-
-.import-modal-dialog {
-  max-width: 680px;
-  width: 95%;
-  max-height: 88vh;
-  overflow-y: auto;
-}
-
-.import-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
-}
-
-.import-header-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.import-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  background: rgba(99, 102, 241, 0.12);
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.import-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: var(--bg-primary);
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.import-tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: transparent;
-  color: var(--text-muted);
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.import-tab-btn.active {
-  background: var(--card-bg);
-  color: var(--accent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.file-upload-zone {
-  width: 100%;
-}
-
-.hidden-file-input {
-  display: none;
-}
-
-.drop-box {
-  border: 2px dashed var(--border-color);
-  border-radius: 12px;
-  background: var(--bg-primary);
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.drop-box:hover {
-  border-color: var(--accent);
-  background: rgba(99, 102, 241, 0.04);
-}
-
-.drop-box.has-file {
-  border-color: var(--success, #10b981);
-  background: rgba(16, 185, 129, 0.06);
-}
-
-.file-icon-idle {
-  color: var(--text-muted);
-}
-
-.file-icon-ready {
-  color: var(--success, #10b981);
-}
-
-.drop-texts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.drop-primary {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.drop-sub {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.import-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.field-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.field-lbl {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.field-lbl-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.char-counter-tag {
-  font-size: 0.75rem;
-  color: var(--accent);
-  font-weight: 700;
-  background: rgba(99, 102, 241, 0.1);
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.modal-btns {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-.btn-cancel {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-submit {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btn-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.finish-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.stat-box {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  padding: 1rem;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.stat-box .num {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--accent);
-  font-family: monospace;
-}
-
-.stat-box .name {
-  font-size: 0.75rem;
-  color: var(--text-muted);
 }
 </style>
