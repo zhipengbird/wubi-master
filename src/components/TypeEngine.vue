@@ -1,104 +1,24 @@
 <template>
   <div class="type-engine-wrapper">
     <!-- 顶部练习控制条：模式切换与关卡选择 -->
-    <div class="engine-toolbar">
-      <!-- 第一层：关卡练习分类与词组子分类 -->
-      <div class="toolbar-row category-row">
-        <div class="category-selector">
-          <button
-            v-for="cat in categoryList"
-            :key="cat.id"
-            class="cat-btn"
-            :class="{ active: currentCategory === cat.id }"
-            @click="selectCategory(cat.id)"
-          >
-            {{ cat.name }}
-          </button>
-        </div>
-
-        <!-- 词组特训子分类筛选 (仅在 phrase 分类下展示) -->
-        <div class="category-selector phrase-sub-selector" v-if="currentCategory === 'phrase'">
-          <button
-            v-for="sub in phraseSubOptions"
-            :key="sub.id"
-            class="cat-btn"
-            :class="{ active: phraseFilter === sub.id }"
-            @click="setPhraseFilter(sub.id)"
-          >
-            {{ sub.name }}
-          </button>
-        </div>
-      </div>
-
-      <!-- 第二层：练习偏好、出字方式、组量与辅助开关 -->
-      <div class="toolbar-row controls-row">
-        <div class="controls-left">
-          <!-- 打字判定模式 -->
-          <div class="mode-selector">
-            <button
-              v-for="m in modeList"
-              :key="m.id"
-              class="mode-btn"
-              :class="{ active: store.inputMode.value === m.id }"
-              @click="changeInputMode(m.id)"
-            >
-              <component :is="m.icon" :size="15" />
-              <span>{{ m.name }}</span>
-            </button>
-          </div>
-
-          <!-- 出字方式：打对即走(无需空格) vs 空格出字 -->
-          <div class="commit-selector">
-            <button
-              class="mode-btn"
-              :class="{ active: store.commitMode.value === 'auto' }"
-              @click="store.setCommitMode('auto')"
-              title="无需按空格，编码打对即自动进入下一个字"
-            >
-              <span>⚡ 自动出字</span>
-            </button>
-            <button
-              class="mode-btn"
-              :class="{ active: store.commitMode.value === 'space' }"
-              @click="store.setCommitMode('space')"
-              title="敲空格键出字"
-            >
-              <span>␣ 空格出字</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="controls-right">
-          <!-- 每组字数选择：防疲劳分批练习 -->
-          <div class="batch-selector" title="设置每组练习字数，分批冲关更轻松">
-            <span class="batch-lbl">组量:</span>
-            <button
-              v-for="b in batchSizeOptions"
-              :key="b.value"
-              class="batch-btn"
-              :class="{ active: currentBatchSize === b.value }"
-              @click="setBatchSize(b.value)"
-            >
-              {{ b.label }}
-            </button>
-          </div>
-
-          <div class="toolbar-divider"></div>
-
-          <!-- 辅助提示开关与米字格开关 -->
-          <div class="hints-toggle">
-            <label class="toggle-label" title="开启/关闭书法米字格字帖模式">
-              <input type="checkbox" v-model="useMiZiGe" />
-              <span>米字格</span>
-            </label>
-            <label class="toggle-label" title="开启/关闭拆字字根与编码提示">
-              <input type="checkbox" v-model="showHints" />
-              <span>拆解提示</span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
+    <TypeEngineToolbar
+      :category-list="categoryList"
+      :current-category="currentCategory"
+      :phrase-sub-options="phraseSubOptions"
+      :phrase-filter="phraseFilter"
+      :mode-list="modeList"
+      :input-mode="store.inputMode.value"
+      :commit-mode="store.commitMode.value"
+      :batch-size-options="batchSizeOptions"
+      :current-batch-size="currentBatchSize"
+      v-model:use-mi-zi-ge="useMiZiGe"
+      v-model:show-hints="showHints"
+      @select-category="selectCategory"
+      @set-phrase-filter="setPhraseFilter"
+      @change-input-mode="changeInputMode"
+      @set-commit-mode="store.setCommitMode"
+      @set-batch-size="setBatchSize"
+    />
 
     <!-- 打字实时状态监控板 (WPM, KPM, 准确率, 进度) -->
     <div class="stats-ribbon">
@@ -233,7 +153,7 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            inputmode="latin"
+            inputmode="text"
           />
 
           <!-- 内容显示：若有输入则展示大号等宽编码；无输入则展示引导文案 -->
@@ -295,36 +215,17 @@
     </div>
 
     <!-- 结算模态框 -->
-    <div class="modal-backdrop" v-if="isFinished">
-      <div class="modal-card">
-        <h2 class="modal-title">🎉 {{ currentBatchLabel ? `${currentBatchLabel} 完成！` : '本轮练习完成！' }}</h2>
-        <div class="modal-stats-grid">
-          <div class="m-stat">
-            <div class="val">{{ stats.wpm }}</div>
-            <div class="lbl">打字速度 (WPM)</div>
-          </div>
-          <div class="m-stat">
-            <div class="val">{{ stats.kpm }}</div>
-            <div class="lbl">击键速度 (KPM)</div>
-          </div>
-          <div class="m-stat">
-            <div class="val">{{ stats.accuracy }}%</div>
-            <div class="lbl">正确率</div>
-          </div>
-          <div class="m-stat">
-            <div class="val">{{ stats.elapsedSeconds }}秒</div>
-            <div class="lbl">总耗时</div>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="primary-btn" @click="nextBatch">
-            {{ (currentBatchSize && currentBatchIndex + 1 < totalBatches) ? `下一组 (${currentBatchSize}字)` : '再练一轮' }}
-          </button>
-          <button class="secondary-btn" @click="retryCurrentBatch" v-if="currentBatchSize && totalBatches > 1">重练本组</button>
-          <button class="secondary-btn" @click="nextCategory">下一关卡</button>
-        </div>
-      </div>
-    </div>
+    <TypeResultModal
+      :show="isFinished"
+      :current-batch-label="currentBatchLabel"
+      :stats="stats"
+      :current-batch-size="currentBatchSize"
+      :current-batch-index="currentBatchIndex"
+      :total-batches="totalBatches"
+      @next-batch="nextBatch"
+      @retry-batch="retryCurrentBatch"
+      @next-category="nextCategory"
+    />
   </div>
 </template>
 
@@ -354,6 +255,8 @@ import { evaluateInput, calculateStats } from '../utils/wubiEngine';
 import { soundPlayer } from '../utils/audio';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import MiZiGe from './MiZiGe.vue';
+import TypeEngineToolbar from './engine/TypeEngineToolbar.vue';
+import TypeResultModal from './engine/TypeResultModal.vue';
 import { Zap, Target, Sparkles, RotateCcw } from 'lucide-vue-next';
 import confetti from 'canvas-confetti';
 
@@ -963,116 +866,6 @@ watch(() => store.practiceCategory.value, () => {
   width: 100%;
 }
 
-.engine-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  background: var(--card-bg);
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-}
-
-.toolbar-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.category-row {
-  justify-content: flex-start;
-  gap: 0.6rem;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
-.controls-row {
-  padding-top: 0.65rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.controls-left, .controls-right {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
-.toolbar-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border-color);
-  margin: 0 2px;
-}
-
-.mode-selector, .commit-selector, .category-selector, .batch-selector {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--bg-primary);
-  padding: 3px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  white-space: nowrap;
-}
-
-.batch-lbl {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  padding: 0 4px;
-  user-select: none;
-}
-
-.mode-btn, .cat-btn, .batch-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.batch-btn {
-  padding: 4px 8px;
-  font-size: 0.75rem;
-}
-
-.mode-btn.active, .cat-btn.active, .batch-btn.active {
-  background: var(--accent);
-  color: var(--accent-text, #ffffff);
-  font-weight: 600;
-}
-
-.phrase-sub-selector {
-  border-left: 2px solid var(--accent);
-  margin-left: 2px;
-}
-
-.hints-toggle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  white-space: nowrap;
-}
-
-.toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  cursor: pointer;
-}
 
 .stats-ribbon {
   display: grid;
@@ -1539,86 +1332,5 @@ watch(() => store.practiceCategory.value, () => {
 
 .linked-keyboard-wrap {
   width: 100%;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 480px;
-  width: 90%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.modal-title {
-  font-size: 1.5rem;
-  color: var(--text-main);
-}
-
-.modal-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.m-stat {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  padding: 1rem;
-  border-radius: 10px;
-}
-
-.m-stat .val {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--accent);
-  font-family: monospace;
-}
-
-.m-stat .lbl {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.primary-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.secondary-btn {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
 }
 </style>
