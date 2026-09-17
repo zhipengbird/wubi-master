@@ -291,7 +291,7 @@ const categoryList = computed(() => {
   const base = [
     { id: 'level1' as PracticeCategory, name: '一级简码 (25字)' },
     { id: 'level2' as PracticeCategory, name: '二级简码全集 (600+字)' },
-    { id: 'root' as PracticeCategory, name: '键名与字根' },
+    { id: 'root' as PracticeCategory, name: '键名汉字 (25字)' },
     { id: 'top500' as PracticeCategory, name: '常用前500字' },
     { id: 'top1500' as PracticeCategory, name: '常用前1500字' },
     { id: 'top3500' as PracticeCategory, name: '3500常用字全集' },
