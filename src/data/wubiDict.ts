@@ -2,6 +2,7 @@ import type { WubiCharData, WubiVersion } from '../types/wubi';
 import { KEYBOARD_86, KEYBOARD_98, KEYBOARD_NEW } from './keyboards';
 import { rawCommonDictData } from './wubiCommonDictData';
 import { charMetaData } from './charMetaData';
+import { SUPPLEMENTAL_LEVEL_2_TUPLES } from './supplementalLevel2';
 
 // 一级简码 25 字标准定义
 export const LEVEL_1_CHARS: WubiCharData[] = [
@@ -69,8 +70,8 @@ export const KEY_NAME_CHARS: WubiCharData[] = [
   { char: '纟', pinyin: 'sī', code86: 'XXXX', code98: 'XXXX', codeNew: 'XXXX', roots86: ['纟'], roots98: ['纟'], rootsNew: ['纟'], type: 'keyname' }
 ];
 
-// 高频二级简码精选集（采用标准拆解字根，精准对齐按键）
-export const LEVEL_2_CHARS: WubiCharData[] = [
+// 高频二级简码精选精修集（采用标准拆解字根，精准对齐按键）
+export const REFINED_LEVEL_2_CHARS: WubiCharData[] = [
   { char: '把', pinyin: 'bǎ', code86: 'RCN', code98: 'RCN', codeNew: 'RCN', short86: 'RC', short98: 'RC', shortNew: 'RC', roots86: ['扌', '巴'], roots98: ['扌', '巴'], rootsNew: ['扌', '巴'] },
   { char: '打', pinyin: 'dǎ', code86: 'RSH', code98: 'RSH', codeNew: 'RSH', short86: 'RS', short98: 'RS', shortNew: 'RS', roots86: ['扌', '丁'], roots98: ['扌', '丁'], rootsNew: ['扌', '丁'] },
   { char: '帮', pinyin: 'bāng', code86: 'DTBH', code98: 'DTBH', codeNew: 'DTBH', short86: 'DT', short98: 'DT', shortNew: 'DT', roots86: ['大', '丰', '阝', '巾'], roots98: ['大', '丰', '阝', '巾'], rootsNew: ['大', '丰', '阝', '巾'] },
@@ -777,7 +778,7 @@ LEVEL_1_CHARS.forEach(item => { attachMeta(item); WUBI_CHAR_MAP.set(item.char, i
 KEY_NAME_CHARS.forEach(item => {
   if (!WUBI_CHAR_MAP.has(item.char)) { attachMeta(item); WUBI_CHAR_MAP.set(item.char, item); }
 });
-LEVEL_2_CHARS.forEach(item => {
+REFINED_LEVEL_2_CHARS.forEach(item => {
   if (!WUBI_CHAR_MAP.has(item.char)) { attachMeta(item); WUBI_CHAR_MAP.set(item.char, item); }
 });
 EXPERT_CORRECTED_CHARS.forEach(item => {
@@ -845,6 +846,67 @@ export const COMMON_2500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 2500
 export const COMMON_3500_CHARS: WubiCharData[] = parsedCommonChars.slice(0, 3500);
 export const COMMON_CHARS: WubiCharData[] = COMMON_3500_CHARS;
 
+// 键名汉字所在键映射表 (连击两键即为二级简码)
+export const KEYNAME_KEYS_MAP: Record<string, string> = {
+  '王': 'G', '土': 'F', '大': 'D', '木': 'S', '工': 'A',
+  '目': 'H', '日': 'J', '口': 'K', '田': 'L', '山': 'M',
+  '禾': 'T', '白': 'R', '月': 'E', '人': 'W', '金': 'Q',
+  '言': 'Y', '立': 'U', '水': 'I', '火': 'O', '之': 'P',
+  '已': 'N', '子': 'B', '女': 'V', '又': 'C', '纟': 'X'
+};
+
+// 一级简码标准映射表 (按 1 键即可出字)
+export const LEVEL_1_KEY_MAP: Record<string, string> = {
+  '一': 'G', '地': 'F', '在': 'D', '要': 'S', '工': 'A',
+  '上': 'H', '是': 'J', '中': 'K', '国': 'L', '同': 'M',
+  '和': 'T', '的': 'R', '有': 'E', '人': 'W', '我': 'Q',
+  '主': 'Y', '产': 'U', '不': 'I', '为': 'O', '这': 'P',
+  '民': 'N', '了': 'B', '发': 'V', '以': 'C', '经': 'X'
+};
+
+// 预加载并解析生僻/次常用二级简码字表
+const parsedSupplementalLevel2: WubiCharData[] = (SUPPLEMENTAL_LEVEL_2_TUPLES as RawDictTuple[]).map(parseRawEntry);
+
+/**
+ * 二级简码全集提取与版本适配函数
+ * 严格按照现代汉语国家通用高频字频降序排列，涵盖 3,500 常用字库与补充规范字库
+ */
+export const getLevel2Chars = (version: WubiVersion = '86'): WubiCharData[] => {
+  const result: WubiCharData[] = [];
+  const seen = new Set<string>();
+  const is98 = version === '98';
+  const isNew = version === 'newCentury';
+
+  const checkShort2 = (item: WubiCharData) => {
+    let s = item.short86;
+    if (is98) s = item.short98 || item.short86;
+    else if (isNew) s = item.shortNew || item.short86;
+    const isKeyName = !!KEYNAME_KEYS_MAP[item.char];
+    return (s && s.length === 2) || isKeyName;
+  };
+
+  // 1. 优先提取高频 3,500 常用字中的二级简码（按国家通用高频字频严格从高到低排列）
+  for (const item of parsedCommonChars) {
+    if (checkShort2(item) && !seen.has(item.char)) {
+      seen.add(item.char);
+      result.push(item);
+    }
+  }
+
+  // 2. 补齐生僻与次常用二级简码
+  for (const item of parsedSupplementalLevel2) {
+    if (checkShort2(item) && !seen.has(item.char)) {
+      seen.add(item.char);
+      result.push(item);
+    }
+  }
+
+  return result;
+};
+
+// 导出全量 86 版二级简码（严格按汉语字频降序排序，保持向后兼容）
+export const LEVEL_2_CHARS: WubiCharData[] = getLevel2Chars('86');
+
 let fullParsedCharsCache: WubiCharData[] | null = null;
 
 /**
@@ -906,24 +968,6 @@ export const getShortCode = (charData: WubiCharData, version: WubiVersion): stri
     default:
       return charData.short86 || charData.code86;
   }
-};
-
-// 键名汉字所在键映射表 (连击两键即为二级简码)
-export const KEYNAME_KEYS_MAP: Record<string, string> = {
-  '王': 'G', '土': 'F', '大': 'D', '木': 'S', '工': 'A',
-  '目': 'H', '日': 'J', '口': 'K', '田': 'L', '山': 'M',
-  '禾': 'T', '白': 'R', '月': 'E', '人': 'W', '金': 'Q',
-  '言': 'Y', '立': 'U', '水': 'I', '火': 'O', '之': 'P',
-  '已': 'N', '子': 'B', '女': 'V', '又': 'C', '纟': 'X'
-};
-
-// 一级简码标准映射表 (按 1 键即可出字)
-export const LEVEL_1_KEY_MAP: Record<string, string> = {
-  '一': 'G', '地': 'F', '在': 'D', '要': 'S', '工': 'A',
-  '上': 'H', '是': 'J', '中': 'K', '国': 'L', '同': 'M',
-  '和': 'T', '的': 'R', '有': 'E', '人': 'W', '我': 'Q',
-  '主': 'Y', '产': 'U', '不': 'I', '为': 'O', '这': 'P',
-  '民': 'N', '了': 'B', '发': 'V', '以': 'C', '经': 'X'
 };
 
 export interface TargetCodesResult {

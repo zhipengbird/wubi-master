@@ -236,6 +236,7 @@ import type { InputMode, PracticeCategory, WubiCharData, TypingStats } from '../
 import { 
   LEVEL_1_CHARS, 
   LEVEL_2_CHARS, 
+  getLevel2Chars,
   KEY_NAME_CHARS, 
   COMMON_500_CHARS,
   COMMON_1500_CHARS,
@@ -289,7 +290,7 @@ const modeList = [
 const categoryList = computed(() => {
   const base = [
     { id: 'level1' as PracticeCategory, name: '一级简码 (25字)' },
-    { id: 'level2' as PracticeCategory, name: '二级简码精选' },
+    { id: 'level2' as PracticeCategory, name: '二级简码全集 (600+字)' },
     { id: 'root' as PracticeCategory, name: '键名与字根' },
     { id: 'top500' as PracticeCategory, name: '常用前500字' },
     { id: 'top1500' as PracticeCategory, name: '常用前1500字' },
@@ -387,7 +388,7 @@ const loadPracticeData = () => {
       list = [...LEVEL_1_CHARS];
       break;
     case 'level2':
-      list = [...LEVEL_2_CHARS];
+      list = [...getLevel2Chars(store.version.value)];
       break;
     case 'root':
       list = [...KEY_NAME_CHARS];
@@ -848,7 +849,11 @@ onUnmounted(() => {
 });
 
 watch(() => store.version.value, () => {
-  resetSession();
+  if (currentCategory.value === 'level2') {
+    loadPracticeData();
+  } else {
+    resetSession();
+  }
 });
 
 watch(() => store.practiceCategory.value, () => {
