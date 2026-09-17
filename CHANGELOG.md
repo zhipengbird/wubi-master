@@ -19,7 +19,8 @@
 - **规范化与类型加固 (Standardization & Bugfix)**：
   - 全面修正各输入视图中非标准的 `inputmode="latin"` 属性为 HTML5 / Vue 严格支持的 `inputmode="text"`，消除所有控制台与 `vue-tsc` 告警；
   - 在 `src/utils/storage.ts` 中建立 `STORAGE_KEYS` 枚举白名单，增加严格校验，防止局部未知键污染 localStorage；
-  - 固定 Vite 开发环境端口为 `5175`（`strictPort: true`），确保 E2E 自动化测试套件与本地开发链路稳定对接。
+  - 固定 Vite 开发环境端口为 `5175`（`strictPort: true`），确保 E2E 自动化测试套件与本地开发链路稳定对接；
+  - **文档与主题规范全面校准**：同步 `README.md`、`docs/ARCHITECTURE.md` 与 `docs/PRODUCT.md`，将历史遗留的“4套”全面校准为真实的 **11 套深浅高对比度无障碍主题**（6 套酷炫暗色 + 5 套简洁明亮），且均达到 WCAG AA 标准。
 
 ### ✅ 自动化测试与质量门禁验证 (Quality Assurance)
 - **TypeScript 静态检查**：`vue-tsc --noEmit` 0 错误、0 警告；
