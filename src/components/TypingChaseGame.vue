@@ -298,63 +298,20 @@
           </button>
         </div>
 
-        <!-- 胜利结算状态 -->
-        <div class="overlay-card victory" v-else-if="gameState === 'finished'">
-          <div class="modal-icon">🏆</div>
-          <h3 class="modal-title win">大获全胜！成功甩开对手！</h3>
-          <p class="modal-desc">
-            你以 <strong>{{ playerWpm }} WPM</strong> 的极速率先冲过终点！领先暗影猎手 <strong>{{ (TARGET_COUNT - aiCharProgress).toFixed(1) }}</strong> 个字身！
-          </p>
-          <div class="result-stats-grid">
-            <div class="res-stat-item">
-              <span class="r-label">平均手速</span>
-              <span class="r-val">{{ playerWpm }} WPM</span>
-            </div>
-            <div class="res-stat-item">
-              <span class="r-label">准确率</span>
-              <span class="r-val">{{ accuracy }}%</span>
-            </div>
-            <div class="res-stat-item">
-              <span class="r-label">最高连击</span>
-              <span class="r-val">{{ maxCombo }} 🔥</span>
-            </div>
-            <div class="res-stat-item">
-              <span class="r-label">总计用时</span>
-              <span class="r-val">{{ formattedTime }}</span>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button class="start-btn" @click="restartGame">🔄 再来一局</button>
-            <button class="start-btn secondary" @click="increaseAiDifficulty">🔥 挑战更高航速</button>
-          </div>
-        </div>
-
-        <!-- 失败被追上结算状态 -->
-        <div class="overlay-card defeat" v-else-if="gameState === 'failed'">
-          <div class="modal-icon">💥</div>
-          <h3 class="modal-title lose">被暗影猎手超越拦截！</h3>
-          <p class="modal-desc">
-            暗影猎手率先撞线！你在第 <strong>{{ playerIndex }}</strong> / {{ TARGET_COUNT }} 字遗憾告负。<br />
-            别灰心，稳住心态，记住简码少击键，再次挑战吧！
-          </p>
-          <div class="result-stats-grid">
-            <div class="res-stat-item">
-              <span class="r-label">最终完成度</span>
-              <span class="r-val">{{ Math.round((playerIndex / TARGET_COUNT) * 100) }}%</span>
-            </div>
-            <div class="res-stat-item">
-              <span class="r-label">当前速度</span>
-              <span class="r-val">{{ playerWpm }} WPM</span>
-            </div>
-            <div class="res-stat-item">
-              <span class="r-label">对手速度</span>
-              <span class="r-val">{{ aiWpm }} WPM</span>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button class="start-btn" @click="restartGame">🔄 重整旗鼓，再次挑战</button>
-          </div>
-        </div>
+        <!-- 结算状态子组件集成 -->
+        <ChaseResultModal
+          :game-state="gameState"
+          :player-wpm="playerWpm"
+          :accuracy="accuracy"
+          :max-combo="maxCombo"
+          :formatted-time="formattedTime"
+          :target-count="TARGET_COUNT"
+          :ai-char-progress="aiCharProgress"
+          :player-index="playerIndex"
+          :ai-wpm="aiWpm"
+          @restart="restartGame"
+          @increase-difficulty="increaseAiDifficulty"
+        />
       </div>
     </div>
   </div>
@@ -385,6 +342,7 @@ import {
   matchChineseStream
 } from '../utils/phraseMatching';
 import { useChaseInput } from '../composables/useChaseInput';
+import ChaseResultModal from './chase/ChaseResultModal.vue';
 
 const store = useWubiStore();
 
@@ -1425,34 +1383,7 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.result-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  width: 100%;
-  background: var(--bg-primary);
-  padding: 1.25rem;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-}
 
-.res-stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.r-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.r-val {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-main);
-  font-family: monospace;
-}
 
 /* 弹窗配置区与药丸按钮（多主题高对比度适配） */
 .modal-config-zone {
