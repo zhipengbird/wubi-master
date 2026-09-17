@@ -4,6 +4,30 @@
 
 ---
 
+## [1.7.3] - 2026-09-17
+
+### 🌟 核心亮点与组件工程化解耦重构 (Architecture & Component Decoupling)
+- **超大单文件组件全面解耦与结构化降维 (Large Component Decoupling)**：
+  - 针对原工程中代码行数达 1600~2700 行的 5 大单文件组件展开深度解耦，坚持**「样式紧随组件（内聚 scoped style）」**原则，消除视图混杂、海量样式堆叠与维护黑洞：
+    - **`RuleTutorial.vue` 骤减 1264 行（2688 -> 1424 行，降幅达 47%）**：抽取独立子组件 `src/components/rules/RuleSplitPrinciples.vue`，内聚四大原则图解、避坑大PK对决卡片、闯关答题 Quiz 与微观拆字实验室；
+    - **`ArticlePractice.vue` 骤减 673 行（1809 -> 1136 行，降幅达 37%）**：抽取长文题库大全 `ArticleLibraryModal.vue`、文件拖拽/粘贴导入 `ArticleCustomImportModal.vue` 与长文篇章战报 `ArticleFinishModal.vue`；
+    - **`TypeEngine.vue` 净减 289 行（1625 -> 1336 行）**：抽取双层练习控制条 `TypeEngineToolbar.vue`（分类/词组筛选/出字模式/组量/米字格与辅助提示）与分批练习战报结算 `TypeResultModal.vue`；
+    - **`TypingChaseGame.vue` 净减 192 行（1721 -> 1529 行）**：抽取赛车结算面板 `ChaseResultModal.vue`，并沉淀专用追逐赛输入调度引擎 `useChaseInput.ts`；
+    - **`RpgAdventure.vue` 净减 206 行（2082 -> 1876 行）**：抽取藏宝阁商铺 `RpgShopModal.vue` 与关卡战报 `RpgBattleResultModal.vue`，并沉淀修仙专用输入调度引擎 `useRpgInput.ts`。
+- **输入引擎逻辑下沉 (Input Engine Composables)**：
+  - 沉淀 [`src/composables/useRpgInput.ts`](file:///Users/yuanpinghua/Desktop/Study/wubi-master/src/composables/useRpgInput.ts) 与 [`src/composables/useChaseInput.ts`](file:///Users/yuanpinghua/Desktop/Study/wubi-master/src/composables/useChaseInput.ts)，将底层的键盘事件监听、组字流（Composition）、原生隐藏输入框管理与正统五笔出字逻辑与视图层解耦，实现高内聚的业务逻辑状态机。
+- **规范化与类型加固 (Standardization & Bugfix)**：
+  - 全面修正各输入视图中非标准的 `inputmode="latin"` 属性为 HTML5 / Vue 严格支持的 `inputmode="text"`，消除所有控制台与 `vue-tsc` 告警；
+  - 在 `src/utils/storage.ts` 中建立 `STORAGE_KEYS` 枚举白名单，增加严格校验，防止局部未知键污染 localStorage；
+  - 固定 Vite 开发环境端口为 `5175`（`strictPort: true`），确保 E2E 自动化测试套件与本地开发链路稳定对接。
+
+### ✅ 自动化测试与质量门禁验证 (Quality Assurance)
+- **TypeScript 静态检查**：`vue-tsc --noEmit` 0 错误、0 警告；
+- **Vitest 单元测试**：7 大测试套件、**99/99 项用例全绿通过**；
+- **Playwright 端到端巡检**：`scripts/e2eHarness.ts` 全链路自动化验证 **61/61 项 100% 全部 PASS**（含 UI 8 大核心模块 35 项交互测试 + 13 关修仙全流程真机战斗通关 26 项），支持 `--ui` 与 `--rpg` 参数独立快速回归。
+
+---
+
 ## [1.7.2] - 2026-09-16
 
 ### 🌟 核心亮点与输入体系重构 (Input Engine Refactor)

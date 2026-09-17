@@ -70,7 +70,22 @@ bun run dev
 ```
 启动后在浏览器访问控制台提示的地址（例如 `http://localhost:5173/` 或 `http://localhost:5175/`）。
 
-### 3. 构建生产包
+#### 3. 执行自动化测试
+```bash
+# 运行全量 Vitest 单元测试 (99 项测试)
+bun run test
+
+# 运行统一 Playwright 全链路端到端自动化巡检 (61 项真机用例)
+bun run test:e2e
+
+# 仅运行全站 8 大 UI 模块端到端交互巡检 (35 项用例)
+bun run test:e2e:ui
+
+# 仅运行五笔修仙打怪 RPG 全量 13 关端到端实战通关 (26 项用例)
+bun run test:e2e:rpg
+```
+
+### 4. 构建生产包
 ```bash
 bun run build
 ```
@@ -88,10 +103,10 @@ wubi-master/
 │   └── DATA_MAINTENANCE.md        # 字根数据维护操作手册
 ├── public/                        # 静态资源与音频音效
 ├── raw_dicts/                     # 官方正统 86/98/新世纪 权威原始字根数据库
-├── scripts/                       # 自动化测试与辅助脚本
+├── scripts/                       # 自动化测试与工程化脚本
 │   └── e2eAllStagesHarness.ts     # Puppeteer 13关端到端自动化测试巡检脚本
 ├── src/
-│   ├── components/                # Vue 核心组件（10个）
+│   ├── components/                # 顶层视图组件与子系统模块
 │   │   ├── TypeEngine.vue         # 核心打字练习引擎（单字/字根/词组）
 │   │   ├── RpgAdventure.vue       # 修仙打怪闯关 RPG（十三关卡/ATB战斗/大招/秘宝）
 │   │   ├── ArticlePractice.vue    # 长文篇章练习（全文阅读/导入/自动滚动）
@@ -101,7 +116,24 @@ wubi-master/
 │   │   ├── RuleTutorial.vue       # 拆字规则互动教学
 │   │   ├── MistakeNotebook.vue    # 错题生字本
 │   │   ├── MiZiGe.vue             # 矢量书法米字格展示
-│   │   └── Navbar.vue             # 顶部导航与设置面板
+│   │   ├── Navbar.vue             # 顶部导航与设置面板
+│   │   ├── article/               # 长文实战子模块 (高内聚 scoped 样式)
+│   │   │   ├── ArticleLibraryModal.vue       # 题库大全大弹窗
+│   │   │   ├── ArticleCustomImportModal.vue  # 本地文件/粘贴导入弹窗
+│   │   │   └── ArticleFinishModal.vue        # 篇章打字战报结算弹窗
+│   │   ├── engine/                # 打字特训子模块
+│   │   │   ├── TypeEngineToolbar.vue         # 双层练习控制工具栏
+│   │   │   └── TypeResultModal.vue           # 批次打字战报结算弹窗
+│   │   ├── rules/                 # 规则教学子模块
+│   │   │   └── RuleSplitPrinciples.vue       # 拆分原则/正误PK/闯关Quiz/微观拆字实验室
+│   │   ├── chase/                 # 追逐赛子模块
+│   │   │   └── ChaseResultModal.vue          # 赛车竞技结算弹窗
+│   │   └── rpg/                   # 修仙 RPG 子模块
+│   │       ├── RpgShopModal.vue              # 藏宝阁商铺弹窗
+│   │       └── RpgBattleResultModal.vue      # 关卡战斗战报结算弹窗
+│   ├── composables/               # 独立业务逻辑状态机 (Composables)
+│   │   ├── useRpgInput.ts         # RPG 修仙专属输入调度引擎
+│   │   └── useChaseInput.ts       # 赛车追逐赛专属输入调度引擎
 │   ├── data/                      # 数据层（字典/题库/键盘）
 │   │   ├── wubiDict.ts            # 字典查询API、词组取码算法
 │   │   ├── wubiDb.ts              # IndexedDB 数据库封装（Dexie.js）
@@ -120,16 +152,17 @@ wubi-master/
 │   │   └── wubi.ts                # 核心类型接口
 │   ├── utils/                     # 工具函数
 │   │   ├── wubiEngine.ts          # 判卷引擎（编码校验/统计计算）
-│   │   ├── storage.ts             # localStorage 封装
+│   │   ├── storage.ts             # localStorage 白名单校验封装
+│   │   ├── phraseMatching.ts      # 智能词组流式匹配算法
 │   │   └── audio.ts               # 音效合成
 │   ├── styles/                    # 全局样式
-│   │   └── theme.css              # 主题变量与暗黑模式
-│   ├── App.vue                    # 应用根组件（路由切换）
+│   │   └── theme.css              # 四大多主题变量与高对比度无障碍适配
+│   └── App.vue                    # 应用根组件（URL Hash 路由切换）
 ├── scripts/                       # 自动化测试与工程化脚本
 │   └── e2eHarness.ts              # 统一端到端 E2E 自动化测试 Harness (UI 8大模块 + RPG 13关)
-├── tests/                         # Vitest 自动化单元测试套件
-├── vite.config.ts                 # Vite 构建配置
-└── package.json                   # 项目依赖与脚本
+├── tests/                         # Vitest 自动化单元测试套件 (7大套件 / 99用例)
+├── vite.config.ts                 # Vite 构建配置 (固定 5175 端口)
+└── package.json                   # 项目依赖与脚本 (v1.7.3)
 ```
 
 ---

@@ -1,18 +1,19 @@
 # 🛠️ 五笔学堂 (Wubi Master) 技术架构与核心算法文档
 
-> 最后更新：2026-09-16 v1.6.0  
-> 文档版本：v1.6.0 (RPG 修仙闯关系统、智能简码防抖与 E2E 自动化测试体系)
+> 最后更新：2026-09-17 v1.7.3  
+> 文档版本：v1.7.3 (组件解耦分层架构、输入调度 Composable 状态机与统一 E2E 自动化巡检体系)
 
 ## 一、技术栈选型
 
 | 类别 | 技术选型 | 说明 |
 |------|---------|------|
 | 核心框架 | [Vue 3.5.42](https://vuejs.org/) | SFC + `<script setup>` + Composition API |
-| 开发语言 | [TypeScript 6.0.2](https://www.typescriptlang.org/) | 全链路严格类型检查 |
-| 构建工具 | [Vite 8.3.0](https://vitejs.dev/) + [Bun](https://bun.sh/) | 毫秒级编译与极速 HMR，构建仅需 ~300ms |
-| 测试框架 | [Vitest 5.0.0](https://vitest.dev/) + [Puppeteer 24.40](https://pptr.dev/) | 自动化单元测试（98 tests / 26k assertions）+ 13 关全量 E2E 真实浏览器打字自动化巡检 |
+| 开发语言 | [TypeScript 6.0.2](https://www.typescriptlang.org/) | 全链路严格类型检查，消除所有非标属性与类型告警 |
+| 构建工具 | [Vite 8.3.0](https://vitejs.dev/) + [Bun](https://bun.sh/) | 毫秒级编译与极速 HMR，固定 5175 端口开发调试 |
+| 测试框架 | [Vitest 5.0.0](https://vitest.dev/) + [Puppeteer 25.11](https://pptr.dev/) | 自动化单元测试（7套件 / 99 tests）+ 统一 E2E 全链路真机巡检（61 项全量 PASS） |
 | 状态管理 | [Vue 3 Composition Store](https://vuejs.org/) | 原生响应式单例（`ref` + `reactive`），集中管理五笔版本、输入模式、出字模式、错题本及 RPG 修仙系统（`useRpgStore`） |
-| 本地数据库 | [Dexie.js 4.4.6](https://dexie.org/) | 封装 IndexedDB，28,058 汉字持久化 + 7 重多维索引 |
+| 业务逻辑状态机 | [Vue 3 Composables](https://vuejs.org/) | 下沉底层输入调度引擎（`useRpgInput.ts`、`useChaseInput.ts`），解耦物理按键与视图状态 |
+| 本地数据库 | [Dexie.js 4.4.6](https://dexie.org/) | 封装 IndexedDB，28,058 汉字持久化 + 7 重多维索引，实现错题本自动无损迁移 |
 | 图标库 | [lucide-vue-next 1.0.0](https://lucide.dev/) | 现代矢量线性图标 |
 | 动画特效 | [canvas-confetti 1.9.4](https://www.npmjs.com/package/canvas-confetti) | 通关庆祝礼花动效 |
 
@@ -25,18 +26,25 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        用户交互层                                 │
-│  Navbar.vue (导航切换) + 核心功能组件                            │
-│  ├─ TypeEngine.vue          (单字/字根/词组打字练习主引擎)        │
-│  ├─ RpgAdventure.vue        (五笔修仙打怪RPG/ATB时序/大招/秘宝)   │
-│  ├─ ArticlePractice.vue     (长文篇章实战+自定义导入+平滑跟滚动) │
-│  ├─ TypingChaseGame.vue     (极速追逐赛 2.5D 竞技游戏)            │
-│  ├─ VirtualKeyboard.vue     (交互式五笔大键盘与按键高亮)          │
-│  ├─ RuleTutorial.vue        (拆字规则互动教学与识别码实验室)      │
-│  ├─ WubiLookup.vue          (全量汉字反查+多模态搜索+词组推导)    │
-│  └─ MistakeNotebook.vue     (错题生字本与练习回溯)                │
+│  Navbar.vue (导航与主题) + 核心业务大组件 (结构化子组件拆解)        │
+│  ├─ TypeEngine.vue        ──► TypeEngineToolbar / TypeResultModal│
+│  ├─ RpgAdventure.vue      ──► RpgShopModal / RpgBattleResultModal │
+│  ├─ ArticlePractice.vue   ──► ArticleLibrary / CustomImport / Fin│
+│  ├─ TypingChaseGame.vue   ──► ChaseResultModal                   │
+│  ├─ RuleTutorial.vue      ──► RuleSplitPrinciples (四大原则/微观) │
+│  ├─ WubiLookup.vue        (全量汉字反查+多模态搜索+词组推导)    │
+│  ├─ VirtualKeyboard.vue   (交互式五笔大键盘与按键高亮)          │
+│  └─ MistakeNotebook.vue   (IndexedDB 错题生字本与练习回溯)      │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼ keydown / input events
+┌─────────────────────────────────────────────────────────────────┐
+│              Composables 输入调度层 (业务逻辑状态机)             │
+│  useRpgInput.ts   —— 4位卡槽回显、ATB时序连击、0ms出字推进       │
+│  useChaseInput.ts —— 赛车竞速按键核销、连击加成与输入防穿透      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    wubiEngine.ts (判卷引擎)                       │
 │  evaluateInput()  —— 编码校验（全码/简码/前缀匹配/输入法直通）    │
@@ -52,12 +60,10 @@
                               │                   │
                               ▼                   ▼
                      ┌─────────────────────────────────┐
-                     │  localStorage (用户偏好持久化)   │
+                     │  localStorage (白名单枚举校验)  │
                      │  - 五笔版本 (86/98/新世纪)       │
-                     │  - 主题模式 (light/dark/auto)   │
-                     │  - 输入模式 (full/quick/smart)  │
-                     │  - 出字模式 (auto/space)        │
-                     │  - 错题生字本记录               │
+                     │  - 主题模式 (4套高对比度主题)    │
+                     │  - 输入出字模式 (auto/space)    │
                      └─────────────────────────────────┘
 ```
 
@@ -491,7 +497,7 @@ currentEl.scrollIntoView({
 
 ## 十一、RPG 修仙打怪闯关引擎与状态机架构
 
-### 11.1 模块结构与状态设计 (`useRpgStore.ts` + `RpgAdventure.vue`)
+### 11.1 模块结构与状态设计 (`useRpgStore.ts` + `RpgAdventure.vue` + `useRpgInput.ts`)
 
 修仙闯关模块采用 Pinia / Vue Composition Store 进行全局跨会话持久化（LocalStorage 保存境界等级、关卡星级、金币与背包法宝），`RpgAdventure.vue` 维护当前战场高频微观状态机：
 
@@ -515,28 +521,25 @@ interface RpgBattleState {
 }
 ```
 
-### 11.2 智能 120ms 防抖自动跳字算法 (`checkAutoCommit`)
+### 11.2 四端统一 0 延迟秒出与 IME 状态机解耦 (`useRpgInput.ts` / `useChaseInput.ts`)
 
-为同时兼顾**多级简码（一/二/三级）即停即跳**与**全码快速盲打不吞键**，构建了基于动态定时器的智能判定管道：
+为彻底消除定时器引发的按键吞噬、竞态条件以及中文输入法在空格确认选词时的穿透问题，在 v1.7.3 中重构引入了纯状态机驱动的 0 延迟秒出架构：
 
 ```
-用户击键输入
+用户击键输入 (物理键盘 / 虚拟键盘 / 中文输入法)
     │
-    ├─ 1. 比对是否命中有效编码集 (有效包含所有一级/二级/三级简码与全码)
+    ├─ 1. IME 组字流拦截：
+    │      ├── compositionstart: 标记 isComposing = true，挂起字符上屏
+    │      ├── compositionupdate: 捕获输入法拼音，优先渲染至字符激活槽
+    │      ├── compositionend: 记录 lastImeCommitText，释放 isComposing
+    │      └── keydown.space: 若正在组字或刚完成选词，阻断默认空格穿透并重置原生 input
     │
-    ├─ 2. 若命中四码全码：
-    │      └── 立即触发 commitAndAdvance()，清除任何挂起的定时器
+    ├─ 2. 4 码秒出瞬间判定 (0 延迟盲打，免敲空格)：
+    │      ├── 击键满 4 码且命中合法编码集 (all.includes) → 瞬间触发 onHit()
+    │      └── 击键满 4 码且不匹配任何合法编码 → 瞬间触发 onError() 走火入魔扣血
     │
-    └─ 3. 若命中合法简码 (如 "木" 打 "SS")：
-           ├── 先行记录候选成功态
-           ├── 启动 120ms 防抖计时器: autoCommitTimer = setTimeout(..., 120)
-           │
-           ├── 若用户 120ms 内停顿：
-           │      └── 定时器触发，自动判定该字完成并平滑跳至下一目标字
-           │
-           └── 若用户 120ms 内继续输入第 3、第 4 码（全码击键）：
-                  └── 快速下一次击键立即 clearTimeout(autoCommitTimer)，
-                      继续按全码判定，彻底杜绝任何按键漏判与吞字！
+    └─ 3. 单键/简码模式 (commitMode === 'auto' 或一级简码关卡)：
+           └── 键入命中一级/二级简码 (shorts.includes) → 即刻触发 onHit()
 ```
 
 ### 11.3 Fisher-Yates 动态内存洗牌（乱序破阵）
@@ -555,47 +558,81 @@ function shuffleArray<T>(arr: T[]): T[] {
 ```
 已通关的关卡在胜利结算时提供「🎲 乱序破阵」与「📖 循序复习」双入口，每次重玩生成全新输入序列，极大强化五笔即时反应能力。
 
-### 11.4 Puppeteer 13 关端到端自动化测试巡检体系
+### 11.4 统一端到端自动化巡检 Harness (`scripts/e2eHarness.ts`)
 
-在 `scripts/e2eAllStagesHarness.ts` 中封装了基于真实 Chromium 浏览器的 E2E 自动化测试 Harness：
-1. **真实 DOM 挂载**：启动 `localhost:5173` 本地 Vite 服务，由 Puppeteer 打开无头浏览器并导航至 `/#rpg`；
-2. **全流程拟真打字**：遍历 1 到 13 关，调用字典引擎实时获取当前字五笔编码，向页面输入框注入真实键盘击键；
-3. **关键边界与异常注入验证**：
-   - 故意输入错误键（如输入 `Z`），断言触发屏幕震颤与玩家扣血；
-   - 测试二级简码（如针对 `木` 输入 `SS`），断言 120ms 自动前进；
-   - 蓄力完成后触发 `Tab` 键释放「万剑归宗」，断言粒子特效生成与 Boss 冰冻；
-   - 击败首领后断言胜利弹窗与秘宝箱点击掉落道具逻辑；
-4. **全自动快照归档**：每关通关自动截取 1080P 高清页面渲染快照至 `e2e_screenshots/`。
+在 `scripts/e2eHarness.ts` 中封装了基于真实 Chromium 浏览器的统一 E2E 自动化测试 Harness：
+1. **单一入口架构**：整合全站 8 大核心 UI 模块深度交互测试与 RPG 13 关全自动实战巡检，支持通过命令行参数灵活调度：
+   - `bun run test:e2e:ui` (`--ui` 模式)：测试 35 个关键交互断言，用时 ~15 秒，适合日常快速冒烟；
+   - `bun run test:e2e:rpg` (`--rpg` 模式)：覆盖全部 13 关打怪、掉宝、大招与结算，用时 ~80 秒；
+   - `bun run test:e2e` (全量模式)：按序执行全套 61 项测试断言，100% 验证高可用与零崩溃。
+2. **拟真输入与边界注入**：
+   - 注入非法字符校验抗崩溃与震颤反馈；
+   - 验证简码/全码出字与空格防穿透；
+   - 蓄力完成后触发 `Tab` 释放「万剑归宗」，断言粒子特效与 Boss 冰冻；
+   - 击败 Boss 后断言秘宝箱点击、聚宝阁弹窗购买及商店金币扣减逻辑；
+3. **分目录高清快照归档**：按 `e2e_screenshots/ui/` 与 `e2e_screenshots/rpg/` 自动生成 1080P 高清页面快照。
 
 ---
 
-## 十二、构建性能与打包指标
+## 十二、超大组件解耦重构与规范化治理
+
+在 v1.7.3 版本中，针对代码库中原有的千行级巨石组件实施了深度解耦与职责剥离，累计重构精简代码超 **2600+ 行**，显著提升了组件可维护性、测试可验证性及渲染性能。
+
+### 12.1 样式内聚规范 (Scoped Styling Principle)
+- **禁止样式外溢剥离**：各子组件自身的布局、视觉及动画特效严格保留在子组件的 `<style scoped>` 块内，坚决杜绝抽离为外部全局 CSS 文件导致的样式污染与依赖失控。
+- **Props / Emits 单向数据流**：弹窗、工具栏与微观实验室子组件通过清晰的 Typed Props 接收上下文，通过 `defineEmits` 向父组件报告操作事件（如 `close`、`select`、`apply`、`reset`）。
+
+### 12.2 核心解耦拓扑表
+
+| 核心父组件 | 原代码行数 | 重构后行数 | 拆解出的独立子组件 / Composable | 职责边界剥离说明 |
+|:---|:---:|:---:|:---|:---|
+| **RuleTutorial.vue** | 2,688 行 | **1,424 行** | `src/components/rules/RuleSplitPrinciples.vue` (1,299 行) | 将四大基本拆字原则交互实验室、正误 PK 对决与动态微观拆字试炼完全独立 |
+| **TypingChaseGame.vue** | 1,721 行 | **1,529 行** | `src/composables/useChaseInput.ts` (223 行)<br>`src/components/chase/ChaseResultModal.vue` (197 行) | 抽离双车道赛车输入事件状态机与终点礼花结算大弹窗 |
+| **ArticlePractice.vue** | 1,809 行 | **1,136 行** | `src/components/article/ArticleLibraryModal.vue` (307 行)<br>`src/components/article/ArticleCustomImportModal.vue` (418 行)<br>`src/components/article/ArticleFinishModal.vue` (168 行) | 抽离分类题库选择大弹窗、双模式自定义题库导入大弹窗及打字结算统计面板 |
+| **TypeEngine.vue** | 1,625 行 | **1,336 行** | `src/components/engine/TypeEngineToolbar.vue` (271 行)<br>`src/components/engine/TypeResultModal.vue` (145 行) | 抽离双层练习控制条（选字/批次/开关）与分批练习阶段性结算战报弹窗 |
+| **RpgAdventure.vue** | 2,082 行 | **1,876 行** | `src/composables/useRpgInput.ts` (202 行)<br>`src/components/rpg/RpgShopModal.vue` (213 行)<br>`src/components/rpg/RpgBattleResultModal.vue` (326 行) | 抽离修仙输入引擎状态机、聚宝阁法宝丹药商店与胜利/破阵结算大弹窗 |
+
+---
+
+## 十三、构建性能与打包指标
 
 | 指标 | 数值 | 说明 |
 |------|------|------|
-| **首屏主包 JS (gzip)** | **386KB** | 新增 RPG 引擎与题库后依然保持极致轻量 |
-| **首屏主包 CSS (gzip)** | **15.2KB** | 紧凑原子样式与 RPG 特效动画 |
+| **首屏主包 JS (gzip)** | **386KB** | 解耦后依然保持极致轻量，按需加载各子组件 |
+| **首屏主包 CSS (gzip)** | **15.2KB** | 紧凑 scoped 样式与矢量特效 |
 | **全量字典独立分块 (gzip)** | **512KB** | `wubiFullDictData` 独立异步加载 |
 | **Vite 生产构建耗时** | **~300ms** | Bun + Vite 原生速度 |
 | **内存 Map 命中耗时** | **<0.01ms** | `WUBI_CHAR_MAP` 同步哈希查找 |
 | **IndexedDB 检索延迟** | **1~5ms** | 客户端本地倒排索引 |
+| **全量自动化测试通过率** | **100% (160/160)** | 99 项单元测试 + 61 项 E2E 深度断言 |
 
 ---
 
-## 十三、核心组件规模与职责划分
+## 十四、核心组件规模与职责划分
 
-| 组件 | 代码行数 | 核心职责 | 关键交互 |
-|------|---------|---------|---------|
-| **RuleTutorial.vue** | 2,681 行 | 拆字规则互动教学 | 四大基本原则图解、避坑大 PK、末笔识别码 5×3 交互实验室 |
-| **TypingChaseGame.vue** | 1,700 行 | 极速追逐赛游戏 | 2.5D 双车道赛车、30~120 WPM 四档 AI 速度梯队、终点礼花战报 |
-| **ArticlePractice.vue** | 1,606 行 | 长文篇章实战练习 | 传世名篇无删减全文、视口自动平滑居中跟随、.txt/.md 自定义导入 |
-| **TypeEngine.vue** | 1,311 行 | 核心打字练习引擎 | 一级简码/键名/常用字分级特训、实时 WPM/KPM、动态米字格印章 |
-| **RpgAdventure.vue** | 1,230 行 | 修仙打怪闯关 RPG | 十三修仙关卡、ATB 即时战斗时序、飞剑蓄力/万剑归宗大招、战利品宝箱、乱序重玩 |
-| **WubiLookup.vue** | 1,129 行 | 全量汉字反查与推导 | 汉字/编码/拼音三合一多模态检索、三代编码同屏对比、候选字联想网格 |
-| **VirtualKeyboard.vue** | 484 行 | 交互式五笔大键盘 | 5 大区位色谱映射、字根表悬停提示、敲击实时键帽下沉动画 |
-| **Navbar.vue** | 320 行 | 顶部导航与全局设置 | 8 大功能 Tab 切换、三版五笔无感切换、出字模式与音效控制面板 |
-| **MistakeNotebook.vue** | 315 行 | 错题生字本管理 | 打错字自动收录、三代编码与字根回溯、一键针对性重练 |
+| 组件 / 模块 | 代码行数 | 核心职责 | 关键交互 |
+|------|:---:|---------|---------|
+| **RpgAdventure.vue** | 1,876 行 | 修仙打怪闯关 RPG 主战场 | 十三修仙关卡、ATB 即时战斗时序、飞剑蓄力/万剑归宗大招 |
+| **TypingChaseGame.vue** | 1,529 行 | 极速追逐赛主游戏 | 2.5D 双车道赛车、30~120 WPM 四档 AI 速度梯队、终点礼花战报 |
+| **RuleTutorial.vue** | 1,424 行 | 拆字规则互动教学主框架 | 规则章节导航、避坑大 PK、末笔识别码 5×3 交互实验室 |
+| **TypeEngine.vue** | 1,336 行 | 核心打字练习引擎 | 一级简码/键名/常用字分级特训、实时 WPM/KPM、动态米字格印章 |
+| **RuleSplitPrinciples.vue** | 1,299 行 | 拆字四项基本原则实验室 | 兼顾直观/取大优先/能连不交/能散不连深度交互试炼与正误对决 |
+| **ArticlePractice.vue** | 1,136 行 | 长文篇章实战练习主体 | 传世名篇无删减全文、视口自动平滑居中跟随、断点续打记忆 |
+| **WubiLookup.vue** | 1,130 行 | 全量汉字反查与推导 | 汉字/编码/拼音三合一多模态检索、三代编码同屏对比、候选字联想网格 |
+| **VirtualKeyboard.vue** | 747 行 | 交互式五笔大键盘 | 5 大区位色谱映射、字根表悬停提示、敲击实时键帽下沉动画 |
+| **ArticleCustomImportModal.vue** | 418 行 | 自定义题库导入大弹窗 | 本地 .txt/.md 拖拽读取与手动粘贴双模式、字数实时统计 |
+| **Navbar.vue** | 408 行 | 顶部导航与全局设置 | 8 大功能 Tab 切换、三版五笔无感切换、出字模式与音效控制面板 |
+| **MistakeNotebook.vue** | 362 行 | 错题生字本管理 | 打错字自动收录、三代编码与字根回溯、一键针对性重练 |
+| **RpgBattleResultModal.vue** | 326 行 | 修仙战斗结算弹窗 | 胜利/失败评定、通关评星、战利品秘宝箱点击、乱序破阵/循序复习 |
+| **ArticleLibraryModal.vue** | 307 行 | 分类题库选择大弹窗 | 古文/名家散文/成语寓言/现代科技分类题库切换与字数提示 |
+| **TypeEngineToolbar.vue** | 271 行 | 打字特训双层控制条 | 选字难度切换、批次 25/50/100 调节、按键/字根/简码提示开关 |
+| **useChaseInput.ts** | 223 行 | 极速赛车专用输入状态机 | 0 延迟秒出、单字命中、错误音效震颤与 IME 防空格穿透 |
 | **MiZiGe.vue** | 228 行 | 传统书法米字格组件 | SVG 矢量十字与对角线、特殊复合字根（⺈田/祭头）专用渲染 |
+| **RpgShopModal.vue** | 213 行 | 聚宝阁修仙法宝商店 | 金疮药、玄龟甲、暴击丹、万剑令实时购买与灵石同步扣减 |
+| **useRpgInput.ts** | 202 行 | 修仙打怪专用输入状态机 | 4 码秒出、简码出字、大招快捷释放拦截与 IME 防穿透 |
+| **ChaseResultModal.vue** | 197 行 | 追逐赛终点战报弹窗 | 胜负判断、WPM 与用时对比、差距分析与礼花动画 |
+| **ArticleFinishModal.vue** | 168 行 | 长文打字阶段结算弹窗 | 完成用时、平均速度、击键数、准确率与再来一次/换篇练习 |
+| **TypeResultModal.vue** | 145 行 | 分批打字阶段结算弹窗 | 阶段用时、WPM、准确率、错字分布与无缝开启下一组 |
 
 ---
 
@@ -603,3 +640,4 @@ function shuffleArray<T>(arr: T[]): T[] {
 > - [字根数据维护技术手册 (DATA_MAINTENANCE.md)](./DATA_MAINTENANCE.md)  
 > - [产品功能设计规范 (PRODUCT.md)](./PRODUCT.md)  
 > - [版本变更记录 (../CHANGELOG.md)](../CHANGELOG.md)
+
