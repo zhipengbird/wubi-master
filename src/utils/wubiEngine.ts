@@ -1,5 +1,5 @@
 import type { InputMode, CommitMode, WubiVersion, WubiCharData, TypingStats } from '../types/wubi';
-import { getFullCode, getShortCode } from '../data/wubiDict';
+import { getFullCode, getShortCode, getAllValidCodes } from '../data/wubiDict';
 
 export interface EvaluationResult {
   isMatch: boolean;        // 是否成功出字
@@ -17,11 +17,13 @@ export const evaluateInput = (
   mode: InputMode,
   version: WubiVersion,
   hasPressedSpace = false,
-  commitMode: CommitMode = 'auto'
+  commitMode: CommitMode = 'space'
 ): EvaluationResult => {
   const cleanInput = inputBuffer.trim().toUpperCase();
-  const fullCode = getFullCode(charData, version).toUpperCase();
-  const shortCode = getShortCode(charData, version)?.toUpperCase();
+  const validCodes = getAllValidCodes(charData.char, version);
+  const fullCode = validCodes.full || getFullCode(charData, version).toUpperCase();
+  const shortCodes = validCodes.shorts;
+  const primaryShort = getShortCode(charData, version)?.toUpperCase();
 
   if (!cleanInput) {
     return { isMatch: false, matchedVia: 'none', isPrefixMatch: true };
@@ -42,20 +44,20 @@ export const evaluateInput = (
     }
 
     if (mode === 'quick' || mode === 'smart') {
-      // 1. 优先简码匹配
-      if (shortCode && cleanInput === shortCode) {
+      // 1. 优先简码匹配 (涵盖一简、二简、键名二简等全部简码)
+      if (shortCodes.includes(cleanInput)) {
         return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
       }
       // 2. 无论何时输入全码均合法出字
       if (cleanInput === fullCode) {
         let tip: string | undefined;
-        if (shortCode && shortCode.length < fullCode.length) {
-          tip = `打【${shortCode}】键更快捷！`;
+        if (primaryShort && primaryShort.length < fullCode.length) {
+          tip = `打【${primaryShort}】键更快捷！`;
         }
         return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
       }
 
-      const isPrefix = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
+      const isPrefix = validCodes.all.some(code => code.startsWith(cleanInput));
       return { isMatch: false, matchedVia: 'none', isPrefixMatch: isPrefix };
     }
   }
@@ -72,13 +74,13 @@ export const evaluateInput = (
 
   if (mode === 'quick' || mode === 'smart') {
     if (hasPressedSpace) {
-      if (shortCode && cleanInput === shortCode) {
+      if (shortCodes.includes(cleanInput)) {
         return { isMatch: true, matchedVia: 'short', isPrefixMatch: false };
       }
       if (cleanInput === fullCode) {
         let tip: string | undefined;
-        if (shortCode && shortCode.length < fullCode.length) {
-          tip = `打【${shortCode} + 空格】出字更快哦！`;
+        if (primaryShort && primaryShort.length < fullCode.length) {
+          tip = `打【${primaryShort} + 空格】出字更快哦！`;
         }
         return { isMatch: true, matchedVia: 'full', tip, isPrefixMatch: false };
       }
@@ -89,7 +91,7 @@ export const evaluateInput = (
       return { isMatch: true, matchedVia: 'full', isPrefixMatch: false };
     }
 
-    const isPrefixMatch = fullCode.startsWith(cleanInput) || (shortCode ? shortCode.startsWith(cleanInput) : false);
+    const isPrefixMatch = validCodes.all.some(code => code.startsWith(cleanInput));
     return { isMatch: false, matchedVia: 'none', isPrefixMatch };
   }
 };

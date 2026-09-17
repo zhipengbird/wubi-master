@@ -148,6 +148,7 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
+        inputmode="latin"
       />
 
       <!-- 战斗状态条 -->
@@ -429,7 +430,6 @@ const playerIndex = ref<number>(0);
 const inputBuffer = ref<string>('');
 const isComposingRef = ref(false);
 const composingText = ref('');
-let lastImeCommitTime = 0;
 let lastCommittedText = '';
 const hasInputError = ref<boolean>(false);
 
@@ -444,7 +444,7 @@ const comboCount = ref<number>(0);
 const maxCombo = ref<number>(0);
 const startTime = ref<number>(0);
 const currentTime = ref<number>(0);
-let gameTimer: any = null;
+let gameTimer: ReturnType<typeof setInterval> | null = null;
 
 // AI 追逐者状态
 const aiCharProgress = ref<number>(0);
@@ -571,14 +571,6 @@ const getCharTargetRoots = (item: WubiCharData) => {
   return getRoots(item, store.version.value);
 };
 
-let autoCommitTimer: ReturnType<typeof setTimeout> | null = null;
-
-const clearAutoCommitTimer = () => {
-  if (autoCommitTimer) {
-    clearTimeout(autoCommitTimer);
-    autoCommitTimer = null;
-  }
-};
 
 const nextExpectedKey = computed(() => {
   const currentItem = targetChars.value[playerIndex.value];
@@ -690,13 +682,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
   // 忽略控制键
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-  // 如果输入法正在组字，放行常规字符给输入法，但若敲击空格/回车则不拦截以执行出字判定
-  if ((e.isComposing || isComposingRef.value || e.keyCode === 229) && key !== ' ' && key !== 'Enter') {
-    return;
-  }
-
-  // 退格删除
+  // 退格删除（IME 组字期间交给 IME 处理）
   if (key === 'Backspace') {
+    if (isComposingRef.value) return;
     if (inputBuffer.value.length > 0 || composingText.value.length > 0) {
       e.preventDefault();
       inputBuffer.value = inputBuffer.value.slice(0, -1);
@@ -710,21 +698,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
     return;
   }
 
-  // 空格键提交出字
+  // 空格键提交出字：IME 组字期间也允许穿透（用 composingText 出字）
   if (key === ' ' || key === 'Spacebar') {
     e.preventDefault();
-    // 关键防抖：如果刚在 250ms 内完成输入法选词汉字上屏，该空格属于输入法确认键，忽略之，杜绝误跳下一个字
-    if (Date.now() - lastImeCommitTime < 250) {
-      return;
-    }
     if (composingText.value) {
       inputBuffer.value = composingText.value;
       composingText.value = '';
       if (hiddenInputRef.value) hiddenInputRef.value.value = '';
     }
+    if (!inputBuffer.value.trim()) return; // 空内容不提交
     verifyCurrentInput(true);
     return;
   }
+
+  // IME 组字期间，其他按键（字母等）交给输入法
+  if (isComposingRef.value) return;
 
   // 回车清空
   if (key === 'Enter') {
@@ -749,31 +737,20 @@ const handleCompositionStart = () => {
 const handleCompositionUpdate = (e: CompositionEvent) => {
   isComposingRef.value = true;
   hasInputError.value = false;
-  composingText.value = (e.data || (hiddenInputRef.value?.value || '')).toUpperCase().slice(0, 4);
-
-  // 实时判定：若组字内容已完全吻合全码或简码，立即推进出字！
-  const currentItem = targetChars.value[playerIndex.value];
-  if (currentItem) {
-    const full = getCharTargetCode(currentItem);
-    const short = getCharShortCode(currentItem);
-    if (composingText.value === full || (store.commitMode.value === 'auto' && short && composingText.value === short)) {
-      onCharSuccess(1);
-      composingText.value = '';
-      if (hiddenInputRef.value) hiddenInputRef.value.value = '';
-    }
-  }
+  composingText.value = (e.data || (hiddenInputRef.value?.value || '')).replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
 };
 
 // 输入法组合结束 (用户在输入法候选框中敲击空格或数字完成选字上屏)
 const handleCompositionEnd = (e: CompositionEvent) => {
   isComposingRef.value = false;
-  const committedData = e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '') || composingText.value;
+  const committedData = (e.data || (hiddenInputRef.value ? hiddenInputRef.value.value : '')).trim();
   composingText.value = '';
+  if (hiddenInputRef.value) hiddenInputRef.value.value = '';
   if (committedData) {
     if (/[\u4e00-\u9fa5]/.test(committedData)) {
       processChineseCommit(committedData);
     } else {
-      inputBuffer.value = committedData.toUpperCase().slice(0, 4);
+      inputBuffer.value = committedData.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
       verifyCurrentInput(true);
     }
   }
@@ -781,7 +758,6 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 
 // 统一汉字上屏提交处理逻辑（完美支持单个汉字及多字词组流式上屏）
 const processChineseCommit = (text: string) => {
-  lastImeCommitTime = Date.now();
   lastCommittedText = text;
   inputBuffer.value = '';
   composingText.value = '';
@@ -808,67 +784,37 @@ const handleNativeInput = (e: Event) => {
   if (gameState.value !== 'running') return;
 
   const target = e.target as HTMLInputElement;
+  const val = target.value;
 
-  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面槽位中显示并判定
-  if (isComposingRef.value || (e as InputEvent).isComposing) {
-    hasInputError.value = false;
-    const comp = target.value.toUpperCase().slice(0, 4);
-    composingText.value = comp;
-
-    // A. 输入法送来汉字
-    if (/[\u4e00-\u9fa5]/.test(comp)) {
-      const currentItem = targetChars.value[playerIndex.value];
-      if (currentItem && comp.includes(currentItem.char)) {
-        processChineseCommit(comp);
-      }
+  // 1. 若包含汉字，属于输入法选字上屏
+  if (/[\u4e00-\u9fa5]/.test(val)) {
+    if (lastCommittedText && val.trim() === lastCommittedText) {
+      lastCommittedText = '';
+      target.value = '';
       return;
     }
-
-    // B. 即时判定英文字母编码：敲出全码或自动模式下的简码，立即推进出字！
-    const currentItem = targetChars.value[playerIndex.value];
-    if (currentItem) {
-      const valid = getAllValidCodes(currentItem.char, store.version.value);
-      if (comp === valid.full || (store.commitMode.value === 'auto' && valid.shorts.includes(comp))) {
-        clearAutoCommitTimer();
-        onCharSuccess(1);
-        target.value = '';
-        composingText.value = '';
-        return;
-      }
-    }
-    return;
-  }
-
-  const raw = target.value.trim();
-
-  // 2. 避免在 compositionend 刚处理完后紧随的 input 事件重复触发二次提交判错
-  if (Date.now() - lastImeCommitTime < 300 || (lastCommittedText && raw === lastCommittedText)) {
+    processChineseCommit(val.trim());
     target.value = '';
     return;
   }
 
-  if (!raw) {
-    inputBuffer.value = '';
+  // 2. 若处于输入法组字阶段，提取组合中的字母实时在界面槽位中显示
+  if (isComposingRef.value || (e as InputEvent).isComposing) {
     hasInputError.value = false;
+    composingText.value = val.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
     return;
   }
 
-  // 3. 情况 A：输入框中出现了汉字（某些浏览器在 compositionend 后或非标准输入法直接通过 input 注入汉字）
-  if (/[\u4e00-\u9fa5]/.test(raw)) {
-    processChineseCommit(raw);
-    return;
-  }
-
-  // 4. 情况 B：用户使用纯英文键盘敲击五笔字母编码 (A-Z)
-  const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+  // 3. 纯英文五笔编码
+  lastCommittedText = '';
+  composingText.value = '';
+  const clean = val.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
   totalKeystrokes.value++;
   soundPlayer.playKey(store.audio.value, false, false);
   verifyCurrentInput(false);
 
-  // 核心关键点：如果本次击键触发了出字（即 playerIndex 前进，onCharSuccess 已将 inputBuffer 置空），
-  // 必须把当前原生 input 元素的 value 也同步置空！绝不能把当前字的编码带入下一个字！
   if (inputBuffer.value === '') {
     target.value = '';
   }
@@ -876,7 +822,6 @@ const handleNativeInput = (e: Event) => {
 
 // 验证输入是否与当前字匹配（支持全码与简码任意输入，拒绝偏废）
 const verifyCurrentInput = (forceSpace: boolean) => {
-  clearAutoCommitTimer();
   const currentItem = targetChars.value[playerIndex.value];
   if (!currentItem) return;
 
@@ -906,18 +851,8 @@ const verifyCurrentInput = (forceSpace: boolean) => {
 
   // 3. 简码命中（支持一简、二简如“木”打 SS、三简）
   if (shortCodes.includes(currentBuf)) {
-    if (forceSpace) {
+    if (forceSpace || store.commitMode.value === 'auto') {
       onCharSuccess(1);
-      return;
-    } else if (store.commitMode.value === 'auto') {
-      // 自动出字模式：启动 120ms 防抖跳字
-      autoCommitTimer = setTimeout(() => {
-        const checkBuf = (inputBuffer.value || composingText.value).trim().toUpperCase();
-        if (checkBuf === currentBuf && playerIndex.value < TARGET_COUNT) {
-          onCharSuccess(1);
-        }
-      }, 120);
-      hasInputError.value = false;
       return;
     }
   }
@@ -933,7 +868,6 @@ const verifyCurrentInput = (forceSpace: boolean) => {
 };
 
 const onCharSuccess = (step = 1) => {
-  clearAutoCommitTimer();
   correctKeystrokes.value += Math.max(step, inputBuffer.value.length);
   comboCount.value += step;
   if (comboCount.value > maxCombo.value) {
@@ -955,7 +889,6 @@ const onCharSuccess = (step = 1) => {
 };
 
 const onCharError = () => {
-  clearAutoCommitTimer();
   comboCount.value = 0;
   hasInputError.value = true;
   soundPlayer.playKey(store.audio.value, false, true);
@@ -977,7 +910,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  clearAutoCommitTimer();
   if (gameTimer) {
     clearInterval(gameTimer);
     gameTimer = null;

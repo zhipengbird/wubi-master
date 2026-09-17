@@ -18,7 +18,7 @@ const version = ref<WubiVersion>(getSavedVersion());
 const theme = ref<ThemeName>(getSavedTheme());
 const audio = ref<AudioEffect>(getSavedAudio());
 const inputMode = ref<InputMode>(getSavedInputMode());
-const commitMode = ref<CommitMode>((localStorage.getItem('wubi_commit_mode') as CommitMode) || 'auto');
+const commitMode = ref<CommitMode>((localStorage.getItem('wubi_commit_mode') as CommitMode) || 'space');
 const VALID_TABS: MainTab[] = ['practice', 'article', 'rpg', 'game', 'keyboard', 'rules', 'lookup', 'mistakes'];
 
 export const normalizeTab = (raw: string | null | undefined): MainTab | null => {

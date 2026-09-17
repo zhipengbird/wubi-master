@@ -129,6 +129,7 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            inputmode="latin"
           />
 
           <div class="capsule-content">
@@ -413,7 +414,6 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const inputBuffer = ref('');
 const isComposingRef = ref(false);
 const composingText = ref('');
-let lastImeCommitTime = 0;
 let lastCommittedText = '';
 const isFocused = ref(true);
 const charIndex = ref(0);
@@ -636,13 +636,15 @@ const handleCompositionStart = () => {
 const handleCompositionUpdate = (e: CompositionEvent) => {
   isComposingRef.value = true;
   hasError.value = false;
-  composingText.value = (e.data || (inputRef.value?.value || '')).toUpperCase();
+  // 组字阶段仅保留英文字母五笔编码
+  composingText.value = (e.data || (inputRef.value?.value || '')).replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
 };
 
 const handleCompositionEnd = (e: CompositionEvent) => {
   isComposingRef.value = false;
-  const committedData = e.data || (inputRef.value ? inputRef.value.value : '') || composingText.value;
   composingText.value = '';
+  const committedData = (e.data || (inputRef.value ? inputRef.value.value : '')).trim();
+  if (inputRef.value) inputRef.value.value = '';
   if (committedData) {
     processCommit(committedData);
   }
@@ -650,7 +652,6 @@ const handleCompositionEnd = (e: CompositionEvent) => {
 
 // 核心流式汉字/标点核销：支持输入法直接上屏单字、两字词、四字成语乃至整句长句与标点
 const processCommit = (text: string) => {
-  lastImeCommitTime = Date.now();
   lastCommittedText = text;
   inputBuffer.value = '';
   composingText.value = '';
@@ -689,30 +690,32 @@ const processCommit = (text: string) => {
 
 const handleInput = (e: Event) => {
   const target = e.target as HTMLInputElement;
+  const val = target.value;
 
-  // 1. 若处于输入法组字阶段，提取组合中的拼音/五笔字母实时在界面胶囊中显示
-  if (isComposingRef.value || (e as InputEvent).isComposing) {
-    hasError.value = false;
-    composingText.value = target.value.toUpperCase();
-    return;
-  }
-
-  const raw = target.value.trim();
-
-  // 2. 避免在 compositionend 刚处理完后，后续紧跟的 input 事件导致重复核销
-  if (Date.now() - lastImeCommitTime < 300 || (lastCommittedText && raw === lastCommittedText)) {
+  // 1. 若包含汉字或中文标点，属于输入法选字上屏
+  if (/[\u4e00-\u9fa5，。！？；：“”‘’（）《》、\.,!?;:()"]/.test(val)) {
+    // 若刚刚 compositionend 已经处理过完全相同的文本，避免重复核销
+    if (lastCommittedText && val.trim() === lastCommittedText) {
+      lastCommittedText = '';
+      target.value = '';
+      return;
+    }
+    processCommit(val.trim());
     target.value = '';
     return;
   }
 
-  // 3. 若为汉字输入法直接上屏（包含汉字或标点），调用流式核销流水线
-  if (/[\u4e00-\u9fa5，。！？；：“”‘’（）《》、\.,!?;:()"]/.test(raw)) {
-    processCommit(raw);
+  // 2. 若处于输入法组字阶段（纯英文字母），更新实时组字回显
+  if (isComposingRef.value || (e as InputEvent).isComposing) {
+    hasError.value = false;
+    composingText.value = val.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
     return;
   }
 
-  // 4. 纯英文字母模式 (直接敲五笔字母盲打)
-  const clean = raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+  // 3. 纯英文字母模式 (直接敲五笔字母盲打)
+  lastCommittedText = '';
+  composingText.value = '';
+  const clean = val.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   inputBuffer.value = clean;
   target.value = clean;
 
@@ -748,31 +751,26 @@ const handleInput = (e: Event) => {
     hasError.value = false;
   }
 
-  // 自动出字（auto 模式下命中，或满4码自动核验命中）
+  // 标准五笔铁律：
+  // 满 4 码命中立即瞬间出字（0 延迟！无需按空格，彻底消灭 setTimeout 定时器带来的竞争问题）
+  // 或 auto 模式下命中即刻出字
   const isAuto = store.commitMode.value === 'auto';
   const shouldAutoCommit = (isAuto && evalRes.isMatch) || (clean.length === 4 && evalRes.isMatch);
   if (shouldAutoCommit) {
-    setTimeout(() => {
-      if (inputBuffer.value === clean) {
-        checkChar(false);
-      }
-    }, isAuto ? 90 : 120);
+    checkChar(false);
+    target.value = '';
+    if (inputRef.value) inputRef.value.value = '';
   }
 };
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (isFinished.value) return;
 
-  // 输入法正在组合候选时不拦截
-  if (e.isComposing || isComposingRef.value || e.keyCode === 229) {
-    return;
-  }
-
   if (!startTime.value) {
     startTime.value = Date.now();
   }
 
-  // 标点符号处理：敲空格或对应的标点按键直接跳过
+  // 标点符号处理：敲空格或对应的标点按键直接跳过（IME 期间也允许）
   if (isPunctuation(targetChar.value)) {
     if (e.key === ' ' || e.code === 'Space' || isPunctuationEquivalent(e.key, targetChar.value)) {
       e.preventDefault();
@@ -784,20 +782,24 @@ const handleKeyDown = (e: KeyboardEvent) => {
     }
   }
 
+  // 空格键：出字键。IME 组字期间也允许穿透（inputBuffer 已由 handleInput 累积）
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    if (!inputBuffer.value.trim() && !composingText.value.trim()) return; // 空内容不提交
+    checkChar(true);
+    if (inputRef.value) inputRef.value.value = '';
+    return;
+  }
+
+  // 以下按键 IME 组字期间交给输入法处理
+  if (isComposingRef.value) return;
+
   if (e.key === 'Backspace') {
     soundPlayer.playKey(store.audio.value, false);
     backspaceCount.value += 1;
     hasError.value = false;
-    return;
-  }
-
-  if (e.key === ' ' || e.code === 'Space') {
-    e.preventDefault();
-    // 关键防抖：如果刚在 250ms 内完成输入法选词汉字上屏，该空格属于输入法确认键，忽略之
-    if (Date.now() - lastImeCommitTime < 250) {
-      return;
-    }
-    checkChar(true);
+    inputBuffer.value = inputBuffer.value.slice(0, -1);
+    if (inputRef.value) inputRef.value.value = inputBuffer.value;
     return;
   }
 

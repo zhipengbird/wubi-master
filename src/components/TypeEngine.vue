@@ -223,6 +223,8 @@
             type="text"
             class="hidden-native-input"
             :value="inputBuffer"
+            @compositionstart="isComposing = true"
+            @compositionend="handleCompositionEnd"
             @keydown="handleKeyDown"
             @input="handleInput"
             @focus="isFocused = true"
@@ -649,9 +651,36 @@ const nextCategory = () => {
   selectCategory(next.id);
 };
 
+const isComposing = ref(false);
+const handleCompositionEnd = (e: CompositionEvent) => {
+  isComposing.value = false;
+  const committedText = (e.data || '').trim();
+  if (!committedText || !currentChar.value) return;
+
+  // 汉字直接上屏命中
+  if (committedText.includes(currentChar.value.char)) {
+    handleCheck(false);
+    inputBuffer.value = '';
+    if (inputRef.value) inputRef.value.value = '';
+    return;
+  }
+
+  // 字母编码（IME 把字母作为组合文本上屏），同步到 inputBuffer，等待空格出字
+  const letters = committedText.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+  if (letters) {
+    inputBuffer.value = letters;
+    if (inputRef.value) inputRef.value.value = letters;
+    // 用 target 占位传给 processLetterInput
+    if (inputRef.value) processLetterInput(letters, inputRef.value);
+  }
+};
+
 const resetSession = () => {
   currentIndex.value = 0;
   inputBuffer.value = '';
+  if (inputRef.value) {
+    inputRef.value.value = '';
+  }
   correctCount.value = 0;
   errorCount.value = 0;
   keystrokes.value = 0;
@@ -681,30 +710,26 @@ const handleInput = (e: Event) => {
   // 支持两种模式：① 开启系统五笔输入法直接打出汉字；② 切换英文键盘打英文字母编码
   const hasChinese = /[\u4e00-\u9fa5]/.test(raw);
   const clean = hasChinese ? raw : raw.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
-  inputBuffer.value = clean;
-  target.value = clean;
 
   if (!clean) {
+    inputBuffer.value = '';
+    target.value = '';
     hasError.value = false;
     return;
   }
 
-  if (currentChar.value) {
-    const isAuto = store.commitMode.value === 'auto';
-    const evalRes = evaluateInput(
-      clean,
-      currentChar.value,
-      store.inputMode.value,
-      store.version.value,
-      false,
-      store.commitMode.value
-    );
-    if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
+  // 1. 如果输入的是汉字（系统五笔输入法选字上屏）
+  if (hasChinese) {
+    inputBuffer.value = clean;
+    target.value = clean;
+    if (currentChar.value && clean.includes(currentChar.value.char)) {
+      handleCheck(false);
+      target.value = '';
+      if (inputRef.value) inputRef.value.value = '';
+    } else {
       hasError.value = true;
       soundPlayer.playKey(store.audio.value, false, true);
-
-      // 击错时立即记录至生字错题本（每字只记录一次，避免重复击键膨胀 count）
-      if (!charHasMistake.value) {
+      if (!charHasMistake.value && currentChar.value) {
         charHasMistake.value = true;
         errorCount.value += 1;
         store.recordMistake(
@@ -714,18 +739,56 @@ const handleInput = (e: Event) => {
           currentRoots.value
         );
       }
-    } else {
-      hasError.value = false;
     }
+    return;
+  }
 
-    // 自动出字、打满4码或直接打出正确汉字时，自动进入下一个字
-    const shouldAutoCommit = (isAuto && evalRes.isMatch) || (clean.length >= 4 && evalRes.isMatch) || (hasChinese && evalRes.isMatch);
-    if (shouldAutoCommit) {
-      setTimeout(() => {
-        if (inputBuffer.value === clean) {
-          handleCheck(false);
-        }
-      }, isAuto ? 90 : 120);
+  // 2. 纯英文字母五笔编码处理
+  inputBuffer.value = clean;
+  target.value = clean;
+
+  processLetterInput(clean, target);
+};
+
+const processLetterInput = (clean: string, target: HTMLInputElement) => {
+  if (!currentChar.value) return;
+
+  const evalRes = evaluateInput(
+    clean,
+    currentChar.value,
+    store.inputMode.value,
+    store.version.value,
+    false,
+    store.commitMode.value
+  );
+
+  if (!evalRes.isPrefixMatch && !evalRes.isMatch) {
+    hasError.value = true;
+    soundPlayer.playKey(store.audio.value, false, true);
+
+    // 击错时立即记录至生字错题本（每字只记录一次，避免重复击键膨胀 count）
+    if (!charHasMistake.value) {
+      charHasMistake.value = true;
+      errorCount.value += 1;
+      store.recordMistake(
+        currentChar.value.char,
+        clean,
+        targetFullCode.value,
+        currentRoots.value
+      );
+    }
+  } else {
+    hasError.value = false;
+  }
+
+  // 标准五笔铁律 1：满4码命中，直接瞬间出字（0 延时，无需按空格）
+  const fullCode = getFullCode(currentChar.value, store.version.value).toUpperCase();
+  const isFull4Match = clean.length >= 4 && evalRes.isMatch;
+  if (isFull4Match || (store.commitMode.value === 'auto' && evalRes.isMatch)) {
+    handleCheck(false);
+    target.value = '';
+    if (inputRef.value) {
+      inputRef.value.value = '';
     }
   }
 };
@@ -737,29 +800,42 @@ const handleKeyDown = (e: KeyboardEvent) => {
     startTime.value = Date.now();
   }
 
-  // 退格处理
+  // 退格处理（IME 组字期间退格交给 IME）
   if (e.key === 'Backspace') {
+    if (isComposing.value) return;
     soundPlayer.playKey(store.audio.value, false);
     backspaceCount.value += 1;
     hasError.value = false;
+    inputBuffer.value = inputBuffer.value.slice(0, -1);
+    if (inputRef.value) {
+      inputRef.value.value = inputBuffer.value;
+    }
     return;
   }
 
-  // 空格键：出字键（如果处于自动模式，敲空格同样支持出字）
+  // 空格键：出字键。IME 组字期间也允许穿透（inputBuffer 已由 handleInput 累积）
   if (e.key === ' ' || e.code === 'Space') {
     e.preventDefault();
+    if (!inputBuffer.value.trim()) return; // 空内容不提交
     handleCheck(true);
+    if (inputRef.value) {
+      inputRef.value.value = '';
+    }
     return;
   }
 
-  // 回车键：清空重打
+  // 回车键：清空重打（IME 期间由 IME 处理）
   if (e.key === 'Enter') {
+    if (isComposing.value) return;
     e.preventDefault();
     inputBuffer.value = '';
     if (inputRef.value) inputRef.value.value = '';
     hasError.value = false;
     return;
   }
+
+  // 字母键：IME 组字期间交给输入法处理，不重复计数
+  if (isComposing.value) return;
 
   // 英文字母击键计数与物理音效
   if (/^[a-zA-Z]$/.test(e.key)) {
@@ -786,6 +862,9 @@ const handleCheck = (hasPressedSpace: boolean) => {
     correctCount.value += 1;
     hasError.value = false;
     inputBuffer.value = '';
+    if (inputRef.value) {
+      inputRef.value.value = '';
+    }
     charHasMistake.value = false; // 进入下一个字前重置错误标记
 
     if (res.tip) {

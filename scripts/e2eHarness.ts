@@ -436,13 +436,14 @@ async function runUiSuite(page: any) {
   });
   record("UI", "MistakeNotebook", "自动承接并渲染打字特训中的击错汉字", initialMistakes.length > 0, `捕获错题数: ${initialMistakes.length}, 正确码: ${initialMistakes[0]?.correctCode}, 曾错击: ${initialMistakes[0]?.wrongCodes.join(", ")}`);
 
-  const delBtn = await page.$(".mistake-card .del-btn");
-  if (delBtn) {
+  let delBtn = await page.$(".mistake-card .del-btn");
+  while (delBtn) {
     await delBtn.click();
-    await sleep(300);
-    const remainingCount = await page.evaluate(() => document.querySelectorAll(".mistake-card").length);
-    record("UI", "MistakeNotebook", "点击【已掌握】移出当前错字", true, `剩余错题数: ${remainingCount}`);
+    await sleep(200);
+    delBtn = await page.$(".mistake-card .del-btn");
   }
+  const remainingCount = await page.evaluate(() => document.querySelectorAll(".mistake-card").length);
+  record("UI", "MistakeNotebook", "点击【已掌握】移出当前错字", true, `剩余错题数: ${remainingCount}`);
 
   const isEmpty = await page.evaluate(() => !!document.querySelector(".empty-box"));
   record("UI", "MistakeNotebook", "错题清空后展示太棒了空状态引导", isEmpty, `空状态可见: ${isEmpty}`);

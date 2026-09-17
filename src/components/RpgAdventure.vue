@@ -164,6 +164,7 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
+        inputmode="latin"
       />
 
       <!-- 漂浮伤害数字容器 -->
@@ -319,12 +320,12 @@
               :key="idx"
               class="key-slot"
               :class="{
-                filled: inputKeys[idx],
-                active: inputKeys.length === idx,
+                filled: activeInputChars[idx],
+                active: activeInputChars.length === idx,
                 error: isInputError
               }"
             >
-              {{ inputKeys[idx] || '' }}
+              {{ activeInputChars[idx] || '' }}
             </div>
           </div>
 
@@ -623,8 +624,14 @@ const rawInput = ref<string>('');
 const isComposing = ref<boolean>(false);
 const composingText = ref<string>('');
 const inputKeys = ref<string[]>([]);
+const activeInputChars = computed<string[]>(() => {
+  if (composingText.value) {
+    return composingText.value.slice(0, 4).split('');
+  }
+  return inputKeys.value;
+});
 
-let atbTimer: any = null;
+let atbTimer: ReturnType<typeof setInterval> | null = null;
 
 const currentTargetText = computed<string>(() => {
   if (!currentStage.value) return '';
@@ -659,7 +666,7 @@ const currentTargetRoots = computed<string[]>(() => {
 const nextExpectedKey = computed<string | null>(() => {
   const code = currentTargetCode.value;
   if (!code) return null;
-  const currentLen = inputKeys.value.length;
+  const currentLen = activeInputChars.value.length;
   if (currentLen < code.length) {
     return code[currentLen];
   }
@@ -706,6 +713,9 @@ const startBattle = (stage: DungeonStage, mode: 'sequential' | 'shuffled' = 'seq
   inputKeys.value = [];
   rawInput.value = '';
   composingText.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
   floatingDamages.value = [];
   showVictoryModal.value = false;
   showDefeatModal.value = false;
@@ -946,10 +956,13 @@ const onPlayerHit = (matchedLetters: number) => {
 
   soundPlayer.playKey(store.audio.value, true, false);
 
-  // 清空输入缓冲区
+  // 清空输入缓冲区与原生输入框
   inputKeys.value = [];
   rawInput.value = '';
   composingText.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
 
   // 推进到下一个目标，打完本关全部字后决出胜利
   if (currentTargetIndex.value < total - 1) {
@@ -995,6 +1008,9 @@ const onPlayerError = () => {
   inputKeys.value = [];
   rawInput.value = '';
   composingText.value = '';
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
 };
 
 // 胜利结算
@@ -1027,12 +1043,10 @@ const handleDefeat = () => {
   showDefeatModal.value = true;
 };
 
-let lastImeCommitTime = 0;
+let lastImeCommitText = '';
 
 // 键盘事件处理
 const onKeyDown = (e: KeyboardEvent) => {
-  if (isComposing.value) return;
-
   if (e.key === 'Tab') {
     e.preventDefault();
     if (playerEnergy.value >= 100) {
@@ -1042,84 +1056,88 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 
   if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (isComposing.value) {
+      // IME 组字期间退格：清除 composingText，由 IME 自己处理
+      return;
+    }
     if (inputKeys.value.length > 0) {
       inputKeys.value.pop();
+    }
+    const rem = inputKeys.value.join('');
+    rawInput.value = rem;
+    if (hiddenInputRef.value) {
+      hiddenInputRef.value.value = rem;
     }
     return;
   }
 
   if (e.key === ' ' || e.key === 'Spacebar') {
     e.preventDefault();
-    if (inputKeys.value.length === 0) {
-      return;
-    }
-    // 防抖：若刚在 250ms 内完成输入法选字上屏，该空格属于输入法确认键，忽略之
-    if (Date.now() - lastImeCommitTime < 250) {
-      return;
-    }
+    // 空格键：无论 IME 是否组字，都尝试出字
+    // isComposing=true 时用 composingText；false 时用 inputKeys
+    const typed = (composingText.value || inputKeys.value.join('')).toUpperCase();
+    if (!typed) return;
     checkAndCommit();
     return;
   }
 
+  // 字母键：IME 组字期间交给输入法处理，不重复累积
+  if (isComposing.value) return;
+
   if (/^[a-zA-Z]$/.test(e.key)) {
+    e.preventDefault();
     const key = e.key.toUpperCase();
+
     if (inputKeys.value.length < 4) {
       inputKeys.value.push(key);
-      // 若正好达到全码或简码长度，自动比对
+      const cur = inputKeys.value.join('');
+      rawInput.value = cur;
+      if (hiddenInputRef.value) {
+        hiddenInputRef.value.value = cur;
+      }
       checkAutoCommit();
     }
   }
 };
 
-let autoCommitTimer: any = null;
-
 const checkAutoCommit = () => {
-  if (autoCommitTimer) {
-    clearTimeout(autoCommitTimer);
-    autoCommitTimer = null;
-  }
-
   const typed = inputKeys.value.join('');
   const codes = currentTargetCodes.value;
 
-  // 1. 敲满全码直接瞬间命中（0 延迟盲打，免敲空格）
-  if (typed === codes.full) {
+  // 1. 敲满 4 码且命中合法编码（全码或已知合法编码）-> 直接瞬间命中（0 延迟盲打，免敲空格）
+  if (typed.length >= 4 && codes.all.includes(typed)) {
     onPlayerHit(typed.length);
     return;
   }
 
-  // 2. 敲满 4 码且不匹配任何合法编码（全码或已知简码）-> 立即报错走火入魔
-  if (typed.length === 4 && !codes.all.includes(typed)) {
+  // 2. 敲满 4 码且不匹配任何合法编码 -> 立即报错走火入魔
+  if (typed.length >= 4 && !codes.all.includes(typed)) {
     onPlayerError();
     return;
   }
 
-  // 3. 匹配任一合法简码（一简、二简、三简、键名二简等）
-  if (codes.shorts.includes(typed)) {
-    // 一级简码关卡（一键一字），0 延迟即刻出字
-    if (currentStage.value?.id === 'stage-6' || typed.length === codes.full.length) {
+  // 3. 一级简码关卡（一键一字）或 auto 模式：单键/简码即刻出字
+  if (store.commitMode.value === 'auto' || currentStage.value?.id === 'stage-6') {
+    if (codes.shorts.includes(typed) || typed === codes.full) {
       onPlayerHit(typed.length);
       return;
     }
-
-    // 其他关卡简码：等待 120ms 防抖
-    // 若玩家停手（如输入 SS 后等待换字），120ms 后秒速自动出字破阵！
-    // 若玩家继续敲全码（如 SSSS），后续击键将取消定时器，绝不切断全码流转！
-    autoCommitTimer = setTimeout(() => {
-      if (inputKeys.value.join('') === typed && codes.shorts.includes(typed)) {
-        onPlayerHit(typed.length);
-      }
-    }, 120);
   }
 };
 
 const checkAndCommit = () => {
-  if (autoCommitTimer) {
-    clearTimeout(autoCommitTimer);
-    autoCommitTimer = null;
+  let typed = (composingText.value || inputKeys.value.join('')).toUpperCase();
+
+  // 兜底：如果 composingText 和 inputKeys 都空，从 input 框原始值里取
+  if (!typed && hiddenInputRef.value) {
+    const raw = hiddenInputRef.value.value.trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+    if (raw) {
+      inputKeys.value = raw.split('');
+      typed = raw;
+    }
   }
 
-  const typed = inputKeys.value.join('');
   if (!typed) return;
   const codes = currentTargetCodes.value;
 
@@ -1137,32 +1155,85 @@ const onCompositionStart = () => {
 };
 
 const onCompositionUpdate = (e: CompositionEvent) => {
-  composingText.value = (e.data || '').toUpperCase();
+  isComposing.value = true;
+  composingText.value = (e.data || '').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
 };
 
 const onCompositionEnd = (e: CompositionEvent) => {
   isComposing.value = false;
-  const committedText = e.data || '';
+  const committedText = (e.data || '').trim();
   composingText.value = '';
   rawInput.value = '';
-  lastImeCommitTime = Date.now();
+  inputKeys.value = [];
+  if (hiddenInputRef.value) {
+    hiddenInputRef.value.value = '';
+  }
 
+  if (!committedText) return;
+  lastImeCommitText = committedText;
+
+  // 判定 1：汉字命中当前目标汉字
   if (committedText.includes(currentTargetText.value)) {
     onPlayerHit(4);
-  } else if (committedText.trim() !== '') {
-    onPlayerError();
+    return;
   }
+
+  // 判定 2：字母编码命中（若用户用输入法打出了英文大写编码上屏）
+  const upper = committedText.toUpperCase();
+  if (currentTargetCodes.value.all.includes(upper)) {
+    onPlayerHit(upper.length);
+    return;
+  }
+
+  // 错字走火入魔
+  onPlayerError();
 };
 
 const onNativeInput = (e: Event) => {
   if (isComposing.value) return;
-  // 防抖：避免 compositionend 紧随其后的 input 重复触发
-  if (Date.now() - lastImeCommitTime < 80) return;
   const target = e.target as HTMLInputElement;
   const val = target.value.trim();
-  if (val && val.includes(currentTargetText.value)) {
+  if (!val) return;
+
+  if (lastImeCommitText && val === lastImeCommitText) {
+    lastImeCommitText = '';
+    target.value = '';
+    return;
+  }
+  lastImeCommitText = '';
+
+  // 汉字命中当前目标
+  if (val.includes(currentTargetText.value)) {
     onPlayerHit(4);
     rawInput.value = '';
+    target.value = '';
+    inputKeys.value = [];
+    if (hiddenInputRef.value) {
+      hiddenInputRef.value.value = '';
+    }
+    return;
+  }
+
+  const upper = val.toUpperCase();
+
+  // 字母全码/简码命中
+  if (currentTargetCodes.value.all.includes(upper)) {
+    onPlayerHit(upper.length);
+    rawInput.value = '';
+    target.value = '';
+    inputKeys.value = [];
+    if (hiddenInputRef.value) {
+      hiddenInputRef.value.value = '';
+    }
+    return;
+  }
+
+  // 字母未命中：把字母同步到 inputKeys，让 checkAutoCommit 继续判定
+  // 防止 IME 绕过 onKeyDown 时字母丢失
+  const letters = upper.replace(/[^A-Z]/g, '').slice(0, 4);
+  if (letters && letters !== inputKeys.value.join('')) {
+    inputKeys.value = letters.split('');
+    checkAutoCommit();
   }
 };
 
@@ -1197,13 +1268,26 @@ const onBuyItem = (itemId: string) => {
   }
 };
 
+const handleWindowKeyDown = (e: KeyboardEvent) => {
+  if (!currentStage.value || showVictoryModal.value || showDefeatModal.value) return;
+  const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+  if (targetTag === 'textarea' || (targetTag === 'input' && e.target !== hiddenInputRef.value) || targetTag === 'select') {
+    return;
+  }
+  if (document.activeElement !== hiddenInputRef.value) {
+    focusHiddenInput();
+  }
+};
+
 onMounted(() => {
   // 预热错题秘境
   nightmareStage.value = rpgStore.createNightmareStage(store.mistakeList.value.map(m => m.char));
+  window.addEventListener('keydown', handleWindowKeyDown);
 });
 
 onUnmounted(() => {
   stopAtbTicker();
+  window.removeEventListener('keydown', handleWindowKeyDown);
 });
 </script>
 

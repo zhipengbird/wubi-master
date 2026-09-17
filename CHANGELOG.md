@@ -4,6 +4,42 @@
 
 ---
 
+## [1.7.2] - 2026-09-16
+
+### 🌟 核心亮点与输入体系重构 (Input Engine Refactor)
+- **正统五笔标准出字策略全面确立 (Standard Wubi Commit Specification)**：
+  - 确立全应用统一的正统五笔击键规则：**不足 4 码（1~3 码，含一简、二简、三简、3码全码）**在卡槽/输入胶囊中实时回显，**敲击【空格键】确认出字推进**；**满 4 码（4 键全码或4字词组）**打满第 4 键立即瞬间出字推进（0 延时、无需按空格）；
+  - **彻底清除全站所有异步 `setTimeout`（90ms/120ms）防抖定时器**：将打字特训 (`TypeEngine.vue`)、长文实战 (`ArticlePractice.vue`)、修仙打怪 (`RpgAdventure.vue`)、极速追逐赛 (`TypingChaseGame.vue`) 全部重构为纯事件驱动与确定性状态机，从架构上根除高速连击（100+ WPM）下的定时器竞争、按键取消覆盖、跨字泄漏与首字永久卡死缺陷。
+
+### 🐛 重点修复与排雷 (Fixed)
+- **长文实战输全码出汉字卡死缺陷根治 (Article Practice IME Commit & Capsule Echo Fix)**：
+  - 修复输入法选字上屏（如输入 `DEF` 敲空格出 `有`）后，汉字卡在输入胶囊中无法进入后续字词的严重缺陷；
+  - 规范输入法组合流（Composition）：过滤组字中间态字母至 `composingText`，并在 `compositionend` 与原生 `input` 同步核销推进、即刻清空输入框与缓存，彻底杜绝汉字留存卡死；
+- **RPG 修仙输入卡槽实时回显缺陷修复 (RPG Adventure Input Slots Composing Echo)**：
+  - 修复输入法组字过程中 4 位卡槽仅显示第 1 码的缺陷：引入 `activeInputChars` 响应式计算属性，实时动态回显输入法当前组字字母（如 `FGH`）至卡槽；
+  - 修复 `onCompositionEnd` 与 `onNativeInput`：同时兼容汉字上屏与纯字母编码上屏，杜绝走火入魔误判；
+- **全量自动化测试 100% 满分通过**：
+  - 99 项 Vitest 单元测试全部通过；
+  - 统一端到端自动化巡检 Harness (`scripts/e2eHarness.ts`) 61 项全量通过（UI 8大核心模块 35 项 + RPG 13关实战 26 项，100% 满分通过）。
+
+---
+
+## [1.7.1] - 2026-09-16
+
+### 🐛 重点修复与排雷 (Fixed)
+- **打字特训与RPG闯关输入残留跨字泄漏及首字卡死缺陷根治 (Input Carry-Over & Stuck State Fix)**：
+  - **根因分析 1（跨字编码泄漏）**：在 Vue 3 响应式单向流中，当单字命中简码/全码自动出字并清空 reactive `inputBuffer` 时，未在原生 DOM `<input>` 元素上显式调用 `target.value = ''` 与 `inputRef.value.value = ''`。导致下一个字输入时，旧字按键与新按键在原生事件流中累加（例如 `上` 的 `HH` 遗留进 `不` 中形成 `HHG`），造成后续汉字持续报错无法推进；
+  - **根因分析 2（高速连击取消导致首字永久卡死）**：当用户以 100+ WPM 高速敲字时，前一个简码的 `autoCommitTimer`（90ms）尚未延时触发，下一个字的按键便已按下。旧逻辑无差别 `clearTimeout` 导致前字提交逻辑被直接腰斩，新按键被错误算作前字的错误拼码，造成“一直卡在第一个字”；
+  - **根因分析 3（RPG 物理击键异步残留与焦点丢失）**：RPG 原生隐藏输入框在 `keydown` 未阻止默认动作，导致按键字符在 `onPlayerHit` 同步置空后仍被浏览器原生追加到 DOM；且缺少全局窗口监听，导致失焦后打字无响应。
+  - **解决方案与加固**：
+    - 在 `TypeEngine.vue`、`RpgAdventure.vue` 与 `ArticlePractice.vue` 建立统一定时器清理器 `clearAutoCommitTimer()`；
+    - 引入连击智能顺延机制：若待出字定时器存在且旧缓冲已匹配，用户键入新键时**立即结算并提交当前字**，并将新按键顺延作为下一个字的第 1 码（0 延迟、0 丢键、0 卡顿）；
+    - 全面接管 DOM 层面 `<input>` 的 `value = ''` 同步清空，杜绝跨字残留；
+    - `RpgAdventure.vue` 拦截 `keydown` 物理字符默认插入动作，改由 `inputKeys` 绝对受控管理，并挂载全局聚焦兜底监听器；
+    - `wubiEngine.ts` 升级 `evaluateInput` 引入 `getAllValidCodes`，完整支持一简、二简、键名二简及全码全方位无缝识别。
+
+---
+
 ## [1.7.0] - 2026-09-16
 
 ### 🌟 核心亮点
