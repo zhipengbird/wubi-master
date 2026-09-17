@@ -1,4 +1,5 @@
 import type { DungeonStage, RealmTitle, RpgItem } from '../types/rpg';
+export type { DungeonStage, RealmTitle, RpgItem };
 
 export const REALM_TITLES: RealmTitle[] = [
   {

@@ -73,7 +73,7 @@
       <!-- 关卡卡片网格 -->
       <div class="stages-grid">
         <div
-          v-for="(stage, idx) in displayedStages"
+          v-for="stage in displayedStages"
           :key="stage.id"
           class="stage-card"
           :class="{
@@ -164,7 +164,7 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
-        inputmode="latin"
+        inputmode="text"
       />
 
       <!-- 漂浮伤害数字容器 -->
@@ -316,7 +316,7 @@
           <!-- 输入卡槽回显 -->
           <div class="key-slots-container">
             <div
-              v-for="(slot, idx) in 4"
+              v-for="(_, idx) in 4"
               :key="idx"
               class="key-slot"
               :class="{
@@ -403,115 +403,27 @@
       </div>
     </main>
 
-    <!-- ================= 弹窗 A：藏宝阁法宝商店 ================= -->
-    <div class="rpg-modal-backdrop" v-if="showShop" @click.self="showShop = false">
-      <div class="rpg-modal-card shop-modal">
-        <div class="modal-header">
-          <h3 class="modal-title">🎒 藏宝阁 · 法宝密市</h3>
-          <button class="modal-close-btn" @click="showShop = false">✕</button>
-        </div>
+    <!-- ================= 弹窗子组件集成 ================= -->
+    <RpgShopModal
+      :show="showShop"
+      @close="showShop = false"
+    />
 
-        <div class="modal-body">
-          <div class="shop-coin-balance">
-            <span>当前持有修为铜钱：</span>
-            <span class="coins-highlight">🪙 {{ profile.coins }}</span>
-          </div>
-
-          <div class="shop-items-list">
-            <div v-for="item in items" :key="item.id" class="shop-item-row">
-              <div class="item-info-col">
-                <span class="item-big-icon">{{ item.icon }}</span>
-                <div>
-                  <h4 class="item-title">{{ item.name }} <span class="owned-tag">已拥有: {{ item.owned }}</span></h4>
-                  <p class="item-desc">{{ item.description }}</p>
-                </div>
-              </div>
-              <div class="item-buy-col">
-                <button
-                  class="buy-btn"
-                  :disabled="profile.coins < item.cost"
-                  @click="onBuyItem(item.id)"
-                >
-                  🪙 {{ item.cost }} 购买
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn-confirm" @click="showShop = false">离开藏宝阁</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= 弹窗 B：大捷胜利结算 ================= -->
-    <div class="rpg-modal-backdrop" v-if="showVictoryModal">
-      <div class="rpg-modal-card victory-modal">
-        <div class="modal-icon-banner">🏆</div>
-        <h2 class="victory-title">斩妖除魔 · 大获全胜！</h2>
-        <p class="victory-subtitle">恭喜道友成功击溃【{{ currentStage?.monster.name }}】！</p>
-
-        <div class="stars-awarded">
-          <span v-for="s in 3" :key="s" class="big-star" :class="{ earned: s <= earnedStars }">⭐</span>
-        </div>
-
-        <div class="rewards-summary-box">
-          <div class="reward-row">
-            <span>🎉 获得修为经验：</span>
-            <span class="exp-val">+{{ currentStage?.rewardExp }} EXP</span>
-          </div>
-          <div class="reward-row">
-            <span>🪙 获得修为铜钱：</span>
-            <span class="coin-val">+{{ currentStage?.rewardCoins }} 铜钱</span>
-          </div>
-          <div class="reward-row" v-if="didLevelUpInBattle">
-            <span class="lvl-up-tag">⚡ 境界突破！当前等级提升至 Lv.{{ profile.level }}！</span>
-          </div>
-
-          <!-- 斩妖奇遇宝箱 -->
-          <div class="loot-chest-container">
-            <div class="chest-banner-title">🎁 斩妖奇遇秘宝</div>
-            <div v-if="!isChestOpened" class="chest-box unopened" @click="openChest" title="点击开启奇遇宝箱">
-              <span class="chest-icon-bounce">📦</span>
-              <span class="chest-hint">点击开启随机掉落法宝或铜钱！</span>
-            </div>
-            <div v-else class="chest-opened-result animate-pop">
-              <span class="chest-reward-icon">{{ chestReward?.icon }}</span>
-              <div class="chest-reward-desc">
-                <span class="chest-reward-name">{{ chestReward?.name }}</span>
-                <span class="chest-reward-val">+{{ chestReward?.count }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="victory-actions">
-          <button class="btn-secondary" @click="exitBattle">返回关卡地图</button>
-          <button class="btn-secondary" @click="restartCurrentBattle('shuffled')" title="乱序再战，随机出字">🎲 乱序再战</button>
-          <button class="btn-secondary" @click="restartCurrentBattle('sequential')" title="循序温习原顺序">📖 循序再战</button>
-          <button class="btn-primary next-stage-btn" v-if="nextStage" @click="goToNextStage">进入下一关 ⚔️</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= 弹窗 C：战败重整提示 ================= -->
-    <div class="rpg-modal-backdrop" v-if="showDefeatModal">
-      <div class="rpg-modal-card defeat-modal">
-        <div class="modal-icon-banner">💀</div>
-        <h2 class="defeat-title">力战不支 · 道心受挫</h2>
-        <p class="defeat-subtitle">胜败乃兵家常事，少侠且回山修整，参悟字根再来一战！</p>
-
-        <div class="defeat-tip-box" v-if="currentStage">
-          {{ currentStage.tipSnippet }}
-        </div>
-
-        <div class="defeat-actions">
-          <button class="btn-secondary" @click="exitBattle">返回修整</button>
-          <button class="btn-primary" @click="restartCurrentBattle">满血重战</button>
-        </div>
-      </div>
-    </div>
+    <RpgBattleResultModal
+      :show-victory="showVictoryModal"
+      :show-defeat="showDefeatModal"
+      :current-stage="currentStage"
+      :next-stage="nextStage"
+      :earned-stars="earnedStars"
+      :did-level-up-in-battle="didLevelUpInBattle"
+      :is-chest-opened="isChestOpened"
+      :chest-reward="chestReward"
+      :profile-level="profile.level"
+      @open-chest="openChest"
+      @exit="exitBattle"
+      @restart="restartCurrentBattle"
+      @next="goToNextStage"
+    />
   </div>
 </template>
 
@@ -520,19 +432,20 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import confetti from 'canvas-confetti';
 import { useWubiStore } from '../stores/useWubiStore';
 import { useRpgStore } from '../stores/useRpgStore';
-import { DUNGEON_STAGES, type DungeonStage, type RpgItem } from '../data/rpgStages';
+import { DUNGEON_STAGES, type DungeonStage } from '../data/rpgStages';
 import type { FloatingDamage } from '../types/rpg';
-import { lookupWubiChar, getFullCode, getShortCode, calculatePhraseCode, getRoots, getAllValidCodes } from '../data/wubiDict';
+import { lookupWubiChar, getRoots, getAllValidCodes } from '../data/wubiDict';
 import { soundPlayer } from '../utils/audio';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import { useRpgInput } from '../composables/useRpgInput';
+import RpgShopModal from './rpg/RpgShopModal.vue';
+import RpgBattleResultModal from './rpg/RpgBattleResultModal.vue';
 
 const store = useWubiStore();
 const rpgStore = useRpgStore();
 
 const profile = rpgStore.profile;
 const currentRealm = rpgStore.currentRealm;
-const items = rpgStore.items;
 
 // 卷导航与过滤
 const activeVolume = ref<number>(1);
@@ -644,7 +557,6 @@ const currentTargetCodes = computed(() => {
 });
 
 const currentTargetCode = computed(() => currentTargetCodes.value.full);
-const currentTargetShortCodes = computed(() => currentTargetCodes.value.shorts);
 const currentTargetRoots = computed<string[]>(() => {
   const text = currentTargetText.value;
   if (!text || text.length > 1) return [];
@@ -658,7 +570,6 @@ const {
   rawInput,
   inputKeys,
   composingText,
-  isComposing,
   activeInputChars,
   focusHiddenInput,
   resetInput,
@@ -925,7 +836,7 @@ const spawnDamage = (text: string, isCrit: boolean, isPlayerDamage: boolean, x =
 };
 
 // 处理玩家有效命中与伤害
-const onPlayerHit = (matchedLetters: number) => {
+const onPlayerHit = (_matchedLetters?: number) => {
   if (!currentStage.value) return;
 
   combo.value += 1;
@@ -1062,11 +973,6 @@ const useBattleItem = (itemId: string) => {
   soundPlayer.playKey(store.audio.value, true, false);
 };
 
-const onBuyItem = (itemId: string) => {
-  if (rpgStore.buyItem(itemId)) {
-    soundPlayer.playKey(store.audio.value, true, false);
-  }
-};
 
 const handleWindowKeyDown = (e: KeyboardEvent) => {
   if (!currentStage.value || showVictoryModal.value || showDefeatModal.value) return;
@@ -1951,355 +1857,6 @@ onUnmounted(() => {
   color: var(--text-muted, #94a3b8);
   font-size: 0.85rem;
   cursor: pointer;
-}
-
-/* 弹窗通用 */
-.rpg-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  padding: 1rem;
-}
-
-.rpg-modal-card {
-  background: var(--card-bg, #1e293b);
-  border: 2px solid var(--border-color, #334155);
-  border-radius: 24px;
-  width: 100%;
-  max-width: 500px;
-  padding: 2rem;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  color: var(--text-main);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.modal-title {
-  font-size: 1.3rem;
-  margin: 0;
-  color: var(--text-main);
-}
-
-.modal-close-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted, #94a3b8);
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
-.shop-coin-balance {
-  background: rgba(180, 83, 9, 0.1);
-  border: 1px solid rgba(180, 83, 9, 0.25);
-  padding: 0.75rem;
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-  color: var(--text-main);
-}
-
-.coins-highlight {
-  font-weight: 800;
-  color: var(--warning, #fbbf24);
-}
-
-.shop-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  text-align: left;
-}
-
-.shop-item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem;
-  border-radius: 12px;
-  background: var(--bg-secondary, rgba(0, 0, 0, 0.2));
-  border: 1px solid var(--border-color, #334155);
-}
-
-.item-info-col {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.item-big-icon {
-  font-size: 2rem;
-}
-
-.item-title {
-  margin: 0 0 0.2rem 0;
-  font-size: 1rem;
-  color: var(--text-main);
-}
-
-.owned-tag {
-  font-size: 0.75rem;
-  color: var(--text-muted, #94a3b8);
-  font-weight: normal;
-}
-
-.item-desc {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-muted, #94a3b8);
-}
-
-.buy-btn {
-  padding: 0.5rem 0.85rem;
-  border-radius: 8px;
-  background: var(--warning, #f59e0b);
-  color: #ffffff;
-  border: none;
-  font-weight: 800;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.buy-btn:hover:not(:disabled) {
-  filter: brightness(1.15);
-}
-
-.buy-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.modal-footer {
-  margin-top: 1.5rem;
-}
-
-.btn-confirm {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 10px;
-  background: var(--bg-secondary, #334155);
-  color: var(--text-main, #ffffff);
-  border: 1px solid var(--border-color, transparent);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* 结算弹窗 */
-.modal-icon-banner {
-  font-size: 4rem;
-  margin-bottom: 0.5rem;
-}
-
-.victory-title {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--warning, #fbbf24);
-  margin: 0 0 0.5rem 0;
-}
-
-.victory-subtitle {
-  color: var(--text-muted, #94a3b8);
-  margin: 0 0 1.5rem 0;
-}
-
-.stars-awarded {
-  font-size: 2.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.big-star {
-  opacity: 0.25;
-  transition: all 0.3s ease;
-}
-
-.big-star.earned {
-  opacity: 1;
-  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.8));
-}
-
-.rewards-summary-box {
-  background: var(--bg-secondary, rgba(0, 0, 0, 0.25));
-  border: 1px solid var(--border-color, transparent);
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-.reward-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.95rem;
-  color: var(--text-main);
-}
-
-.exp-val {
-  color: var(--accent, #38bdf8);
-  font-weight: 800;
-}
-
-.coin-val {
-  color: var(--warning, #fbbf24);
-  font-weight: 800;
-}
-
-.lvl-up-tag {
-  color: #f43f5e;
-  font-weight: 800;
-  text-align: center;
-  width: 100%;
-}
-
-/* 奇遇秘宝箱 */
-.loot-chest-container {
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
-  border-top: 1px dashed var(--border-color, rgba(255, 255, 255, 0.15));
-  text-align: center;
-}
-
-.chest-banner-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--warning, #fbbf24);
-  margin-bottom: 0.5rem;
-}
-
-.chest-box.unopened {
-  background: rgba(180, 83, 9, 0.08);
-  border: 1px dashed var(--warning, #fbbf24);
-  border-radius: 10px;
-  padding: 0.75rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  transition: all 0.2s ease;
-}
-
-.chest-box.unopened:hover {
-  background: rgba(180, 83, 9, 0.15);
-  transform: translateY(-2px);
-}
-
-.chest-icon-bounce {
-  font-size: 2rem;
-  animation: chestBounce 1s infinite alternate ease-in-out;
-}
-
-@keyframes chestBounce {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-6px); }
-}
-
-.chest-hint {
-  font-size: 0.8rem;
-  color: var(--text-muted, #cbd5e1);
-}
-
-.chest-opened-result {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid var(--success, #10b981);
-  border-radius: 10px;
-  padding: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.animate-pop {
-  animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popIn {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.chest-reward-icon {
-  font-size: 2rem;
-}
-
-.chest-reward-desc {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.chest-reward-name {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--text-main, #ffffff);
-}
-
-.chest-reward-val {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--success, #10b981);
-}
-
-.victory-actions, .defeat-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-primary, .btn-secondary {
-  flex: 1;
-  padding: 0.85rem;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 1rem;
-  cursor: pointer;
-  border: none;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0284c7, #2563eb);
-  color: #ffffff;
-}
-
-.btn-secondary {
-  background: var(--bg-secondary, #334155);
-  color: var(--text-main, #cbd5e1);
-  border: 1px solid var(--border-color, transparent);
-}
-
-.defeat-title {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: #ef4444;
-  margin: 0 0 0.5rem 0;
-}
-
-.defeat-subtitle {
-  color: var(--text-muted, #94a3b8);
-  margin: 0 0 1.5rem 0;
-}
-
-.defeat-tip-box {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.85rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  color: #ef4444;
-  margin-bottom: 1.5rem;
-  text-align: left;
 }
 
 @media (max-width: 768px) {
